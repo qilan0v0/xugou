@@ -9,7 +9,7 @@ export const checkAgentsStatus = async (env: any) => {
     
     // 查询所有状态为active的客户端
     const activeAgents = await env.DB.prepare(
-      'SELECT id, name, updated_at FROM agents WHERE status = "active"'
+      "SELECT id, name, updated_at FROM agents WHERE status = 'active'"
     ).all();
     
     if (!activeAgents.results || activeAgents.results.length === 0) {
@@ -28,7 +28,7 @@ export const checkAgentsStatus = async (env: any) => {
         
         // 更新客户端状态为inactive
         await env.DB.prepare(
-          'UPDATE agents SET status = "inactive" WHERE id = ?'
+          "UPDATE agents SET status = 'inactive' WHERE id = ?"
         ).bind(agent.id).run();
       }
     }

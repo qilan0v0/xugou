@@ -41,20 +41,29 @@ func NewHTTPReporter(serverURL, apiToken string) Reporter {
 	}
 }
 
-// StatusPayload 定义上报到后端的数据结构
+// StatusPayload 定义上报到后端的数据结构（包含 flat + nested 字段）
 type StatusPayload struct {
-	Token       string  `json:"token"` // API令牌
-	CPUUsage    float64 `json:"cpu_usage"`
-	MemoryTotal uint64  `json:"memory_total"`
-	MemoryUsed  uint64  `json:"memory_used"`
-	DiskTotal   uint64  `json:"disk_total"`
-	DiskUsed    uint64  `json:"disk_used"`
-	NetworkRX   uint64  `json:"network_rx"`
-	NetworkTX   uint64  `json:"network_tx"`
-	Hostname    string  `json:"hostname"`   // 主机名
-	IPAddress   string  `json:"ip_address"` // IP地址
-	OS          string  `json:"os"`         // 操作系统
-	Version     string  `json:"version"`    // 操作系统版本
+	Token        string              `json:"token"`
+	CPUUsage     float64             `json:"cpu_usage"`
+	MemoryTotal  uint64              `json:"memory_total"`
+	MemoryUsed   uint64              `json:"memory_used"`
+	DiskTotal    uint64              `json:"disk_total"`
+	DiskUsed     uint64              `json:"disk_used"`
+	NetworkRX    uint64              `json:"network_rx"`
+	NetworkTX    uint64              `json:"network_tx"`
+	Hostname     string              `json:"hostname"`
+	IPAddresses  []string            `json:"ip_addresses"`
+	IPAddress    string              `json:"ip_address"`
+	OS           string              `json:"os"`
+	Version      string              `json:"version"`
+	CPU          collector.CPUInfo   `json:"cpu"`
+	Memory       collector.MemoryInfo `json:"memory"`
+	Disks        []collector.DiskInfo `json:"disks"`
+	Network      []collector.NetworkInfo `json:"network"`
+	Load         collector.LoadInfo  `json:"load"`
+	BootTime     string              `json:"boot_time"`
+	AgentVersion string              `json:"agent_version"`
+	Keepalive    int                 `json:"keepalive"`
 }
 
 // RegisterPayload 定义注册到后端的数据结构
@@ -183,20 +192,34 @@ func (r *HTTPReporter) Report(ctx context.Context, info *collector.SystemInfo) e
 	r.lastNetworkTX = currentNetworkTX
 	r.lastUpdateTime = now
 
-	// 构建上报的数据结构
+	// 构建上报的数据结构（flat + nested 字段，兼容后端 DIRECT handler 提取）
+	bootTimeStr := ""
+	if !info.BootTime.IsZero() {
+		bootTimeStr = info.BootTime.Format(time.RFC3339)
+	}
+	localIP := getLocalIP()
 	payload := StatusPayload{
-		Token:       r.apiToken,
-		CPUUsage:    info.CPUInfo.Usage,
-		MemoryTotal: info.MemoryInfo.Total / 1024, // 转换为 KB
-		MemoryUsed:  info.MemoryInfo.Used / 1024,  // 转换为 KB
-		DiskTotal:   diskTotal / 1024,             // 转换为 KB
-		DiskUsed:    diskUsed / 1024,              // 转换为 KB
-		NetworkRX:   uint64(networkRXRate),        // 网络接收速率（KB/s）
-		NetworkTX:   uint64(networkTXRate),        // 网络发送速率（KB/s）
-		Hostname:    info.Hostname,                // 添加主机名
-		OS:          info.OS,                      // 添加操作系统信息
-		Version:     info.Version,                 // 添加操作系统版本
-		IPAddress:   getLocalIP(),                 // 获取本地IP地址
+		Token:        r.apiToken,
+		CPUUsage:     info.CPUInfo.Usage,
+		MemoryTotal:  info.MemoryInfo.Total / 1024,
+		MemoryUsed:   info.MemoryInfo.Used / 1024,
+		DiskTotal:    diskTotal / 1024,
+		DiskUsed:     diskUsed / 1024,
+		NetworkRX:    uint64(networkRXRate),
+		NetworkTX:    uint64(networkTXRate),
+		Hostname:     info.Hostname,
+		IPAddresses:  []string{localIP},
+		IPAddress:    localIP,
+		OS:           info.OS,
+		Version:      info.Version,
+		CPU:          info.CPUInfo,
+		Memory:       info.MemoryInfo,
+		Disks:        info.DiskInfo,
+		Network:      info.NetworkInfo,
+		Load:         info.LoadInfo,
+		BootTime:     bootTimeStr,
+		AgentVersion: collector.Version,
+		Keepalive:    30,
 	}
 
 	// 将数据转换为JSON

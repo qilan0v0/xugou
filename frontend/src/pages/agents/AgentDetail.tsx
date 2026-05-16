@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeftIcon, Pencil1Icon, Cross2Icon, ReloadIcon, ClockIcon, DesktopIcon, GlobeIcon, LaptopIcon } from '@radix-ui/react-icons';
+import { ArrowLeftIcon, Pencil1Icon, Cross2Icon, ReloadIcon, ClockIcon, DesktopIcon, GlobeIcon, LaptopIcon, CrumpledPaperIcon, Component1Icon, ActivityLogIcon, TimerIcon, CodeIcon } from '@radix-ui/react-icons';
 import * as Toast from '@radix-ui/react-toast';
 import { getAgent, Agent, deleteAgent } from '../../api/agents';
 import ClientResourceSection from '../../components/ClientResourceSection';
 import { useTranslation } from 'react-i18next';
 
 interface AgentWithResources extends Agent {
-  uptime: number; cpuUsage?: number; memoryUsage?: number; diskUsage?: number; networkRx?: number; networkTx?: number;
+  uptime: number; uptimeStr: string; cpuUsage?: number; memoryUsage?: number; diskUsage?: number; networkRx?: number; networkTx?: number;
 }
 
 const AgentDetail = () => {
@@ -15,6 +15,7 @@ const AgentDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [agent, setAgent] = useState<AgentWithResources | null>(null);
   const [loading, setLoading] = useState(true);
+  const [initialLoad, setInitialLoad] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [toastOpen, setToastOpen] = useState(false);
@@ -23,23 +24,28 @@ const AgentDetail = () => {
   const { t } = useTranslation();
 
   const fetchData = async () => {
-    setLoading(true); setError(null);
+    if (initialLoad) setLoading(true);
+    setError(null);
     try {
       const res = await getAgent(Number(id));
       if (!res.success || !res.agent) throw new Error(res.message || t('common.error.fetch'));
       const a = res.agent;
       const mem = a.memory_total && a.memory_used ? Math.round((a.memory_used / a.memory_total) * 100) : 0;
       const disk = a.disk_total && a.disk_used ? Math.round((a.disk_used / a.disk_total) * 100) : 0;
-      setAgent({ ...a, uptime: 0, cpuUsage: a.cpu_usage || 0, memoryUsage: mem, diskUsage: disk, networkRx: a.network_rx || 0, networkTx: a.network_tx || 0 });
+      const uptime = a.boot_time ? Math.max(0, Date.now() - new Date(a.boot_time).getTime()) : 0;
+      const uptimeStr = uptime ? `${Math.floor(uptime / 86400000)}d ${Math.floor((uptime % 86400000) / 3600000)}h ${Math.floor((uptime % 3600000) / 60000)}m` : '';
+      setAgent({ ...a, uptime, uptimeStr, cpuUsage: a.cpu_usage || 0, memoryUsage: mem, diskUsage: disk, networkRx: a.network_rx || 0, networkTx: a.network_tx || 0 });
     } catch (err) {
       setError(err instanceof Error ? err.message : t('common.error.fetch'));
-    } finally { setLoading(false); }
+    } finally {
+      if (initialLoad) { setLoading(false); setInitialLoad(false); }
+    }
   };
 
   useEffect(() => {
     if (id && !isNaN(Number(id))) { fetchData(); const i = setInterval(fetchData, 60000); return () => clearInterval(i); }
     else { setError(t('agents.notFoundId', { id })); setLoading(false); }
-  }, [id, t]);
+  }, [id]);
 
   const handleDelete = async () => {
     if (!confirm(t('agent.deleteConfirm'))) return;
@@ -104,12 +110,25 @@ const AgentDetail = () => {
             <div className="flex items-center gap-2"><DesktopIcon className="text-slate-400" /><span className="text-slate-500">{t('agent.os')}:</span><span>{agent.os || t('common.notFound')}</span></div>
             <div className="flex items-center gap-2"><LaptopIcon className="text-slate-400" /><span className="text-slate-500">{t('agent.version')}:</span><span>{agent.version || t('common.notFound')}</span></div>
             <div className="flex items-center gap-2"><GlobeIcon className="text-slate-400" /><span className="text-slate-500">{t('agent.hostname')}:</span><span>{agent.hostname || t('common.notFound')}</span></div>
-            <div className="flex items-center gap-2"><LaptopIcon className="text-slate-400" /><span className="text-slate-500">{t('agent.ipAddress')}:</span><span>{agent.ip_address || t('common.notFound')}</span></div>
+            <div className="flex items-center gap-2"><GlobeIcon className="text-slate-400" /><span className="text-slate-500">{t('agent.ipAddress')}:</span><span>{agent.ip_address || t('common.notFound')}</span></div>
+            {agent.cpu_arch && <div className="flex items-center gap-2"><Component1Icon className="text-slate-400" /><span className="text-slate-500">{t('agent.cpuArch')}:</span><span>{agent.cpu_arch}</span></div>}
+            {agent.cpu_model_name && <div className="flex items-center gap-2"><CrumpledPaperIcon className="text-slate-400" /><span className="text-slate-500">{t('agent.cpuModel')}:</span><span className="truncate max-w-[200px]">{agent.cpu_model_name}</span></div>}
+            {agent.cpu_cores != null && <div className="flex items-center gap-2"><Component1Icon className="text-slate-400" /><span className="text-slate-500">{t('agent.cpuCores')}:</span><span>{agent.cpu_cores}</span></div>}
+            {(agent.load1 != null || agent.load5 != null || agent.load15 != null) && <div className="flex items-center gap-2"><ActivityLogIcon className="text-slate-400" /><span className="text-slate-500">{t('agent.loadAverage')}:</span><span>{[agent.load1, agent.load5, agent.load15].map(v => v?.toFixed(2) ?? '-').join(' / ')}</span></div>}
+            {agent.boot_time && <div className="flex items-center gap-2"><TimerIcon className="text-slate-400" /><span className="text-slate-500">{t('agent.bootTime')}:</span><span>{formatDateTime(agent.boot_time)}</span></div>}
+            {agent.uptimeStr && <div className="flex items-center gap-2"><TimerIcon className="text-slate-400" /><span className="text-slate-500">{t('agent.uptime')}:</span><span>{agent.uptimeStr}</span></div>}
+            {agent.agent_version && <div className="flex items-center gap-2"><CodeIcon className="text-slate-400" /><span className="text-slate-500">{t('agent.agentVersion')}:</span><span>{agent.agent_version}</span></div>}
           </div>
         </div>
         <div className="glass p-5">
           <h3 className="font-semibold text-slate-900 dark:text-white mb-3">{t('agent.systemResources')}</h3>
           <ClientResourceSection cpuUsage={agent.cpuUsage || 0} memoryUsage={agent.memoryUsage || 0} diskUsage={agent.diskUsage || 0} networkRx={agent.networkRx || 0} networkTx={agent.networkTx || 0} />
+          {(agent.network_rx_total != null || agent.network_tx_total != null) && (
+            <div className='mt-3 pt-3 border-t border-slate-200 dark:border-white/5 text-xs text-slate-500 flex gap-4'>
+              {agent.network_rx_total != null && <span>{t('agent.networkTotalRx')}: {(agent.network_rx_total / 1073741824).toFixed(2)} GiB</span>}
+              {agent.network_tx_total != null && <span>{t('agent.networkTotalTx')}: {(agent.network_tx_total / 1073741824).toFixed(2)} GiB</span>}
+            </div>
+          )}
         </div>
       </div>
 

@@ -328,9 +328,31 @@ monitors.post('/:id/check', async (c) => {
         const now = new Date().toISOString();
         let status = 'down';
         // 判断状态
-        if (response && response.status === monitor.expected_status) {
-            status = 'up';
+        let isUp = false;
+        // 支持状态码范围检查
+        if (monitor.expected_status === 2) {
+            // 如果是2，则表示2xx
+            isUp = response ? (response.status >= 200 && response.status < 300) : false;
         }
+        else if (monitor.expected_status === 3) {
+            // 如果是3，则表示3xx
+            isUp = response ? (response.status >= 300 && response.status < 400) : false;
+        }
+        else if (monitor.expected_status === 4) {
+            // 如果是4，则表示4xx
+            isUp = response ? (response.status >= 400 && response.status < 500) : false;
+        }
+        else if (monitor.expected_status === 5) {
+            // 如果是5，则表示5xx
+            isUp = response ? (response.status >= 500 && response.status < 600) : false;
+        }
+        else {
+            // 其他情况，精确匹配
+            isUp = response ? (response.status === monitor.expected_status) : false;
+        }
+        status = isUp ? 'up' : 'down';
+        // 添加调试日志
+        console.log(`监控状态判断: 返回状态码=${response?.status}, 期望状态码=${monitor.expected_status}, 最终状态=${status}`);
         // 更新监控状态
         await c.env.DB.prepare(`
       UPDATE monitors

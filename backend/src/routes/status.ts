@@ -61,6 +61,16 @@ interface Agent {
   ip_address?: string;
   os?: string;
   version?: string;
+  cpu_arch?: string;
+  cpu_model_name?: string;
+  cpu_cores?: number;
+  load1?: number;
+  load5?: number;
+  load15?: number;
+  boot_time?: string;
+  network_rx_total?: number;
+  network_tx_total?: number;
+  agent_version?: string;
 }
 
 // 数据库中的状态页配置记录
@@ -435,12 +445,22 @@ app.get('/data', async (c) => {
         cpu: agent.cpu_usage || 0,               // 使用数据库中的CPU使用率
         memory: memoryPercent || 0,              // 使用数据库中的内存使用百分比
         disk: diskPercent || 0,                  // 使用数据库中的磁盘使用百分比
-        network_rx: agent.network_rx || 0,       // 使用数据库中的网络下载速率
-        network_tx: agent.network_tx || 0,       // 使用数据库中的网络上传速率
+        network_rx: agent.network_rx || 0,
+        network_tx: agent.network_tx || 0,
         hostname: agent.hostname || "未知主机",
         ip_address: agent.ip_address || "0.0.0.0",
         os: agent.os || "未知系统",
-        version: agent.version || "未知版本"
+        version: agent.version || "未知版本",
+        cpu_arch: agent.cpu_arch || null,
+        cpu_model_name: agent.cpu_model_name || null,
+        cpu_cores: agent.cpu_cores || null,
+        load1: agent.load1 ?? null,
+        load5: agent.load5 ?? null,
+        load15: agent.load15 ?? null,
+        boot_time: agent.boot_time || null,
+        network_rx_total: agent.network_rx_total || 0,
+        network_tx_total: agent.network_tx_total || 0,
+        agent_version: agent.agent_version || null
       };
     });
     
@@ -464,7 +484,17 @@ app.get('/data', async (c) => {
           hostname: agent.hostname,
           ip_address: agent.ip_address,
           os: agent.os,
-          version: agent.version
+          version: agent.version,
+          cpu_arch: agent.cpu_arch,
+          cpu_model_name: agent.cpu_model_name,
+          cpu_cores: agent.cpu_cores,
+          load1: agent.load1,
+          load5: agent.load5,
+          load15: agent.load15,
+          boot_time: agent.boot_time,
+          network_rx_total: agent.network_rx_total,
+          network_tx_total: agent.network_tx_total,
+          agent_version: agent.agent_version
         }))
       }
     });

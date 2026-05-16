@@ -3,7 +3,7 @@ import { jwt } from 'hono/jwt';
 import { Context, Next } from 'hono';
 import { Bindings } from '../models/db';
 import { Agent } from '../models/agent';
-import { getJwtSecret, generateToken } from '../utils/jwt';
+import { getJwtSecret, generateToken, toD1Primitive } from '../utils/jwt';
 
 const agents = new Hono<{ Bindings: Bindings; Variables: { agent: Agent; jwtPayload: any } }>();
 
@@ -124,7 +124,17 @@ agents.get('/:id', async (c) => {
         disk_total: rest.disk_total || 0,
         disk_used: rest.disk_used || 0,
         network_rx: rest.network_rx || 0,
-        network_tx: rest.network_tx || 0
+        network_tx: rest.network_tx || 0,
+        cpu_arch: rest.cpu_arch || null,
+        cpu_model_name: rest.cpu_model_name || null,
+        cpu_cores: rest.cpu_cores || null,
+        load1: rest.load1 ?? null,
+        load5: rest.load5 ?? null,
+        load15: rest.load15 ?? null,
+        boot_time: rest.boot_time || null,
+        network_rx_total: rest.network_rx_total || 0,
+        network_tx_total: rest.network_tx_total || 0,
+        agent_version: rest.agent_version || null
       }
     });
   } catch (error) {
@@ -428,20 +438,28 @@ agents.post('/register', async (c) => {
     
     const now = new Date().toISOString();
     
-    // 查找是否已存在使用相同token的客户端
-    const existingAgent = await c.env.DB.prepare(
+    // 1. 先按 token 匹配
+    let existingAgent = await c.env.DB.prepare(
       'SELECT id FROM agents WHERE token = ?'
     ).bind(token).first<{id: number}>();
-    
+
+    // 2. token 未匹配，按 hostname 匹配（复用同机器最近活跃的记录）
+    if (!existingAgent && hostname) {
+      existingAgent = await c.env.DB.prepare(
+        'SELECT id FROM agents WHERE hostname = ? ORDER BY updated_at DESC LIMIT 1'
+      ).bind(hostname).first<{id: number}>();
+    }
+
     if (existingAgent) {
-      // 如果客户端已存在，更新其状态信息
+      // 更新已有客户端（含 token，同 hostname 时迁移 token）
       const updateResult = await c.env.DB.prepare(
-        `UPDATE agents SET 
+        `UPDATE agents SET
          status = 'active',
          hostname = ?,
          ip_address = ?,
          os = ?,
          version = ?,
+         token = ?,
          updated_at = ?
          WHERE id = ?`
       ).bind(
@@ -449,53 +467,27 @@ agents.post('/register', async (c) => {
         ip_address || null,
         os || null,
         version || null,
+        token,
         new Date().toISOString(),
         existingAgent.id
       ).run();
-      
+
       if (!updateResult.success) {
         throw new Error('更新客户端信息失败');
       }
-      
-      return c.json({ 
-        success: true, 
+
+      return c.json({
+        success: true,
         message: '客户端状态更新成功',
         agent: existingAgent
       });
     }
-    
-    // 如果客户端不存在，则创建新客户端
-    const result = await c.env.DB.prepare(
-      `INSERT INTO agents 
-       (name, token, created_by, status, created_at, updated_at, hostname, ip_address, os, version) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    ).bind(
-      name || 'New Agent',
-      token,
-      adminUser.id,
-      'active',
-      now,
-      now,
-      hostname || null,
-      ip_address || null,
-      os || null,
-      version || null
-    ).run();
-    
-    if (!result.success) {
-      throw new Error('创建客户端失败');
-    }
-    
-    // 获取新创建的客户端
-    const newAgent = await c.env.DB.prepare(
-      'SELECT id FROM agents WHERE token = ?'
-    ).bind(token).first();
-    
-    return c.json({ 
-      success: true, 
-      message: '客户端注册成功',
-      agent: newAgent
-    }, 201);
+
+    // 3. token 和 hostname 都未匹配，拒绝自动注册
+    return c.json({
+      success: false,
+      message: '客户端未找到，请先在 Web 界面创建客户端并使用生成的 token'
+    }, 404);
   } catch (error) {
     console.error('客户端注册错误:', error);
     return c.json({ 
@@ -562,20 +554,20 @@ agents.post('/status', async (c) => {
       disk_used,
       network_rx,
       network_tx,
-      hostname,
-      ip_address,
-      os,
-      version,
+      toD1Primitive(hostname),
+      toD1Primitive(ip_address),
+      toD1Primitive(os),
+      toD1Primitive(version),
       new Date().toISOString(),
       agent.id
     ).run();
-    
+
     if (!result.success) {
       throw new Error('更新客户端状态失败');
     }
-    
-    return c.json({ 
-      success: true, 
+
+    return c.json({
+      success: true,
       message: '客户端状态已更新'
     });
   } catch (error) {

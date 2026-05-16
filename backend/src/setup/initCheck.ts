@@ -11,6 +11,28 @@ import {
   createDefaultStatusPage 
 } from './database';
 
+// 运行 D1 迁移（安全重复执行）
+export async function runMigrations(env: Bindings): Promise<void> {
+  const newColumns = [
+    'cpu_arch TEXT',
+    'cpu_model_name TEXT',
+    'cpu_cores INTEGER',
+    'load1 REAL',
+    'load5 REAL',
+    'load15 REAL',
+    'boot_time TEXT',
+    'network_rx_total INTEGER',
+    'network_tx_total INTEGER',
+    'agent_version TEXT',
+  ];
+  for (const col of newColumns) {
+    try {
+      await env.DB.exec(`ALTER TABLE agents ADD COLUMN ${col}`);
+      console.log(`Migration: added column ${col}`);
+    } catch (e) { /* column likely already exists, skip */ }
+  }
+}
+
 // 检查并初始化数据库
 export async function checkAndInitializeDatabase(env: Bindings): Promise<{ initialized: boolean, message: string }> {
   try {
@@ -25,10 +47,11 @@ export async function checkAndInitializeDatabase(env: Bindings): Promise<{ initi
       
       // 如果数据库中已经有用户，则不需要初始化
       if (userCount && userCount.count > 0) {
-        console.log('数据库已初始化，跳过初始化操作...');
+        console.log('数据库已初始化，运行迁移...');
+        await runMigrations(env);
         return {
           initialized: false,
-          message: '数据库已经初始化，不需要重新初始化',
+          message: '数据库已经初始化，已运行迁移',
         };
       }
     } catch (error) {
@@ -44,6 +67,9 @@ export async function checkAndInitializeDatabase(env: Bindings): Promise<{ initi
       // 使用database.ts中的函数创建表
       await createTables(env);
     }
+
+    // 运行迁移（确保所有列都存在）
+    await runMigrations(env);
     
     // 创建管理员用户（复用database.ts中的函数）
     await createAdminUser(env);

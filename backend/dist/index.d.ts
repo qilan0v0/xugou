@@ -1,4 +1,3 @@
-import { Bindings } from './models/db';
 declare global {
     namespace NodeJS {
         interface ProcessEnv {
@@ -9,7 +8,7 @@ declare global {
     }
 }
 declare const _default: {
-    fetch: (request: Request, Env?: {} | Bindings | undefined, executionCtx?: import("hono").ExecutionContext) => Response | Promise<Response>;
+    fetch(request: Request, env: any, ctx: any): Promise<Response>;
     scheduled(event: any, env: any, ctx: any): Promise<void>;
 };
 export default _default;

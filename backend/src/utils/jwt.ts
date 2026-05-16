@@ -24,6 +24,16 @@ export const getJwtSecret = (c: any): string => {
  * 
  * @returns 生成的随机令牌
  */
+/**
+ * Ensure a value is safe for D1 binding (primitive only — no objects/arrays).
+ */
+export function toD1Primitive(v: any): string | number | null {
+  if (v === null || v === undefined) return null;
+  if (Array.isArray(v)) return toD1Primitive(v[0]);
+  if (typeof v === 'object') return String(v);
+  return v;
+}
+
 export async function generateToken(): Promise<string> {
   const array = new Uint8Array(32);
   crypto.getRandomValues(array);

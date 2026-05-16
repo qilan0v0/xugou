@@ -3,21 +3,36 @@ main = "src/index.ts"
 compatibility_date = "2025-03-10"
 compatibility_flags = ["nodejs_compat"]
 
-[env.production]
-vars = { NODE_ENV = "production" }
-
-# 添加定时触发器，每分钟执行一次监控检查
-[triggers]
-crons = ["* * * * *"]
-
-[env.development]
-vars = { NODE_ENV = "development" }
+[vars]
+JWT_SECRET = "8e2904a6-819f-44f1-9d81-179d7a6d626b"
+ENABLE_DB_INIT = "true"
 
 [[d1_databases]]
 binding = "DB"
 database_name = "xugou_db"
 database_id = "b3bbe7a0-b4b2-4345-9c26-6b8fb3a4c899"
 
-[vars]
-JWT_SECRET = "8e2904a6-819f-44f1-9d81-179d7a6d626b" 
-ENABLE_DB_INIT = "true" 
+[triggers]
+crons = ["* * * * *"]
+
+[env.production]
+vars = { NODE_ENV = "production", JWT_SECRET = "8e2904a6-819f-44f1-9d81-179d7a6d626b", ENABLE_DB_INIT = "true" }
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "xugou_db"
+database_id = "b3bbe7a0-b4b2-4345-9c26-6b8fb3a4c899"
+
+[env.production.triggers]
+crons = ["* * * * *"]
+
+[env.development]
+vars = { NODE_ENV = "development", JWT_SECRET = "8e2904a6-819f-44f1-9d81-179d7a6d626b", ENABLE_DB_INIT = "true" }
+
+[[env.development.d1_databases]]
+binding = "DB"
+database_name = "xugou_db"
+database_id = "b3bbe7a0-b4b2-4345-9c26-6b8fb3a4c899"
+
+[env.development.triggers]
+crons = ["* * * * *"]

@@ -14,6 +14,9 @@ import (
 	"github.com/shirou/gopsutil/v3/net"
 )
 
+// Version is set via ldflags at build time
+var Version = "0.1.0"
+
 // SystemInfo 包含系统的各种信息
 type SystemInfo struct {
 	Timestamp   time.Time     `json:"timestamp"`
@@ -33,6 +36,7 @@ type CPUInfo struct {
 	Usage       float64 `json:"usage"`
 	Cores       int     `json:"cores"`
 	ModelName   string  `json:"model_name"`
+	Arch        string  `json:"arch"`
 	Temperature float64 `json:"temperature,omitempty"`
 }
 
@@ -121,6 +125,7 @@ func (c *DefaultCollector) Collect(ctx context.Context) (*SystemInfo, error) {
 		Usage:     cpuPercent[0],
 		Cores:     runtime.NumCPU(),
 		ModelName: modelName,
+		Arch:      runtime.GOARCH,
 	}
 
 	// 获取内存信息
@@ -186,6 +191,15 @@ func (c *DefaultCollector) Collect(ctx context.Context) (*SystemInfo, error) {
 			Load15: loadAvg.Load15,
 		}
 	}
+
+	// 获取系统启动时间
+	bootTime, err := host.BootTime()
+	if err == nil {
+		info.BootTime = time.Unix(int64(bootTime), 0)
+	}
+
+	// 设置 Agent 版本（从编译时 ldflags 注入）
+	info.AgentVersion = Version
 
 	return info, nil
 }

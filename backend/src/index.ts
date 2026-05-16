@@ -4,6 +4,7 @@ import { cors } from 'hono/cors';
 import { Bindings } from './models/db';
 import { prettyJSON } from 'hono/pretty-json';
 import { checkAndInitializeDatabase } from './setup/initCheck';
+import { toD1Primitive } from './utils/jwt';
 
 // 声明环境变量类型
 declare global {
@@ -46,7 +47,7 @@ import agentRoutes from './routes/agents';
 import userRoutes from './routes/users';
 import statusRoutes from './routes/status';
 import initDbRoutes from './setup/database';
-import { monitorTask, runScheduledTasks } from './tasks';
+import { monitorTask, runScheduledTasks, checkAgentsStatus } from './tasks';
 
 // 创建Hono应用
 const app = new Hono<{ Bindings: Bindings }>();
@@ -83,6 +84,72 @@ const getJwtSecret = (c: any) => {
   return process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 };
 
+// 直接处理 agent status 上报 (在子路由之前匹配，确保优先处理)
+app.post('/api/agents/status', async (c) => {
+  try {
+    const raw = await c.req.text();
+    const body = JSON.parse(raw);
+    const token = body.token;
+    const cpu = body.cpu_usage ?? body.cpu?.usage ?? null;
+    const memTotal = body.memory_total ?? body.memory?.total ?? null;
+    const memUsed = body.memory_used ?? body.memory?.used ?? null;
+    let diskTotal = body.disk_total;
+    let diskUsed = body.disk_used;
+    if ((diskTotal == null) && Array.isArray(body.disks)) {
+      diskTotal = body.disks.reduce((s: number, d: any) => s + (d.total || 0), 0);
+      diskUsed = body.disks.reduce((s: number, d: any) => s + (d.used || 0), 0);
+    }
+    let netRx = body.network_rx;
+    let netTx = body.network_tx;
+    if ((netRx == null) && Array.isArray(body.network)) {
+      netRx = body.network.reduce((s: number, n: any) => s + (n.bytes_recv || 0), 0);
+      netTx = body.network.reduce((s: number, n: any) => s + (n.bytes_sent || 0), 0);
+    }
+
+    // New system info fields from nested SystemInfo JSON
+    const cpuArch = toD1Primitive(body.cpu_arch ?? body.cpu?.arch ?? null);
+    const cpuModelName = toD1Primitive(body.cpu_model_name ?? body.cpu?.model_name ?? null);
+    const cpuCores = body.cpu_cores ?? body.cpu?.cores ?? null;
+    const l1 = body.load1 ?? body.load?.load1 ?? null;
+    const l5 = body.load5 ?? body.load?.load5 ?? null;
+    const l15 = body.load15 ?? body.load?.load15 ?? null;
+    const bt = toD1Primitive(body.boot_time ?? null);
+    const av = toD1Primitive(body.agent_version ?? null);
+    let netRxTotal = body.network_rx_total;
+    let netTxTotal = body.network_tx_total;
+    if ((netRxTotal == null) && Array.isArray(body.network)) {
+      netRxTotal = body.network.reduce((s: number, n: any) => s + (n.bytes_recv || 0), 0);
+      netTxTotal = body.network.reduce((s: number, n: any) => s + (n.bytes_sent || 0), 0);
+    }
+
+    if (!token) return c.json({ success: false, message: 'no token' }, 400);
+
+    const agent = await c.env.DB.prepare('SELECT id FROM agents WHERE token = ?').bind(token).first<{id: number}>();
+    if (!agent) return c.json({ success: false, message: 'agent not found' }, 404);
+
+    const result = await c.env.DB.prepare(
+      `UPDATE agents SET status='active', cpu_usage=?, memory_total=?, memory_used=?, disk_total=?, disk_used=?, network_rx=?, network_tx=?, hostname=?, ip_address=?, os=?, version=?, cpu_arch=?, cpu_model_name=?, cpu_cores=?, load1=?, load5=?, load15=?, boot_time=?, network_rx_total=?, network_tx_total=?, agent_version=?, updated_at=?, last_payload=? WHERE id=?`
+    ).bind(
+      cpu, memTotal, memUsed, diskTotal, diskUsed, netRx, netTx,
+      toD1Primitive(body.hostname), toD1Primitive(body.ip_address ?? (Array.isArray(body.ip_addresses) ? body.ip_addresses[0] : null) ?? (Array.isArray(body.ip) ? body.ip[0] : body.ip) ?? body.IP),
+      toD1Primitive(body.os), toD1Primitive(body.version),
+      cpuArch, cpuModelName, cpuCores, l1, l5, l15, bt, netRxTotal, netTxTotal, av,
+      new Date().toISOString(), raw.slice(0, 2000), agent.id
+    ).run();
+
+    
+    if (!result.success) {
+      console.error('DIRECT_STATUS update failed:', result.error);
+      return c.json({ success: false, message: 'update failed: ' + (result.error || 'unknown') }, 500);
+    }
+
+    return c.json({ success: true, message: 'ok' });
+  } catch (e: any) {
+    console.error('DIRECT_STATUS err:', e.message);
+    return c.json({ success: false, message: e.message }, 500);
+  }
+});
+
 // 路由注册
 app.route('/api/auth', authRoutes);
 app.route('/api/monitors', monitorRoutes);
@@ -97,7 +164,8 @@ app.get('/api/trigger-check', async (c) => {
   if (scheduled) {
     await scheduled(null, c.env, null);
   }
-  return c.json({ success: true, message: '监控检查已触发' });
+  await checkAgentsStatus(c.env);
+  return c.json({ success: true, message: '监控检查和客户端状态已触发' });
 });
 
 // 数据库状态标志，用于记录数据库初始化状态

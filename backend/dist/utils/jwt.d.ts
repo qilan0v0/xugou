@@ -15,4 +15,8 @@ export declare const getJwtSecret: (c: any) => string;
  *
  * @returns 生成的随机令牌
  */
+/**
+ * Ensure a value is safe for D1 binding (primitive only — no objects/arrays).
+ */
+export declare function toD1Primitive(v: any): string | number | null;
 export declare function generateToken(): Promise<string>;

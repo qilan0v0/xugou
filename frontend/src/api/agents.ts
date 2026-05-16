@@ -19,6 +19,16 @@ export interface Agent {
   version?: string;
   token?: string;
   created_by?: number;
+  cpu_arch?: string;
+  cpu_model_name?: string;
+  cpu_cores?: number;
+  load1?: number;
+  load5?: number;
+  load15?: number;
+  boot_time?: string;
+  network_rx_total?: number;
+  network_tx_total?: number;
+  agent_version?: string;
 }
 
 export const generateToken = async () => {

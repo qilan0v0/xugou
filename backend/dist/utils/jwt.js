@@ -4,6 +4,7 @@
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getJwtSecret = void 0;
+exports.toD1Primitive = toD1Primitive;
 exports.generateToken = generateToken;
 /**
  * 获取JWT密钥
@@ -27,6 +28,18 @@ exports.getJwtSecret = getJwtSecret;
  *
  * @returns 生成的随机令牌
  */
+/**
+ * Ensure a value is safe for D1 binding (primitive only — no objects/arrays).
+ */
+function toD1Primitive(v) {
+    if (v === null || v === undefined)
+        return null;
+    if (Array.isArray(v))
+        return toD1Primitive(v[0]);
+    if (typeof v === 'object')
+        return String(v);
+    return v;
+}
 async function generateToken() {
     const array = new Uint8Array(32);
     crypto.getRandomValues(array);
