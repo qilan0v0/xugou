@@ -36,7 +36,7 @@ const CreateAgent = () => {
   const getDownloadUrl = () => {
     if (!selectedPlatform || !selectedArch) return '';
     const ext = selectedPlatform === 'windows' ? '.exe' : '';
-    return `https://dl.xugou.mdzz.uk/latest/xugou-agent-${selectedPlatform}-${selectedArch}${ext}`;
+    return `https://github.com/qilan0v0/xugou/releases/latest/download/xugou-agent-${selectedPlatform}-${selectedArch}${ext}`;
   };
 
   const inputClass = "w-full px-3 py-2 rounded-lg border border-white/[0.08] bg-white/5 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 transition-all";

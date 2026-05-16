@@ -78,96 +78,9 @@ jobs:
         name: ${{ matrix.asset_name }}
         path: agent/${{ matrix.artifact_name }}
 
-  upload-to-r2:
-    name: Upload to Cloudflare R2
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-    - name: Download all workflow artifacts
-      uses: actions/download-artifact@v4
-
-    - name: Get Release version
-      id: get_version
-      run: |
-        VERSION=${GITHUB_REF#refs/tags/}
-        echo "VERSION=$VERSION" >> $GITHUB_ENV
-        echo "Version: $VERSION"
-
-    # Linux AMD64
-        
-    - name: Upload Linux AMD64 to R2 (latest)
-      uses: ryand56/r2-upload-action@latest
-      with:
-        r2-account-id: ${{ secrets.R2_ACCOUNT_ID }}
-        r2-access-key-id: ${{ secrets.R2_ACCESS_KEY_ID }}
-        r2-secret-access-key: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-        r2-bucket: ${{ secrets.R2_BUCKET_NAME }}
-        source-dir: ./xugou-agent-linux-amd64/
-        destination-dir: latest/
-
-    # Linux ARM64
-        
-    - name: Upload Linux ARM64 to R2 (latest)
-      uses: ryand56/r2-upload-action@latest
-      with:
-        r2-account-id: ${{ secrets.R2_ACCOUNT_ID }}
-        r2-access-key-id: ${{ secrets.R2_ACCESS_KEY_ID }}
-        r2-secret-access-key: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-        r2-bucket: ${{ secrets.R2_BUCKET_NAME }}
-        source-dir: ./xugou-agent-linux-arm64/
-        destination-dir: latest/
-
-    # macOS AMD64
-        
-    - name: Upload macOS AMD64 to R2 (latest)
-      uses: ryand56/r2-upload-action@latest
-      with:
-        r2-account-id: ${{ secrets.R2_ACCOUNT_ID }}
-        r2-access-key-id: ${{ secrets.R2_ACCESS_KEY_ID }}
-        r2-secret-access-key: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-        r2-bucket: ${{ secrets.R2_BUCKET_NAME }}
-        source-dir: ./xugou-agent-darwin-amd64/
-        destination-dir: latest/
-
-    # macOS ARM64
-        
-    - name: Upload macOS ARM64 to R2 (latest)
-      uses: ryand56/r2-upload-action@latest
-      with:
-        r2-account-id: ${{ secrets.R2_ACCOUNT_ID }}
-        r2-access-key-id: ${{ secrets.R2_ACCESS_KEY_ID }}
-        r2-secret-access-key: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-        r2-bucket: ${{ secrets.R2_BUCKET_NAME }}
-        source-dir: ./xugou-agent-darwin-arm64/
-        destination-dir: latest/
-
-    # Windows AMD64
-        
-    - name: Upload Windows AMD64 to R2 (latest)
-      uses: ryand56/r2-upload-action@latest
-      with:
-        r2-account-id: ${{ secrets.R2_ACCOUNT_ID }}
-        r2-access-key-id: ${{ secrets.R2_ACCESS_KEY_ID }}
-        r2-secret-access-key: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-        r2-bucket: ${{ secrets.R2_BUCKET_NAME }}
-        source-dir: ./xugou-agent-windows-amd64/
-        destination-dir: latest/
-
-    # Windows ARM64
-
-    - name: Upload Windows ARM64 to R2 (latest)
-      uses: ryand56/r2-upload-action@latest
-      with:
-        r2-account-id: ${{ secrets.R2_ACCOUNT_ID }}
-        r2-access-key-id: ${{ secrets.R2_ACCESS_KEY_ID }}
-        r2-secret-access-key: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-        r2-bucket: ${{ secrets.R2_BUCKET_NAME }}
-        source-dir: ./xugou-agent-windows-arm64/
-        destination-dir: latest/
-
   create-release:
     name: Create GitHub Release
-    needs: [build, upload-to-r2]
+    needs: build
     runs-on: ubuntu-latest
     permissions:
       contents: write
