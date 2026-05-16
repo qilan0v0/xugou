@@ -39,8 +39,8 @@ const AgentDetail = () => {
       const disk = a.disk_total && a.disk_used ? Math.round((a.disk_used / a.disk_total) * 100) : 0;
       const uptime = a.boot_time ? Math.max(0, Date.now() - new Date(a.boot_time).getTime()) : 0;
       const uptimeStr = uptime ? `${Math.floor(uptime / 86400000)}d ${Math.floor((uptime % 86400000) / 3600000)}h ${Math.floor((uptime % 3600000) / 60000)}m` : '';
-      const connectMs = a.updated_at ? Math.max(0, Date.now() - new Date(a.updated_at).getTime()) : 0;
-      const connectStr = connectMs < 60000 ? '刚刚' : `${Math.floor(connectMs / 3600000)}h ${Math.floor((connectMs % 3600000) / 60000)}m 前`;
+      const connectedMs = a.connected_at ? Math.max(0, Date.now() - new Date(a.connected_at).getTime()) : 0;
+      const connectStr = connectedMs > 0 ? (connectedMs < 60000 ? '刚刚上线' : `${Math.floor(connectedMs / 86400000)}d ${Math.floor((connectedMs % 86400000) / 3600000)}h ${Math.floor((connectedMs % 3600000) / 60000)}m`) : '';
       setAgent({ ...a, uptime, uptimeStr, connectStr, cpuUsage: a.cpu_usage || 0, memoryUsage: mem, diskUsage: disk, networkRx: a.network_rx || 0, networkTx: a.network_tx || 0 });
     } catch (err) {
       setError(err instanceof Error ? err.message : t('common.error.fetch'));

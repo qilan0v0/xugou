@@ -28,4 +28,5 @@ export interface Agent {
     network_tx_total?: number;
     agent_version?: string;
     country?: string;
+    connected_at?: string;
 }

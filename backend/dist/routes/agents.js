@@ -102,7 +102,8 @@ agents.get('/:id', async (c) => {
                 network_rx_total: rest.network_rx_total || 0,
                 network_tx_total: rest.network_tx_total || 0,
                 agent_version: rest.agent_version || null,
-                country: rest.country || null
+                country: rest.country || null,
+                connected_at: rest.connected_at || null
             }
         });
     }

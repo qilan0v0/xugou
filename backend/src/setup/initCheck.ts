@@ -25,6 +25,7 @@ export async function runMigrations(env: Bindings): Promise<void> {
     'network_tx_total INTEGER',
     'agent_version TEXT',
     'country TEXT',
+    'connected_at TEXT',
   ];
   for (const col of newColumns) {
     try {

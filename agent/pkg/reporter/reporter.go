@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"time"
 
+	agent "github.com/xugou/agent/cmd/agent"
 	"github.com/xugou/agent/pkg/collector"
 )
 
