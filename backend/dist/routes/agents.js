@@ -318,12 +318,8 @@ agents.post('/register', async (c) => {
             return c.json({ success: false, message: '无法找到管理员用户' }, 500);
         }
         const now = new Date().toISOString();
-        // 1. 先按 token 匹配
-        let existingAgent = await c.env.DB.prepare('SELECT id FROM agents WHERE token = ?').bind(token).first();
-        // 2. token 未匹配，按 hostname 匹配（复用同机器最近活跃的记录）
-        if (!existingAgent && hostname) {
-            existingAgent = await c.env.DB.prepare('SELECT id FROM agents WHERE hostname = ? ORDER BY updated_at DESC LIMIT 1').bind(hostname).first();
-        }
+        // 按 token 匹配
+        const existingAgent = await c.env.DB.prepare('SELECT id FROM agents WHERE token = ?').bind(token).first();
         if (existingAgent) {
             // 更新已有客户端（含 token，同 hostname 时迁移 token）
             const updateResult = await c.env.DB.prepare(`UPDATE agents SET
