@@ -127,13 +127,17 @@ app.post('/api/agents/status', async (c) => {
     const agent = await c.env.DB.prepare('SELECT id FROM agents WHERE token = ?').bind(token).first<{id: number}>();
     if (!agent) return c.json({ success: false, message: 'agent not found' }, 404);
 
+    // 从 Cloudflare 请求元数据提取国家代码
+    const country = (c.req.raw as any)?.cf?.country ?? null;
+
     const result = await c.env.DB.prepare(
-      `UPDATE agents SET status='active', cpu_usage=?, memory_total=?, memory_used=?, disk_total=?, disk_used=?, network_rx=?, network_tx=?, hostname=?, ip_address=?, os=?, version=?, cpu_arch=?, cpu_model_name=?, cpu_cores=?, load1=?, load5=?, load15=?, boot_time=?, network_rx_total=?, network_tx_total=?, agent_version=?, updated_at=?, last_payload=? WHERE id=?`
+      `UPDATE agents SET status='active', cpu_usage=?, memory_total=?, memory_used=?, disk_total=?, disk_used=?, network_rx=?, network_tx=?, hostname=?, ip_address=?, os=?, version=?, cpu_arch=?, cpu_model_name=?, cpu_cores=?, load1=?, load5=?, load15=?, boot_time=?, network_rx_total=?, network_tx_total=?, agent_version=?, country=?, updated_at=?, last_payload=? WHERE id=?`
     ).bind(
       cpu, memTotal, memUsed, diskTotal, diskUsed, netRx, netTx,
       toD1Primitive(body.hostname), toD1Primitive(body.ip_address ?? (Array.isArray(body.ip_addresses) ? body.ip_addresses[0] : null) ?? (Array.isArray(body.ip) ? body.ip[0] : body.ip) ?? body.IP),
       toD1Primitive(body.os), toD1Primitive(body.version),
       cpuArch, cpuModelName, cpuCores, l1, l5, l15, bt, netRxTotal, netTxTotal, av,
+      country,
       new Date().toISOString(), raw.slice(0, 2000), agent.id
     ).run();
 

@@ -29,6 +29,7 @@ export interface Agent {
   network_rx_total?: number;
   network_tx_total?: number;
   agent_version?: string;
+  country?: string;
 }
 
 export const generateToken = async () => {

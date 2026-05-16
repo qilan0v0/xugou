@@ -10,6 +10,11 @@ interface AgentWithResources extends Agent {
   uptime: number; uptimeStr: string; connectStr?: string; cpuUsage?: number; memoryUsage?: number; diskUsage?: number; networkRx?: number; networkTx?: number;
 }
 
+const countryToFlag = (code: string) => {
+  if (!code || code.length !== 2) return '';
+  return String.fromCodePoint(0x1F1E6 + code.charCodeAt(0) - 65, 0x1F1E6 + code.charCodeAt(1) - 65);
+};
+
 const AgentDetail = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
@@ -96,7 +101,10 @@ const AgentDetail = () => {
           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-lg font-bold">{agent.name.charAt(0)}</div>
           <div>
             <h2 className="text-xl font-bold text-slate-900 dark:text-white">{agent.name}</h2>
-            <p className="text-sm text-slate-500">{agent.hostname}{agent.hostname && agent.ip_address ? ` (${agent.ip_address})` : ''}</p>
+            <p className="text-sm text-slate-500">
+              {agent.hostname}{agent.hostname && agent.ip_address ? ` (${agent.ip_address})` : ''}
+              {agent.country && <> · {countryToFlag(agent.country)} {agent.country}</>}
+            </p>
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
