@@ -485,11 +485,37 @@ agents.post('/register', async (c) => {
       });
     }
 
-    // 3. token 和 hostname 都未匹配，拒绝自动注册
+    // 3. 全新客户端，自动注册
+    const result = await c.env.DB.prepare(
+      `INSERT INTO agents
+       (name, token, created_by, status, created_at, updated_at, hostname, ip_address, os, version)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).bind(
+      name || 'New Agent',
+      token,
+      adminUser.id,
+      'active',
+      now,
+      now,
+      hostname || null,
+      ip_address || null,
+      os || null,
+      version || null
+    ).run();
+
+    if (!result.success) {
+      throw new Error('创建客户端失败');
+    }
+
+    const newAgent = await c.env.DB.prepare(
+      'SELECT id FROM agents WHERE token = ?'
+    ).bind(token).first();
+
     return c.json({
-      success: false,
-      message: '客户端未找到，请先在 Web 界面创建客户端并使用生成的 token'
-    }, 404);
+      success: true,
+      message: '客户端注册成功',
+      agent: newAgent
+    }, 201);
   } catch (error) {
     console.error('客户端注册错误:', error);
     return c.json({ 
