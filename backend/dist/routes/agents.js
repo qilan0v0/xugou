@@ -41,9 +41,9 @@ agents.get('/', async (c) => {
 // 创建新客户端
 agents.post('/', async (c) => {
     try {
-        const { name } = await c.req.json();
+        const { name, token: reqToken } = await c.req.json();
         const payload = c.get('jwtPayload');
-        const token = await (0, jwt_2.generateToken)();
+        const token = reqToken || await (0, jwt_2.generateToken)();
         const now = new Date().toISOString();
         // 插入新客户端
         const result = await c.env.DB.prepare(`INSERT INTO agents 
