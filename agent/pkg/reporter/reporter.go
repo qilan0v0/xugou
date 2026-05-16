@@ -146,9 +146,11 @@ func (r *HTTPReporter) ensureRegistered(ctx context.Context, info *collector.Sys
 
 	// 根据响应消息区分是新注册还是状态更新
 	if response.Message == "客户端状态更新成功" {
-		fmt.Printf("客户端状态更新成功，通过Token: %s\n", r.apiToken)
+			if viper.GetBool("debug") { fmt.Printf("客户端状态更新成功，通过Token: %s
+", r.apiToken) }
 	} else {
-		fmt.Printf("客户端注册成功，通过Token: %s\n", r.apiToken)
+			if viper.GetBool("debug") { fmt.Printf("客户端注册成功，通过Token: %s
+", r.apiToken) }
 	}
 
 	r.registered = true
@@ -254,13 +256,15 @@ func (r *HTTPReporter) Report(ctx context.Context, info *collector.SystemInfo) e
 		return fmt.Errorf("服务器返回错误状态码: %d", resp.StatusCode)
 	}
 
-	fmt.Printf("成功上报数据到服务器，token: %s, CPU: %.2f%%, 内存: %.2f%%, 硬盘: %.2f%%, 网络下载: %.2f KB/s, 网络上传: %.2f KB/s\n",
-		r.apiToken,
+	if viper.GetBool("debug") {
+		fmt.Printf("成功上报数据到服务器，token: %s, CPU: %.2f%%, 内存: %.2f%%, 硬盘: %.2f%%, 网络下载: %.2f KB/s, 网络上传: %.2f KB/s
+",
 		payload.CPUUsage,
 		float64(payload.MemoryUsed)/float64(payload.MemoryTotal)*100,
 		float64(payload.DiskUsed)/float64(payload.DiskTotal)*100,
 		float64(payload.NetworkRX),
 		float64(payload.NetworkTX))
+	}
 
 	return nil
 }

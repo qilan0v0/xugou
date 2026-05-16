@@ -45,7 +45,7 @@ func runStart(cmd *cobra.Command, args []string) {
 	}
 
 	if viper.GetBool("debug") { fmt.Println("Xugou Agent 启动中...") }
-	fmt.Printf("服务器地址: %s\n", server)
+	if viper.GetBool("debug") { fmt.Printf("服务器地址: %s\n", server) }
 	fmt.Printf("收集间隔: %d秒\n", interval)
 	if viper.GetBool("debug") { fmt.Println("使用令牌自动注册/上报数据") }
 
@@ -107,5 +107,5 @@ func collectAndReport(ctx context.Context, c collector.Collector, r reporter.Rep
 		return
 	}
 
-	fmt.Printf("系统信息已收集并上报，时间: %s\n", info.Timestamp.Format("2006-01-02 15:04:05"))
+	if viper.GetBool("debug") { fmt.Printf("系统信息已收集并上报，时间: %s\n", info.Timestamp.Format("2006-01-02 15:04:05")) }
 }
