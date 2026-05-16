@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { getStatusPageData, StatusAgent } from '../../api/status';
 import { Monitor } from '../../api/monitors';
-import ClientResourceSection from '../../components/ClientResourceSection';
+import AgentCard from '../../components/AgentCard';
 import MonitorCard from '../../components/MonitorCard';
 import { useTranslation } from 'react-i18next';
 
@@ -86,43 +86,7 @@ const StatusPage = () => {
             <h2 className="text-lg font-bold text-slate-900 dark:text-white section-heading mb-4">{t('statusPage.agentStatus')}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {data.agents.map(agent => (
-                <div key={agent.id} className="glass glass-hover relative overflow-hidden group">
-                  <div className={`absolute top-0 left-0 w-1 h-full rounded-r-sm bg-gradient-to-b ${
-                    agent.status === 'active' ? 'from-emerald-500 to-cyan-400' : 'from-slate-500 to-slate-400'
-                  }`} />
-                  <div className="p-4 pl-5">
-                    <div className="flex justify-between items-start mb-3">
-                      <div>
-                        <h3 className="font-semibold text-sm text-slate-900 dark:text-white">{agent.name}</h3>
-                        <p className="text-xs text-slate-500">{agent.hostname}{agent.ip_address && ` (${agent.ip_address})`}</p>
-                      </div>
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
-                        agent.status === 'active' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-slate-500/10 text-slate-500'
-                      }`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${agent.status === 'active' ? 'bg-emerald-500 animate-pulse-dot shadow-[0_0_6px_rgba(34,197,94,0.6)]' : 'bg-slate-400'}`} />
-                        {agent.status === 'active' ? t('agent.status.online') : t('agent.status.offline')}
-                      </span>
-                    </div>
-
-                    {(agent.cpu !== undefined && agent.memory !== undefined) ? (
-                      <ClientResourceSection cpuUsage={agent.cpu || 0} memoryUsage={agent.memory || 0} diskUsage={agent.disk || 0} networkRx={agent.network_rx || 0} networkTx={agent.network_tx || 0} />
-                    ) : (
-                      <div className="p-3 rounded-lg bg-slate-100 dark:bg-white/5 border border-white/[0.06]">
-                        <h4 className="text-xs font-semibold mb-2 text-slate-700 dark:text-slate-300">{t('agent.systemInfo')}</h4>
-                        <div className="grid grid-cols-2 gap-1.5 text-xs">
-                          <span className="text-slate-500">{t('agent.os')}:</span><span>{agent.os || t('common.unknown')}</span>
-                          <span className="text-slate-500">{t('agent.version')}:</span><span>{agent.version || t('common.unknown')}</span>
-                          <span className="text-slate-500">{t('agent.hostname')}:</span><span>{agent.hostname || t('common.unknown')}</span>
-                          <span className="text-slate-500">{t('agent.ipAddress')}:</span><span>{agent.ip_address || t('common.unknown')}</span>
-                        </div>
-                      </div>
-                    )}
-
-                    {agent.updated_at && (
-                      <p className="text-xs text-slate-500 mt-3">{t('agent.lastUpdated')}: {new Date(agent.updated_at).toLocaleString()}</p>
-                    )}
-                  </div>
-                </div>
+                <AgentCard key={agent.id} agent={agent} />
               ))}
             </div>
           </section>

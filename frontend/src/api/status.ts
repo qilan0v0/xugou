@@ -39,13 +39,10 @@ export interface StatusPageConfig {
 }
 
 // 状态页中展示的客户端类型，包含资源使用信息
-export interface StatusAgent extends Omit<Agent, 'cpu_usage' | 'memory_total' | 'memory_used' | 'disk_total' | 'disk_used'> {
-  status: string;
-  cpu: number;
-  memory: number;
-  disk: number;
-  network_rx: number;
-  network_tx: number;
+export interface StatusAgent extends Agent {
+  cpu?: number;
+  memory?: number;
+  disk?: number;
 }
 
 // 状态页数据接口
