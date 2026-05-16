@@ -19,5 +19,5 @@ database_name = "xugou_db"
 database_id = "b3bbe7a0-b4b2-4345-9c26-6b8fb3a4c899"
 
 [vars]
-JWT_SECRET = "your-secret-key-change-in-production" 
+JWT_SECRET = "8e2904a6-819f-44f1-9d81-179d7a6d626b" 
 ENABLE_DB_INIT = "true" 
