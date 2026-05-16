@@ -12,7 +12,7 @@ interface AgentWithResources extends Agent {
 
 const countryToFlag = (code: string) => {
   if (!code || code.length !== 2) return '';
-  return String.fromCodePoint(0x1F1E6 + code.charCodeAt(0) - 65, 0x1F1E6 + code.charCodeAt(1) - 65);
+  return `https://flagcdn.com/24x18/${code.toLowerCase()}.png`;
 };
 
 const AgentDetail = () => {
@@ -103,7 +103,7 @@ const AgentDetail = () => {
             <h2 className="text-xl font-bold text-slate-900 dark:text-white">{agent.name}</h2>
             <p className="text-sm text-slate-500">
               {agent.hostname}{agent.hostname && agent.ip_address ? ` (${agent.ip_address})` : ''}
-              {agent.country && <> · {countryToFlag(agent.country)} {agent.country}</>}
+              {agent.country && <> · <img src={countryToFlag(agent.country)} alt={agent.country} className='inline-block w-4 h-3 align-middle' /> {agent.country}</>}
             </p>
           </div>
         </div>
