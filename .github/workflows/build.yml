@@ -154,7 +154,7 @@ jobs:
         destination-dir: latest/
 
     # Windows ARM64
-        
+
     - name: Upload Windows ARM64 to R2 (latest)
       uses: ryand56/r2-upload-action@latest
       with:
@@ -164,3 +164,53 @@ jobs:
         r2-bucket: ${{ secrets.R2_BUCKET_NAME }}
         source-dir: ./xugou-agent-windows-arm64/
         destination-dir: latest/
+
+  create-release:
+    name: Create GitHub Release
+    needs: [build, upload-to-r2]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+
+    - name: Generate version
+      id: version
+      run: |
+        if [[ "${{ github.event_name }}" == "release" ]]; then
+          echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          echo "RELEASE_ID=${{ github.event.release.id }}" >> $GITHUB_OUTPUT
+        else
+          echo "VERSION=$(date +%Y%m%d-%H%M%S)" >> $GITHUB_OUTPUT
+          echo "RELEASE_ID=" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Create Release (manual dispatch)
+      if: github.event_name == 'workflow_dispatch'
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: v${{ steps.version.outputs.VERSION }}
+        name: v${{ steps.version.outputs.VERSION }}
+        draft: false
+        prerelease: true
+        files: |
+          xugou-agent-linux-amd64/xugou-agent-linux-amd64
+          xugou-agent-linux-arm64/xugou-agent-linux-arm64
+          xugou-agent-darwin-amd64/xugou-agent-darwin-amd64
+          xugou-agent-darwin-arm64/xugou-agent-darwin-arm64
+          xugou-agent-windows-amd64/xugou-agent-windows-amd64.exe
+          xugou-agent-windows-arm64/xugou-agent-windows-arm64.exe
+
+    - name: Upload to existing Release (release event)
+      if: github.event_name == 'release'
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ steps.version.outputs.VERSION }}
+        files: |
+          xugou-agent-linux-amd64/xugou-agent-linux-amd64
+          xugou-agent-linux-arm64/xugou-agent-linux-arm64
+          xugou-agent-darwin-amd64/xugou-agent-darwin-amd64
+          xugou-agent-darwin-arm64/xugou-agent-darwin-arm64
+          xugou-agent-windows-amd64/xugou-agent-windows-amd64.exe
+          xugou-agent-windows-arm64/xugou-agent-windows-arm64.exe
