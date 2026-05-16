@@ -121,9 +121,9 @@ const AgentsList = () => {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {agents.map(a => (
-            <div key={a.id} className="relative group">
+            <div key={a.id} className="relative group cursor-pointer" onClick={() => navigate(`/agents/${a.id}`)}>
               <AgentCard agent={a} />
-              <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
                 <button onClick={() => navigate(`/agents/${a.id}`)} className="p-1.5 rounded-md bg-white/80 dark:bg-slate-800/80 backdrop-blur text-slate-500 hover:text-blue-500 transition-colors"><InfoCircledIcon className="w-3.5 h-3.5" /></button>
                 <button onClick={() => navigate(`/agents/edit/${a.id}`)} className="p-1.5 rounded-md bg-white/80 dark:bg-slate-800/80 backdrop-blur text-slate-500 hover:text-amber-500 transition-colors"><Pencil1Icon className="w-3.5 h-3.5" /></button>
                 <button onClick={() => setDeleteId(a.id)} className="p-1.5 rounded-md bg-white/80 dark:bg-slate-800/80 backdrop-blur text-slate-500 hover:text-red-500 transition-colors"><Cross2Icon className="w-3.5 h-3.5" /></button>

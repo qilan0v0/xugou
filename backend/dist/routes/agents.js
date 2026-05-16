@@ -79,31 +79,29 @@ agents.get('/:id', async (c) => {
         if (payload.role !== 'admin' && agent.created_by !== payload.id) {
             return c.json({ success: false, message: '无权访问此客户端' }, 403);
         }
-        // 不返回令牌，但保留其他所有字段
-        const { token, ...rest } = agent;
         return c.json({
             success: true,
             agent: {
-                ...rest,
-                cpu_usage: rest.cpu_usage || 0,
-                memory_total: rest.memory_total || 0,
-                memory_used: rest.memory_used || 0,
-                disk_total: rest.disk_total || 0,
-                disk_used: rest.disk_used || 0,
-                network_rx: rest.network_rx || 0,
-                network_tx: rest.network_tx || 0,
-                cpu_arch: rest.cpu_arch || null,
-                cpu_model_name: rest.cpu_model_name || null,
-                cpu_cores: rest.cpu_cores || null,
-                load1: rest.load1 ?? null,
-                load5: rest.load5 ?? null,
-                load15: rest.load15 ?? null,
-                boot_time: rest.boot_time || null,
-                network_rx_total: rest.network_rx_total || 0,
-                network_tx_total: rest.network_tx_total || 0,
-                agent_version: rest.agent_version || null,
-                country: rest.country || null,
-                connected_at: rest.connected_at || null
+                ...agent,
+                cpu_usage: agent.cpu_usage || 0,
+                memory_total: agent.memory_total || 0,
+                memory_used: agent.memory_used || 0,
+                disk_total: agent.disk_total || 0,
+                disk_used: agent.disk_used || 0,
+                network_rx: agent.network_rx || 0,
+                network_tx: agent.network_tx || 0,
+                cpu_arch: agent.cpu_arch || null,
+                cpu_model_name: agent.cpu_model_name || null,
+                cpu_cores: agent.cpu_cores || null,
+                load1: agent.load1 ?? null,
+                load5: agent.load5 ?? null,
+                load15: agent.load15 ?? null,
+                boot_time: agent.boot_time || null,
+                network_rx_total: agent.network_rx_total || 0,
+                network_tx_total: agent.network_tx_total || 0,
+                agent_version: agent.agent_version || null,
+                country: agent.country || null,
+                connected_at: agent.connected_at || null
             }
         });
     }

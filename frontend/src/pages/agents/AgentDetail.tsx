@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeftIcon, Pencil1Icon, Cross2Icon, ReloadIcon, ClockIcon, DesktopIcon, GlobeIcon, LaptopIcon, CrumpledPaperIcon, Component1Icon, ActivityLogIcon, TimerIcon, CodeIcon } from '@radix-ui/react-icons';
+import { ArrowLeftIcon, Pencil1Icon, Cross2Icon, ReloadIcon, CopyIcon, ClockIcon, DesktopIcon, GlobeIcon, LaptopIcon, CrumpledPaperIcon, Component1Icon, ActivityLogIcon, TimerIcon, CodeIcon } from '@radix-ui/react-icons';
 import * as Toast from '@radix-ui/react-toast';
 import { getAgent, Agent, deleteAgent } from '../../api/agents';
 import ClientResourceSection from '../../components/ClientResourceSection';
@@ -110,6 +110,15 @@ const AgentDetail = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
           <div className="flex items-center gap-2"><ClockIcon className="text-slate-400" /><span className="text-slate-500">{t('agent.lastUpdated')}:</span><span>{formatDateTime(agent.updated_at)}</span></div>
           {agent.status === 'active' && agent.connectStr && <div className="flex items-center gap-2"><ActivityLogIcon className="text-slate-400" /><span className="text-slate-500">{t('agent.connectDuration')}:</span><span>{agent.connectStr}</span></div>}
+          {agent.token && (
+            <div className="flex items-center gap-2 col-span-full">
+              <span className="text-xs text-slate-500">Token:</span>
+              <code className="flex-1 px-2 py-1 rounded bg-slate-100 dark:bg-white/5 text-xs font-mono text-slate-600 dark:text-slate-400 truncate">{agent.token}</code>
+              <button onClick={() => { navigator.clipboard.writeText(agent.token || ''); }} className="text-xs text-blue-500 hover:text-blue-400 transition-colors flex items-center gap-1 flex-shrink-0">
+                <CopyIcon className="w-3 h-3" />{t('common.copy')}
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
