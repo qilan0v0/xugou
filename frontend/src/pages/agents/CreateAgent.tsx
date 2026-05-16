@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeftIcon, CopyIcon, CheckIcon, PlusIcon } from '@radix-ui/react-icons';
 import { generateToken } from '../../api/agents';
 import api from '../../api/index';
+import AgentCard from '../../components/AgentCard';
 import { useTranslation } from 'react-i18next';
 
 const CreateAgent = () => {
@@ -10,7 +11,7 @@ const CreateAgent = () => {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [token, setToken] = useState('');
-  const [agentId, setAgentId] = useState<number | null>(null);
+  const [created, setCreated] = useState<{ id: number; name: string } | null>(null);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState('');
   const { t } = useTranslation();
@@ -32,7 +33,7 @@ const CreateAgent = () => {
     try {
       const res = await api.post('/api/agents', { name: name.trim(), token });
       if (res.data.success) {
-        setAgentId(res.data.agent.id);
+        setCreated({ id: res.data.agent.id, name: name.trim() });
       } else {
         setError(res.data.message || '创建失败');
       }
@@ -48,6 +49,42 @@ const CreateAgent = () => {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  if (created) {
+    return (
+      <div className="max-w-lg mx-auto px-4 py-8 animate-slide-up">
+        <div className="flex items-center gap-3 mb-6">
+          <button onClick={() => navigate('/agents')} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors text-slate-500"><ArrowLeftIcon /></button>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t('agent.form.title.create')}</h1>
+        </div>
+
+        <AgentCard agent={{
+          id: created.id, name: created.name, status: 'inactive',
+          created_at: '', updated_at: '', cpu_usage: 0, memory_total: 0, memory_used: 0,
+          disk_total: 0, disk_used: 0, network_rx: 0, network_tx: 0,
+        }} />
+
+        <div className="glass p-4 mt-4">
+          <p className="text-sm font-semibold text-slate-900 dark:text-white mb-2">{t('agent.form.registerHint')}</p>
+          <div className="flex gap-2 mb-3">
+            <code className="flex-1 px-3 py-2 rounded-lg bg-slate-100 dark:bg-white/5 text-xs font-mono text-slate-700 dark:text-slate-300 break-all border border-white/[0.06]">{token}</code>
+            <button onClick={() => handleCopy(token)}
+              className="flex items-center gap-1 px-3 py-2 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-medium hover:bg-blue-500/20 transition-colors flex-shrink-0">
+              {copied ? <CheckIcon /> : <CopyIcon />}
+              {copied ? t('common.copied') : t('common.copy')}
+            </button>
+          </div>
+          <p className="text-xs text-slate-500">{t('agent.form.waitConnect')}</p>
+        </div>
+
+        <div className="flex justify-end mt-4">
+          <button onClick={() => navigate('/agents')} className="px-4 py-2 rounded-lg text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors">
+            {t('agent.add.returnToList')}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-lg mx-auto px-4 py-8 animate-slide-up">
@@ -77,24 +114,6 @@ const CreateAgent = () => {
         >
           <PlusIcon />{loading ? t('common.creating') : t('agents.create')}
         </button>
-
-        {agentId && (
-          <div className="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-            <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-400 mb-2">{t('agent.form.createSuccess')}</p>
-            <div className="flex gap-2 mb-2">
-              <code className="flex-1 px-3 py-2 rounded-lg bg-slate-900 dark:bg-black/40 text-emerald-400 text-xs font-mono break-all">{token}</code>
-              <button onClick={() => handleCopy(token)}
-                className="flex items-center gap-1 px-3 py-2 rounded-lg bg-white/10 text-white text-xs font-medium hover:bg-white/20 transition-colors flex-shrink-0">
-                {copied ? <CheckIcon /> : <CopyIcon />}
-                {copied ? t('common.copied') : t('common.copy')}
-              </button>
-            </div>
-            <p className="text-xs text-slate-500">{t('agent.add.tokenHelp')}</p>
-            <div className="mt-3 p-3 rounded-lg bg-slate-900/50 dark:bg-black/30 text-xs font-mono text-slate-300 break-all">
-              ./xugou-agent start --server https://xugou-backend-production.ql-c13.workers.dev --token {token} --interval 60
-            </div>
-          </div>
-        )}
 
         <div className="flex justify-end pt-2 border-t border-white/[0.06]">
           <button onClick={() => navigate('/agents')} className="px-4 py-2 rounded-lg text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors">
