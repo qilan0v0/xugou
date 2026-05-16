@@ -5,8 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
+    "dev:node": "tsx src/index.node.ts",
     "build": "tsc",
     "start": "node dist/index.js",
+    "start:node": "node dist/index.node.js",
     "deploy": "wrangler deploy",
     "deploy:dev": "wrangler deploy --env development",
     "deploy:prod": "wrangler deploy --env production",
@@ -22,8 +24,11 @@
     "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^22.13.10",
     "bcryptjs": "^2.4.3",
+    "dotenv": "^17.4.2",
     "hono": "^4.7.4",
     "jsonwebtoken": "^9.0.2",
+    "sql.js": "^1.14.1",
+    "tsx": "^4.22.0",
     "typescript": "^5.8.2"
   },
   "devDependencies": {

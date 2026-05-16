@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(python3)",
-      "Bash(xxd)"
+      "Bash(xxd)",
+      "Bash(yarn add *)"
     ]
   }
 }

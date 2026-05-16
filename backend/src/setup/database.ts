@@ -68,7 +68,7 @@ export async function addSampleMonitors(env: Bindings): Promise<void> {
   // 检查是否已有示例监控数据
   const existingMonitors = await env.DB.prepare('SELECT COUNT(*) as count FROM monitors').first<{count: number}>();
   
-  if (existingMonitors.count === 0) {
+  if (!existingMonitors || existingMonitors.count === 0) {
     console.log('添加示例监控...');
     const now = new Date().toISOString();
     const userId = 1; // 管理员用户ID
@@ -146,7 +146,7 @@ export async function addSampleAgents(env: Bindings): Promise<void> {
   // 检查是否已有示例客户端数据
   const existingAgents = await env.DB.prepare('SELECT COUNT(*) as count FROM agents').first<{count: number}>();
   
-  if (existingAgents.count === 0) {
+  if (!existingAgents || existingAgents.count === 0) {
     console.log('添加示例客户端...');
     const now = new Date().toISOString();
     const userId = 1; // 管理员用户ID
