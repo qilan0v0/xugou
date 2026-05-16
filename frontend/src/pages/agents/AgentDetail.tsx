@@ -7,7 +7,7 @@ import ClientResourceSection from '../../components/ClientResourceSection';
 import { useTranslation } from 'react-i18next';
 
 interface AgentWithResources extends Agent {
-  uptime: number; uptimeStr: string; cpuUsage?: number; memoryUsage?: number; diskUsage?: number; networkRx?: number; networkTx?: number;
+  uptime: number; uptimeStr: string; connectStr?: string; cpuUsage?: number; memoryUsage?: number; diskUsage?: number; networkRx?: number; networkTx?: number;
 }
 
 const AgentDetail = () => {
@@ -34,7 +34,9 @@ const AgentDetail = () => {
       const disk = a.disk_total && a.disk_used ? Math.round((a.disk_used / a.disk_total) * 100) : 0;
       const uptime = a.boot_time ? Math.max(0, Date.now() - new Date(a.boot_time).getTime()) : 0;
       const uptimeStr = uptime ? `${Math.floor(uptime / 86400000)}d ${Math.floor((uptime % 86400000) / 3600000)}h ${Math.floor((uptime % 3600000) / 60000)}m` : '';
-      setAgent({ ...a, uptime, uptimeStr, cpuUsage: a.cpu_usage || 0, memoryUsage: mem, diskUsage: disk, networkRx: a.network_rx || 0, networkTx: a.network_tx || 0 });
+      const connectMs = a.updated_at ? Math.max(0, Date.now() - new Date(a.updated_at).getTime()) : 0;
+      const connectStr = connectMs < 60000 ? '刚刚' : `${Math.floor(connectMs / 3600000)}h ${Math.floor((connectMs % 3600000) / 60000)}m 前`;
+      setAgent({ ...a, uptime, uptimeStr, connectStr, cpuUsage: a.cpu_usage || 0, memoryUsage: mem, diskUsage: disk, networkRx: a.network_rx || 0, networkTx: a.network_tx || 0 });
     } catch (err) {
       setError(err instanceof Error ? err.message : t('common.error.fetch'));
     } finally {
@@ -99,6 +101,7 @@ const AgentDetail = () => {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
           <div className="flex items-center gap-2"><ClockIcon className="text-slate-400" /><span className="text-slate-500">{t('agent.lastUpdated')}:</span><span>{formatDateTime(agent.updated_at)}</span></div>
+          {agent.status === 'active' && agent.connectStr && <div className="flex items-center gap-2"><ActivityLogIcon className="text-slate-400" /><span className="text-slate-500">{t('agent.connectDuration')}:</span><span>{agent.connectStr}</span></div>}
         </div>
       </div>
 

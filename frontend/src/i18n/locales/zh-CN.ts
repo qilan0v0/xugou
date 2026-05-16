@@ -281,6 +281,7 @@ const zhCN = {
     'agent.agentVersion': 'Agent版本',
     'agent.networkTotalRx': '总下载量',
     'agent.networkTotalTx': '总上传量',
+    'agent.connectDuration': '连接时长',
     'agent.systemStatus': '系统状态',
     'agent.deleteConfirm': '确定要删除此客户端吗？此操作无法撤销。',
     'agent.deleting': '正在删除客户端...',

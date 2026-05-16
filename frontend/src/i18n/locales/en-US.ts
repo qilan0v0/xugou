@@ -281,6 +281,7 @@ const enUS = {
     'agent.agentVersion': 'Agent Version',
     'agent.networkTotalRx': 'Total Downloaded',
     'agent.networkTotalTx': 'Total Uploaded',
+    'agent.connectDuration': 'Connected',
     'agent.systemStatus': 'System Status',
     'agent.deleteConfirm': 'Are you sure you want to delete this agent? This action cannot be undone.',
     'agent.deleting': 'Deleting agent...',
