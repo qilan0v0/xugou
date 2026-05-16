@@ -44,10 +44,10 @@ func runStart(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	if Debug { fmt.Println("Xugou Agent 启动中...") }
+	if viper.GetBool("debug") { fmt.Println("Xugou Agent 启动中...") }
 	fmt.Printf("服务器地址: %s\n", server)
 	fmt.Printf("收集间隔: %d秒\n", interval)
-	if Debug { fmt.Println("使用令牌自动注册/上报数据") }
+	if viper.GetBool("debug") { fmt.Println("使用令牌自动注册/上报数据") }
 
 	// 设置上下文，用于处理取消信号
 	ctx, cancel := context.WithCancel(context.Background())
@@ -60,10 +60,10 @@ func runStart(cmd *cobra.Command, args []string) {
 	// 根据配置决定使用哪种上报器
 	if server == "console" {
 		dataReporter = reporter.NewConsoleReporter()
-		if Debug { fmt.Println("使用控制台上报器") }
+		if viper.GetBool("debug") { fmt.Println("使用控制台上报器") }
 	} else {
 		dataReporter = reporter.NewHTTPReporter(server, token)
-		if Debug { fmt.Println("使用HTTP上报器") }
+		if viper.GetBool("debug") { fmt.Println("使用HTTP上报器") }
 	}
 
 	// 设置定时器，按指定间隔收集和上报数据
@@ -77,7 +77,7 @@ func runStart(cmd *cobra.Command, args []string) {
 	// 启动时立即执行一次收集和上报
 	go collectAndReport(ctx, dataCollector, dataReporter)
 
-	if Debug { fmt.Println("Xugou Agent 已启动，按 Ctrl+C 停止") }
+	if viper.GetBool("debug") { fmt.Println("Xugou Agent 已启动，按 Ctrl+C 停止") }
 
 	// 主循环
 	for {

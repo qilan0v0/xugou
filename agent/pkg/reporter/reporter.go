@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"time"
 
-	agent "github.com/xugou/agent/cmd/agent"
+	"github.com/spf13/viper"
 	"github.com/xugou/agent/pkg/collector"
 )
 

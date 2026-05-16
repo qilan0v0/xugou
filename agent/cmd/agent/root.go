@@ -11,7 +11,6 @@ import (
 
 var (
 	cfgFile string
-	Debug   bool
 	rootCmd = &cobra.Command{
 		Use:   "xugou-agent",
 		Short: "Xugou Agent - 系统监控客户端",
