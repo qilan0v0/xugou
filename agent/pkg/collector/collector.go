@@ -29,6 +29,8 @@ type SystemInfo struct {
 	DiskInfo    []DiskInfo    `json:"disks"`
 	NetworkInfo []NetworkInfo `json:"network"`
 	LoadInfo    LoadInfo      `json:"load"`
+	BootTime     time.Time     `json:"boot_time"`
+	AgentVersion string        `json:"agent_version"`
 }
 
 // CPUInfo 包含CPU相关信息
