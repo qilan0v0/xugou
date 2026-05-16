@@ -279,7 +279,9 @@ app.get('/data', async (c) => {
                 boot_time: agent.boot_time || null,
                 network_rx_total: agent.network_rx_total || 0,
                 network_tx_total: agent.network_tx_total || 0,
-                agent_version: agent.agent_version || null
+                agent_version: agent.agent_version || null,
+                country: agent.country || null,
+                connected_at: agent.connected_at || null
             };
         });
         return c.json({
@@ -312,7 +314,14 @@ app.get('/data', async (c) => {
                     boot_time: agent.boot_time,
                     network_rx_total: agent.network_rx_total,
                     network_tx_total: agent.network_tx_total,
-                    agent_version: agent.agent_version
+                    agent_version: agent.agent_version,
+                    cpu_usage: agent.cpu_usage,
+                    memory_total: agent.memory_total,
+                    memory_used: agent.memory_used,
+                    disk_total: agent.disk_total,
+                    disk_used: agent.disk_used,
+                    country: agent.country,
+                    connected_at: agent.connected_at
                 }))
             }
         });
