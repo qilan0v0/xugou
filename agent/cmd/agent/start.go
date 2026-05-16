@@ -46,7 +46,7 @@ func runStart(cmd *cobra.Command, args []string) {
 
 	if viper.GetBool("debug") { fmt.Println("Xugou Agent 启动中...") }
 	if viper.GetBool("debug") { fmt.Printf("服务器地址: %s\n", server) }
-	fmt.Printf("收集间隔: %d秒\n", interval)
+	if viper.GetBool("debug") { fmt.Printf("收集间隔: %d秒\n", interval) }
 	if viper.GetBool("debug") { fmt.Println("使用令牌自动注册/上报数据") }
 
 	// 设置上下文，用于处理取消信号

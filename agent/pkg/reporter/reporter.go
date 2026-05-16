@@ -257,9 +257,10 @@ func (r *HTTPReporter) Report(ctx context.Context, info *collector.SystemInfo) e
 	}
 
 	if viper.GetBool("debug") {
+	if viper.GetBool("debug") {
 		fmt.Printf("成功上报数据到服务器，token: %s, CPU: %.2f%%, 内存: %.2f%%, 硬盘: %.2f%%, 网络下载: %.2f KB/s, 网络上传: %.2f KB/s
 ",
-		payload.CPUUsage,
+			r.apiToken,
 		float64(payload.MemoryUsed)/float64(payload.MemoryTotal)*100,
 		float64(payload.DiskUsed)/float64(payload.DiskTotal)*100,
 		float64(payload.NetworkRX),
