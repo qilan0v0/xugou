@@ -3,8 +3,8 @@ export const checkAgentsStatus = async (env: any) => {
   try {
     console.log('定时任务: 检查客户端状态...');
     
-    // 检查所有客户端的最后更新时间，如果超过60分钟没有更新，将状态设置为inactive
-    const inactiveThreshold = 60 * 60 * 1000; // 60分钟，单位毫秒
+    // 如果超过2分钟没有上报，将状态设置为inactive
+    const inactiveThreshold = 2 * 60 * 1000;
     const now = new Date();
     
     // 查询所有状态为active的客户端
@@ -22,9 +22,9 @@ export const checkAgentsStatus = async (env: any) => {
       const lastUpdateTime = new Date(agent.updated_at);
       const timeDiff = now.getTime() - lastUpdateTime.getTime();
       
-      // 如果超过60分钟没有更新状态，将客户端状态设置为inactive
+      // 超过2分钟无上报则标记离线
       if (timeDiff > inactiveThreshold) {
-        console.log(`定时任务: 客户端 ${agent.name} (ID: ${agent.id}) 超过60分钟未更新状态，设置为离线`);
+        console.log(`定时任务: 客户端 ${agent.name} (ID: ${agent.id}) 超过2分钟未上报，设置为离线`);
         
         // 更新客户端状态为inactive
         await env.DB.prepare(
