@@ -105,21 +105,25 @@ app.post('/api/agents/status', async (c) => {
       connectedAt = now;
     }
 
-    const result = env.DB.prepare(
-      `UPDATE agents SET status='active', cpu_usage=?, memory_total=?, memory_used=?, disk_total=?, disk_used=?, network_rx=?, network_tx=?, hostname=?, ip_address=?, os=?, version=?, cpu_arch=?, cpu_model_name=?, cpu_cores=?, load1=?, load5=?, load15=?, boot_time=?, network_rx_total=?, network_tx_total=?, agent_version=?, country=?, connected_at = COALESCE(connected_at, ?), updated_at=?, last_payload=? WHERE id=?`
-    ).bind(
-      cpu, memTotal, memUsed, diskTotal, diskUsed, netRx, netTx,
-      toD1Primitive(body.hostname),
-      toD1Primitive(body.ip_address ?? (Array.isArray(body.ip_addresses) ? body.ip_addresses[0] : null) ?? (Array.isArray(body.ip) ? body.ip[0] : body.ip) ?? body.IP),
-      toD1Primitive(body.os), toD1Primitive(body.version),
-      cpuArch, cpuModelName, cpuCores, l1, l5, l15, bt, netRxTotal, netTxTotal, av,
-      connectedAt ?? now,
-      now, raw.slice(0, 2000), agent.id
-    ).run();
-
-    if (!result.success) {
-      console.error('DIRECT_STATUS update failed:', result.error);
-      return c.json({ success: false, message: 'update failed: ' + (result.error || 'unknown') }, 500);
+    // Use raw sql.js directly (proven working in test3)
+    const rawDb = getRawDb();
+    try {
+      const stmt = rawDb!.prepare(
+        `UPDATE agents SET status='active', cpu_usage=?, memory_total=?, memory_used=?, disk_total=?, disk_used=?, network_rx=?, network_tx=?, hostname=?, ip_address=?, os=?, version=?, cpu_arch=?, cpu_model_name=?, cpu_cores=?, load1=?, load5=?, load15=?, boot_time=?, network_rx_total=?, network_tx_total=?, agent_version=?, country=?, connected_at = COALESCE(connected_at, ?), updated_at=?, last_payload=? WHERE id=?`
+      );
+      stmt.bind([
+        cpu, memTotal, memUsed, diskTotal, diskUsed, netRx, netTx,
+        toD1Primitive(body.hostname),
+        toD1Primitive(body.ip_address ?? (Array.isArray(body.ip_addresses) ? body.ip_addresses[0] : null) ?? (Array.isArray(body.ip) ? body.ip[0] : body.ip) ?? body.IP),
+        toD1Primitive(body.os), toD1Primitive(body.version),
+        cpuArch, cpuModelName, cpuCores, l1, l5, l15, bt, netRxTotal, netTxTotal, av,
+        connectedAt ?? now,
+        now, raw.slice(0, 2000), agent.id
+      ]);
+      stmt.step();
+      stmt.free();
+    } catch(e: any) {
+      return c.json({ success: false, message: 'update failed: ' + e.message }, 500);
     }
 
     return c.json({ success: true, message: 'ok' });
