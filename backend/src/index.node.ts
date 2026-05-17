@@ -119,7 +119,7 @@ app.post('/api/agents/status', async (c) => {
 
     if (!result.success) {
       console.error('DIRECT_STATUS update failed:', result.error);
-      return c.json({ success: false, message: 'update failed' }, 500);
+      return c.json({ success: false, message: 'update failed: ' + (result.error || 'unknown') }, 500);
     }
 
     return c.json({ success: true, message: 'ok' });
