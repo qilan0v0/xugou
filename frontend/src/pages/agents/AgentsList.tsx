@@ -108,7 +108,7 @@ const AgentsList = () => {
       {/* Search + Category bar */}
       <div className="flex gap-3 mb-4">
         <input
-          type="text" placeholder="搜索服务器名称、主机名、IP..."
+          type="text" placeholder="搜索名称、主机名、IP、标签..."
           className="flex-1 px-4 py-2.5 rounded-lg border border-white/[0.08] bg-white/5 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 transition-all"
         />
       </div>

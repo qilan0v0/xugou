@@ -108,6 +108,11 @@ const AgentCard = ({ agent }: AgentCardProps) => {
             {agent.category}
           </span>
         )}
+        {agent.tags && agent.tags.split(',').filter(Boolean).map((tag: string, i: number) => (
+          <span key={i} className="text-[9px] px-1 py-0.5 rounded bg-slate-500/10 text-slate-500 dark:text-slate-400 flex-shrink-0">
+            {tag.trim()}
+          </span>
+        ))}
         {agent.os && (
           <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium flex-shrink-0 hidden sm:inline ${osBadgeColor}`}>
             {agent.os.split(' ')[0]} {agent.version?.split(' ')[0] || ''}

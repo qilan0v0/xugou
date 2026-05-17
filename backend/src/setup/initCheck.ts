@@ -30,6 +30,7 @@ export async function runMigrations(env: Bindings): Promise<void> {
     'traffic_limit INTEGER',
     'expiry_time TEXT',
     'category TEXT',
+    'tags TEXT',
   ];
   for (const col of newColumns) {
     try {

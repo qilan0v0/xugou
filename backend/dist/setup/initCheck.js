@@ -22,6 +22,7 @@ async function runMigrations(env) {
         'traffic_limit INTEGER',
         'expiry_time TEXT',
         'category TEXT',
+        'tags TEXT',
     ];
     for (const col of newColumns) {
         try {

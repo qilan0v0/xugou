@@ -15,6 +15,7 @@ const EditAgent = () => {
   const [trafficUnit, setTrafficUnit] = useState('TB');
   const units = ['GB', 'TB'] as const;
   const [category, setCategory] = useState('');
+  const [tags, setTags] = useState('');
   const [expiryTime, setExpiryTime] = useState('');
   const [toastOpen, setToastOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
@@ -27,6 +28,7 @@ const EditAgent = () => {
       if (res.success && res.agent) {
         setName(res.agent.name || '');
         setCategory(res.agent.category || '');
+        setTags(res.agent.tags || '');
         const tl = res.agent.traffic_limit;
         if (tl && tl > 0) {
           if (tl >= 1099511627776) { setTrafficVal(String(Math.round(tl / 1099511627776 * 10) / 10)); setTrafficUnit('TB'); }
@@ -52,6 +54,7 @@ const EditAgent = () => {
       if (expiryTime) data.expiry_time = new Date(expiryTime).toISOString();
       else data.expiry_time = null;
       if (category) data.category = category; else data.category = null;
+      if (tags) data.tags = tags; else data.tags = null;
       const res = await updateAgent(parseInt(id), data);
       if (res.success) { setToastMsg(t('agent.updateSuccess')); setToastType('success'); setToastOpen(true); setTimeout(() => navigate('/agents'), 1500); }
       else { setToastMsg(res.message || t('agent.updateFailed')); setToastType('error'); setToastOpen(true); }
@@ -79,6 +82,10 @@ const EditAgent = () => {
           <div>
             <label className="block text-xs font-medium text-slate-500 mb-1.5">分类</label>
             <input value={category} onChange={e => setCategory(e.target.value)} placeholder="如: 生产环境、测试环境" className={inputClass} />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-500 mb-1.5">标签</label>
+            <input value={tags} onChange={e => setTags(e.target.value)} placeholder="多个用逗号分隔，如: web,nginx,db" className={inputClass} />
           </div>
           <div>
             <label className="block text-xs font-medium text-slate-500 mb-1.5">{t('agent.trafficLimit')}</label>

@@ -51,7 +51,7 @@ agents.get('/', async (c) => {
 // 创建新客户端
 agents.post('/', async (c) => {
   try {
-    const { name, token: reqToken, category } = await c.req.json();
+    const { name, token: reqToken, category, tags } = await c.req.json();
     const payload = c.get('jwtPayload');
     
     const token = reqToken || await generateToken();
@@ -137,7 +137,8 @@ agents.get('/:id', async (c) => {
         connected_at: agent.connected_at || null,
         traffic_limit: agent.traffic_limit || null,
         expiry_time: agent.expiry_time || null,
-        category: agent.category || null
+        category: agent.category || null,
+        tags: agent.tags || null
       }
     });
   } catch (error) {
@@ -168,7 +169,7 @@ agents.put('/:id', async (c) => {
     
     // 获取更新数据
     const updateData = await c.req.json();
-    const { name, hostname, ip_address, os, version, status, traffic_limit, expiry_time, category } = updateData;
+    const { name, hostname, ip_address, os, version, status, traffic_limit, expiry_time, category, tags } = updateData;
     
     // 准备更新的字段和值
     const fieldsToUpdate = [];
@@ -217,6 +218,11 @@ agents.put('/:id', async (c) => {
     if (category !== undefined) {
       fieldsToUpdate.push('category = ?');
       values.push(category);
+    }
+
+    if (tags !== undefined) {
+      fieldsToUpdate.push('tags = ?');
+      values.push(tags);
     }
 
     fieldsToUpdate.push('updated_at = ?');

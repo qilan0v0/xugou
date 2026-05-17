@@ -37,4 +37,5 @@ export interface Agent {
   traffic_limit?: number;
   expiry_time?: string;
   category?: string;
+  tags?: string;
 } 
