@@ -1,6 +1,10 @@
 import { Agent } from '../api/agents';
 import ResourceBar from './ResourceBar';
 import { useTranslation } from 'react-i18next';
+import {
+  CrumpledPaperIcon, MixerHorizontalIcon, StackIcon,
+  DownloadIcon, UploadIcon, ArrowDownIcon, ArrowUpIcon,
+} from '@radix-ui/react-icons';
 
 interface AgentCardProps {
   agent: Agent;
@@ -47,17 +51,21 @@ const AgentCard = ({ agent }: AgentCardProps) => {
   const memTotalStr = formatBytes(agent.memory_total || 0);
   const diskUsedStr = formatBytes(agent.disk_used || 0);
   const diskTotalStr = formatBytes(agent.disk_total || 0);
-  const osIcon = (agent.os || '').toLowerCase().includes('debian') ? '🦊' :
-                 (agent.os || '').toLowerCase().includes('ubuntu') ? '🔴' :
-                 (agent.os || '').toLowerCase().includes('centos') ? '🟠' :
-                 (agent.os || '').toLowerCase().includes('alpine') ? '🏔️' :
-                 (agent.os || '').toLowerCase().includes('arch') ? '🔵' : '💻';
+  const osBadgeColor = (agent.os || '').toLowerCase().includes('debian') ? 'text-rose-500 bg-rose-500/10' :
+                       (agent.os || '').toLowerCase().includes('ubuntu') ? 'text-orange-500 bg-orange-500/10' :
+                       (agent.os || '').toLowerCase().includes('alpine') ? 'text-sky-500 bg-sky-500/10' :
+                       (agent.os || '').toLowerCase().includes('arch') ? 'text-cyan-500 bg-cyan-500/10' :
+                       'text-slate-500 bg-slate-500/10';
 
-  const MetricItem = ({ icon, label, value, sub, barValue, barColor }: { icon: string; label: string; value: string; sub?: string; barValue?: number; barColor?: string }) => (
+  const IconWrap = ({ children, color }: { children: React.ReactNode; color: string }) => (
+    <span className={`w-4 h-4 flex items-center justify-center rounded ${color}`}>{children}</span>
+  );
+
+  const MetricItem = ({ icon, iconColor, label, value, sub, barValue, barColor }: { icon: React.ReactNode; iconColor: string; label: string; value: string; sub?: string; barValue?: number; barColor?: string }) => (
     <div className="flex flex-col gap-0.5">
       <div className="flex items-center justify-between">
         <span className="text-[11px] text-slate-500 flex items-center gap-1">
-          <span className="text-xs">{icon}</span>{label}
+          <IconWrap color={iconColor}>{icon}</IconWrap>{label}
         </span>
         <span className="text-[11px] font-medium text-slate-700 dark:text-slate-300">{value}</span>
       </div>
@@ -71,13 +79,16 @@ const AgentCard = ({ agent }: AgentCardProps) => {
       {/* Header: flag + name + OS + status */}
       <div className="flex items-center gap-2 mb-3">
         {flagUrl(agent.country) ? (
-          <img src={flagUrl(agent.country)} alt={agent.country || ''} className="w-5 h-4 rounded-sm shadow-sm flex-shrink-0" />
+          <img src={flagUrl(agent.country)} alt={agent.country || ''} className="w-5 h-3.5 rounded-sm shadow-sm flex-shrink-0" />
         ) : (
-          <span className="text-xs flex-shrink-0">🏳️</span>
+          <span className="w-5 h-3.5 rounded-sm bg-slate-200 dark:bg-slate-700 flex-shrink-0" />
         )}
         <span className="font-semibold text-sm text-slate-900 dark:text-white truncate">{agent.name}</span>
-        <span className="text-xs flex-shrink-0">{osIcon}</span>
-        <span className="text-[10px] text-slate-400 truncate hidden sm:inline">{agent.os || ''} {agent.version?.split(' ')[0] || ''}</span>
+        {agent.os && (
+          <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium flex-shrink-0 hidden sm:inline ${osBadgeColor}`}>
+            {agent.os.split(' ')[0]} {agent.version?.split(' ')[0] || ''}
+          </span>
+        )}
         <span className="ml-auto flex items-center gap-1 flex-shrink-0">
           <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse-dot shadow-[0_0_6px_rgba(34,197,94,0.6)]' : 'bg-slate-400'}`} />
           <span className={`text-[11px] font-medium ${isOnline ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500'}`}>
@@ -88,13 +99,13 @@ const AgentCard = ({ agent }: AgentCardProps) => {
 
       {/* Two-column metrics grid */}
       <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-        <MetricItem icon="📊" label="CPU" value={`${cpu.toFixed(1)}%`} barValue={cpu} barColor="green" />
-        <MetricItem icon="🧠" label={t('agent.memory')} value={`${memPct.toFixed(1)}%`} sub={`${memUsedStr} / ${memTotalStr}`} barValue={memPct} barColor="blue" />
-        <MetricItem icon="💾" label={t('agent.disk')} value={`${diskPct.toFixed(1)}%`} sub={`${diskUsedStr} / ${diskTotalStr}`} barValue={diskPct} barColor="amber" />
-        <MetricItem icon="📥" label={t('agent.networkTotalRx')} value="" sub={rxTotalStr} />
-        <MetricItem icon="⬇" label={t('clientResource.download')} value={netRx >= 1024 ? `${(netRx / 1024).toFixed(1)} MB/s` : `${netRx.toFixed(1)} KB/s`} barValue={Math.min(netRx / 51.2, 100)} barColor="cyan" />
-        <MetricItem icon="⬆" label={t('clientResource.upload')} value={netTx >= 1024 ? `${(netTx / 1024).toFixed(1)} MB/s` : `${netTx.toFixed(1)} KB/s`} barValue={Math.min(netTx / 51.2, 100)} barColor="indigo" />
-        <MetricItem icon="📤" label={t('agent.networkTotalTx')} value="" sub={txTotalStr} />
+        <MetricItem icon={<MixerHorizontalIcon />} iconColor="bg-emerald-500/10 text-emerald-600" label="CPU" value={`${cpu.toFixed(1)}%`} barValue={cpu} barColor="green" />
+        <MetricItem icon={<StackIcon />} iconColor="bg-blue-500/10 text-blue-600" label={t('agent.memory')} value={`${memPct.toFixed(1)}%`} sub={`${memUsedStr} / ${memTotalStr}`} barValue={memPct} barColor="blue" />
+        <MetricItem icon={<CrumpledPaperIcon />} iconColor="bg-amber-500/10 text-amber-600" label={t('agent.disk')} value={`${diskPct.toFixed(1)}%`} sub={`${diskUsedStr} / ${diskTotalStr}`} barValue={diskPct} barColor="amber" />
+        <MetricItem icon={<DownloadIcon />} iconColor="bg-slate-500/10 text-slate-500" label={t('agent.networkTotalRx')} value="" sub={rxTotalStr} />
+        <MetricItem icon={<ArrowDownIcon />} iconColor="bg-cyan-500/10 text-cyan-600" label={t('clientResource.download')} value={netRx >= 1024 ? `${(netRx / 1024).toFixed(1)} MB/s` : `${netRx.toFixed(1)} KB/s`} barValue={Math.min(netRx / 51.2, 100)} barColor="cyan" />
+        <MetricItem icon={<ArrowUpIcon />} iconColor="bg-indigo-500/10 text-indigo-600" label={t('clientResource.upload')} value={netTx >= 1024 ? `${(netTx / 1024).toFixed(1)} MB/s` : `${netTx.toFixed(1)} KB/s`} barValue={Math.min(netTx / 51.2, 100)} barColor="indigo" />
+        <MetricItem icon={<UploadIcon />} iconColor="bg-slate-500/10 text-slate-500" label={t('agent.networkTotalTx')} value="" sub={txTotalStr} />
       </div>
 
       {/* Bottom divider + uptime */}
