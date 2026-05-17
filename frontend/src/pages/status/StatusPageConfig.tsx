@@ -93,10 +93,15 @@ const StatusPageConfig = () => {
   if (loading) return <div className="flex justify-center items-center min-h-[50vh]"><span className="text-slate-500">{t('common.loading')}</span></div>;
   if (error) return <div className="flex justify-center items-center min-h-[50vh] gap-3"><span className="text-red-500">{error}</span><button onClick={() => window.location.reload()} className="btn-gradient px-4 py-2 text-sm">{t('common.retry')}</button></div>;
 
+  const [webhookUrl, setWebhookUrl] = useState('');
+  const [notifyDown, setNotifyDown] = useState(true);
+  const [notifyUp, setNotifyUp] = useState(true);
+
   const tabs = [
     { key: 'general', label: t('statusPageConfig.general') },
     { key: 'services', label: t('statusPageConfig.services') },
     { key: 'agents', label: t('statusPageConfig.agents') },
+    { key: 'notifications', label: t('statusPageConfig.notifications') },
     { key: 'appearance', label: t('statusPageConfig.appearance') },
   ];
 
@@ -198,6 +203,32 @@ const StatusPageConfig = () => {
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {tab === 'notifications' && (
+            <div className="flex flex-col gap-5">
+              <div>
+                <label className="block text-xs font-medium text-slate-500 mb-1.5">{t('statusPageConfig.webhookUrl')}</label>
+                <input value={webhookUrl} onChange={e => setWebhookUrl(e.target.value)} placeholder="https://hooks.slack.com/..." className={inputClass} />
+                <p className="text-xs text-slate-500 mt-1">{t('statusPageConfig.webhookHint')}</p>
+              </div>
+              <div className="flex flex-col gap-3">
+                <label className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors cursor-pointer">
+                  <span className="text-sm text-slate-700 dark:text-slate-300">{t('statusPageConfig.notifyOnDown')}</span>
+                  <span className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${notifyDown ? 'bg-blue-500 border-blue-500' : 'border-slate-400'}`}>
+                    {notifyDown && <CheckIcon className="w-3.5 h-3.5 text-white" />}
+                  </span>
+                  <input type="checkbox" checked={notifyDown} onChange={() => setNotifyDown(!notifyDown)} className="sr-only" />
+                </label>
+                <label className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors cursor-pointer">
+                  <span className="text-sm text-slate-700 dark:text-slate-300">{t('statusPageConfig.notifyOnUp')}</span>
+                  <span className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${notifyUp ? 'bg-blue-500 border-blue-500' : 'border-slate-400'}`}>
+                    {notifyUp && <CheckIcon className="w-3.5 h-3.5 text-white" />}
+                  </span>
+                  <input type="checkbox" checked={notifyUp} onChange={() => setNotifyUp(!notifyUp)} className="sr-only" />
+                </label>
+              </div>
             </div>
           )}
 
