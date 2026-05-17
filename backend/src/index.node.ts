@@ -164,7 +164,21 @@ app.get('/api/debug/test-write', async (c) => {
     ).bind(99, 100, 50, 200, 100, 't2', '2.2.2.2', 'linux2', 'v2', now, id).run();
     const s2 = db_.prepare("SELECT cpu_usage, hostname, status FROM agents WHERE id = ?"); s2.bind([id]); s2.step(); const v2 = s2.getAsObject(); s2.free();
 
-    return c.json({ test1: { r1, cpu: v1?.cpu_usage }, test2: { r2, cpu: v2?.cpu_usage, host: v2?.hostname, status: v2?.status } });
+    // Test 3: full 26-param UPDATE with COALESCE
+    const r3 = env.DB.prepare(
+      "UPDATE agents SET status='active', cpu_usage=?, memory_total=?, memory_used=?, disk_total=?, disk_used=?, network_rx=?, network_tx=?, hostname=?, ip_address=?, os=?, version=?, cpu_arch=?, cpu_model_name=?, cpu_cores=?, load1=?, load5=?, load15=?, boot_time=?, network_rx_total=?, network_tx_total=?, agent_version=?, country=?, connected_at = COALESCE(connected_at, ?), updated_at=?, last_payload=? WHERE id=?"
+    ).bind(
+      77, 1000, 500, 2000, 1000, 10, 20, 'fulltest', '3.3.3.3', 'linux3', 'v3',
+      'x86_64', 'Intel', 4, 1.0, 2.0, 3.0, '2024-01-01', 999, 888, '1.0.0', 'US',
+      now, now, '{}', id
+    ).run();
+    const s3 = db_.prepare("SELECT cpu_usage, hostname, status, cpu_arch, connected_at FROM agents WHERE id = ?"); s3.bind([id]); s3.step(); const v3 = s3.getAsObject(); s3.free();
+
+    return c.json({
+      test1: { r1, cpu: v1?.cpu_usage },
+      test2: { r2, cpu: v2?.cpu_usage, host: v2?.hostname, status: v2?.status },
+      test3: { r3, cpu: v3?.cpu_usage, host: v3?.hostname, status: v3?.status, arch: v3?.cpu_arch, connected: v3?.connected_at }
+    });
   } catch(e: any) { return c.json({ error: e.message }, 500); }
 });
 
