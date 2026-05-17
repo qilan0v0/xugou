@@ -151,7 +151,7 @@ app.get('/api/trigger-check', async (c) => {
 });
 
 // Start server
-const port = parseInt(process.env.PORT || '8787');
+const port = parseInt(process.env.PORT || '7860');
 console.log(`Xugou Node.js backend starting on http://localhost:${port}`);
 
 // We're already in an async context due to top-level await
