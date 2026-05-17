@@ -2,8 +2,19 @@
 // 用于在 Cloudflare Workers 环境中创建数据库表和初始数据
 
 import { Hono } from 'hono';
-import bcryptjs from 'bcryptjs';
-const bcrypt = (bcryptjs as any).default || bcryptjs;
+import crypto from 'crypto';
+
+function hashPassword(password: string): string {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const hash = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
+  return salt + ':' + hash;
+}
+
+function verifyPassword(password: string, stored: string): boolean {
+  const [salt, hash] = stored.split(':');
+  const verify = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
+  return hash === verify;
+}
 import { Bindings } from '../models/db';
 
 const initDb = new Hono<{ Bindings: Bindings }>();
@@ -46,8 +57,7 @@ export async function createAdminUser(env: Bindings): Promise<void> {
   if (!adminUser) {
     console.log('创建管理员用户...');
     // 密码: admin123
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash('admin123', salt);
+    const hashedPassword = hashPassword('admin123');
     const now = new Date().toISOString();
 
     await env.DB.prepare(

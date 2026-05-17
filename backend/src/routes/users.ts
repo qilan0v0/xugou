@@ -1,8 +1,18 @@
 import { Hono } from 'hono';
 import { jwt } from 'hono/jwt';
-import bcryptjs from 'bcryptjs';
-const bcrypt = (bcryptjs as any).default || bcryptjs;
-const { compare, hash } = bcrypt;
+import crypto from 'crypto';
+
+function hashPassword(password: string): string {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const hash = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
+  return salt + ':' + hash;
+}
+
+function verifyPassword(password: string, stored: string): boolean {
+  const [salt, hash] = stored.split(':');
+  const verify = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
+  return hash === verify;
+}
 import { Bindings } from '../models/db';
 import { getJwtSecret } from '../utils/jwt';
 
@@ -109,7 +119,7 @@ users.post('/', async (c) => {
     }
     
     // 哈希密码
-    const hashedPassword = await hash(data.password, 10);
+    const hashedPassword = hashPassword(data.password);
     const now = new Date().toISOString();
     
     // 插入新用户
@@ -200,7 +210,7 @@ users.put('/:id', async (c) => {
     
     // 如果提供了新密码，则更新密码
     if (data.password) {
-      const hashedPassword = await hash(data.password, 10);
+      const hashedPassword = hashPassword(data.password);
       updates.push('password = ?');
       values.push(hashedPassword);
     }
@@ -311,14 +321,14 @@ users.post('/:id/change-password', async (c) => {
     
     // 非管理员需要验证当前密码
     if (payload.role !== 'admin') {
-      const isPasswordValid = await compare(currentPassword, user.password);
+      const isPasswordValid = verifyPassword(currentPassword, user.password);
       if (!isPasswordValid) {
         return c.json({ success: false, message: '当前密码不正确' }, 400);
       }
     }
     
     // 哈希新密码
-    const hashedPassword = await hash(newPassword, 10);
+    const hashedPassword = hashPassword(newPassword);
     
     // 更新密码
     const result = await c.env.DB.prepare(

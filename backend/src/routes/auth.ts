@@ -1,7 +1,18 @@
 import { Hono } from 'hono';
 import { jwt } from 'hono/jwt';
-import bcryptjs from 'bcryptjs';
-const bcrypt = (bcryptjs as any).default || bcryptjs;
+import crypto from 'crypto';
+
+function hashPassword(password: string): string {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const hash = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
+  return salt + ':' + hash;
+}
+
+function verifyPassword(password: string, stored: string): boolean {
+  const [salt, hash] = stored.split(':');
+  const verify = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
+  return hash === verify;
+}
 import jsonwebtoken from 'jsonwebtoken';
 import { getJwtSecret } from '../utils/jwt';
 
@@ -61,8 +72,7 @@ auth.post('/register', async (c) => {
     }
     
     // 加密密码
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const hashedPassword = hashPassword(password);
     
     // 创建新用户
     const result = await c.env.DB.prepare(
@@ -111,7 +121,7 @@ auth.post('/login', async (c) => {
     }
     
     // 验证密码
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = verifyPassword(password, user.password);
     if (!isPasswordValid) {
       return c.json({ success: false, message: '用户名或密码错误' }, 401);
     }
