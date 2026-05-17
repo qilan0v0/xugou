@@ -96,6 +96,8 @@ app.post('/api/agents/status', async (c) => {
       connectedAt = now;
     }
 
+    // Detect country from request public IP
+    console.log('COUNTRY_DEBUG: x-forwarded-for=', c.req.header('x-forwarded-for'), 'x-real-ip=', c.req.header('x-real-ip'));
     // Detect country from request public IP (agent reports local IP, use x-forwarded-for)
     const forwarded = c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || '';
     const clientIp = forwarded.split(',')[0]?.trim();
