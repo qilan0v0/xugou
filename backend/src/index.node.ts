@@ -145,6 +145,15 @@ app.get('/api/trigger-check', async (c) => {
   return c.json({ success: true, message: '监控检查和客户端状态已触发' });
 });
 
+// Debug: test DB write
+app.get('/api/debug/test-write', async (c) => {
+  try {
+    const r1 = env.DB.prepare("UPDATE agents SET cpu_usage = 99 WHERE id = (SELECT id FROM agents LIMIT 1)").run();
+    const row = env.DB.prepare("SELECT id, cpu_usage FROM agents LIMIT 1").first<any>();
+    return c.json({ runResult: r1, row });
+  } catch(e: any) { return c.json({ error: e.message }, 500); }
+});
+
 // Start server
 const port = parseInt(process.env.PORT || '7860');
 console.log(`Xugou Node.js backend starting on http://localhost:${port}`);
