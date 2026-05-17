@@ -60,26 +60,15 @@ class D1PreparedStatement {
 
   run<T = unknown>(): D1Result<T> {
     try {
-      // Embed values directly in SQL (sql.js bind may not work for non-SELECT)
-      let sql = this.sql;
-      const params = [...this.params];
-      for (let i = 0; i < params.length; i++) {
-        const val = params[i];
-        if (val === null || val === undefined) {
-          sql = sql.replace('?', 'NULL');
-        } else if (typeof val === 'string') {
-          sql = sql.replace('?', "'" + val.replace(/'/g, "''") + "'");
-        } else {
-          sql = sql.replace('?', String(val));
-        }
-      }
-      // Use step() to execute (no bind needed since values are embedded)
-      const stmt = db!.prepare(sql);
+      const stmt = db!.prepare(this.sql);
+      stmt.bind(this.params);
+      console.log('run: sql=', this.sql.slice(0, 100), 'params=', JSON.stringify(this.params.slice(0, 5)));
       stmt.step();
       stmt.free();
       if (dbPath) saveDb();
       return { success: true };
     } catch (e: any) {
+      console.error('run error:', e.message, 'sql:', this.sql.slice(0, 100));
       return { success: false, error: e.message };
     }
   }
