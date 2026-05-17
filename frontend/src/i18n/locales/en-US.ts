@@ -345,6 +345,7 @@ const enUS = {
     'profile.apiKeys': 'API Keys',
     'profile.createApiKey': 'Create API Key',
     'profile.notifications': 'Notification Settings',
+    'profile.notificationsHint': 'Alert notifications and webhook configuration will be available in a future version',
     'profile.basicInfo': 'Basic Information',
     'profile.update': 'Update Profile',
     'profile.currentPassword': 'Current Password',

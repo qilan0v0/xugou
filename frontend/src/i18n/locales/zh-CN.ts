@@ -345,6 +345,7 @@ const zhCN = {
     'profile.apiKeys': 'API密钥',
     'profile.createApiKey': '创建API密钥',
     'profile.notifications': '通知设置',
+    'profile.notificationsHint': '告警通知、Webhook 等配置将在后续版本中提供',
     'profile.basicInfo': '基本信息',
     'profile.update': '更新个人资料',
     'profile.currentPassword': '当前密码',
