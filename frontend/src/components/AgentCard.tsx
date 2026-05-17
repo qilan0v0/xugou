@@ -110,11 +110,11 @@ const AgentCard = ({ agent }: AgentCardProps) => {
         <MetricItem icon={<MixerHorizontalIcon />} iconColor="bg-emerald-500/10 text-emerald-600" label="CPU" value={`${cpu.toFixed(1)}%`} barValue={cpu} barColor="green" />
         <MetricItem icon={<StackIcon />} iconColor="bg-blue-500/10 text-blue-600" label={t('agent.memory')} value={`${memPct.toFixed(1)}%`} sub={`${memUsedStr} / ${memTotalStr}`} barValue={memPct} barColor="blue" />
         <MetricItem icon={<CrumpledPaperIcon />} iconColor="bg-amber-500/10 text-amber-600" label={t('agent.disk')} value={`${diskPct.toFixed(1)}%`} sub={`${diskUsedStr} / ${diskTotalStr}`} barValue={diskPct} barColor="amber" />
-        <MetricItem icon={<DownloadIcon />} iconColor="bg-violet-500/10 text-violet-600" label={t('agent.monthlyTraffic')} value={trafficLimit > 0 ? `${totalTrafficStr} / ${trafficLimitStr}` : totalTrafficStr} barValue={trafficLimit > 0 ? trafficPct : undefined} barColor="purple" />
-        <MetricItem icon={<ArrowDownIcon />} iconColor="bg-cyan-500/10 text-cyan-600" label={t('clientResource.download')} value={netRx >= 1024 ? `${(netRx / 1024).toFixed(1)} MB/s` : `${netRx.toFixed(1)} KB/s`} barValue={Math.min(netRx / 51.2, 100)} barColor="cyan" />
-        <MetricItem icon={<ArrowUpIcon />} iconColor="bg-indigo-500/10 text-indigo-600" label={t('clientResource.upload')} value={netTx >= 1024 ? `${(netTx / 1024).toFixed(1)} MB/s` : `${netTx.toFixed(1)} KB/s`} barValue={Math.min(netTx / 51.2, 100)} barColor="indigo" />
-        <MetricItem icon={<DownloadIcon />} iconColor="bg-slate-500/10 text-slate-500" label={t('agent.networkTotalRx')} value="" sub={rxTotalStr} />
-        <MetricItem icon={<UploadIcon />} iconColor="bg-slate-500/10 text-slate-500" label={t('agent.networkTotalTx')} value="" sub={txTotalStr} />
+        <MetricItem icon={<DownloadIcon />} iconColor="bg-violet-500/10 text-violet-600" label={t('agent.traffic')} value={trafficLimit > 0 ? `${totalTrafficStr} / ${trafficLimitStr}` : totalTrafficStr} barValue={trafficLimit > 0 ? trafficPct : 0} barColor="purple" />
+        <MetricItem icon={<ArrowDownIcon />} iconColor="bg-cyan-500/10 text-cyan-600" label={t('clientResource.download')} value={netRx >= 1024 ? `${(netRx / 1024).toFixed(1)} MB/s` : `${netRx.toFixed(1)} KB/s`} />
+        <MetricItem icon={<ArrowUpIcon />} iconColor="bg-indigo-500/10 text-indigo-600" label={t('clientResource.upload')} value={netTx >= 1024 ? `${(netTx / 1024).toFixed(1)} MB/s` : `${netTx.toFixed(1)} KB/s`} />
+        <MetricItem icon={<DownloadIcon />} iconColor="bg-slate-500/10 text-slate-500" label={t('agent.networkTotalRx')} value={rxTotalStr} />
+        <MetricItem icon={<UploadIcon />} iconColor="bg-slate-500/10 text-slate-500" label={t('agent.networkTotalTx')} value={txTotalStr} />
       </div>
 
       {/* Bottom divider + expiry + uptime */}
