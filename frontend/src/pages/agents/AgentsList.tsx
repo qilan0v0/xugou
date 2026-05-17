@@ -60,18 +60,56 @@ const AgentsList = () => {
   if (loading) return <div className="flex justify-center items-center min-h-[50vh]"><span className="text-slate-500">{t('common.loading')}</span></div>;
   if (error) return <div className="max-w-6xl mx-auto px-4 py-8"><div className="glass p-4 mb-4 border-l-4 border-red-500"><span className="text-red-500">{error}</span></div><button onClick={() => window.location.reload()} className="btn-gradient px-4 py-2 text-sm">{t('common.retry')}</button></div>;
 
+  const totalRx = agents.reduce((s, a) => s + (a.network_rx_total || 0), 0);
+  const totalTx = agents.reduce((s, a) => s + (a.network_tx_total || 0), 0);
+  const formatBytes = (bytes: number) => { if (!bytes) return '0 B'; const u = ['B','KB','MB','GB','TB']; let i=0,v=bytes; while(v>=1024&&i<u.length-1){v/=1024;i++;} return v.toFixed(1)+' '+u[i]; };
+  const online = agents.filter(a => a.status === 'active').length;
+  const offline = agents.length - online;
+  const regions = [...new Set(agents.map(a => a.country).filter(Boolean))].length;
+
+  const summaryCards = [
+    { label: '服务器总数', value: agents.length, color: 'from-blue-500 to-cyan-400', icon: '🖥️' },
+    { label: '在线', value: online, color: 'from-emerald-500 to-teal-400', icon: '🟢' },
+    { label: '离线', value: offline, color: 'from-slate-500 to-slate-400', icon: '🔴' },
+    { label: '地区', value: regions, color: 'from-purple-500 to-pink-400', icon: '🌍' },
+    { label: '总流量 ↑', value: formatBytes(totalTx), color: 'from-orange-500 to-amber-400', icon: '📤', sub: `↓ ${formatBytes(totalRx)}` },
+  ];
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 animate-slide-up">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t('agents.pageTitle')}</h1>
         <div className="flex items-center gap-3">
+          <button onClick={fetchAgents} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"><ReloadIcon />{t('common.refresh')}</button>
           <div className="flex rounded-lg bg-slate-100 dark:bg-white/5 p-0.5">
             <button onClick={() => setViewMode('card')} className={`p-2 rounded-md transition-colors ${viewMode === 'card' ? 'bg-white dark:bg-white/10 shadow-sm text-blue-500' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}><ViewGridIcon /></button>
             <button onClick={() => setViewMode('table')} className={`p-2 rounded-md transition-colors ${viewMode === 'table' ? 'bg-white dark:bg-white/10 shadow-sm text-blue-500' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}><LayoutIcon /></button>
           </div>
-          <button onClick={fetchAgents} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"><ReloadIcon />{t('common.refresh')}</button>
           <button onClick={() => navigate('/agents/create')} className="btn-gradient flex items-center gap-1.5 px-4 py-2 text-sm"><PlusIcon />{t('agents.create')}</button>
         </div>
+      </div>
+
+      {/* Summary cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-4">
+        {summaryCards.map((card, i) => (
+          <div key={i} className="glass rounded-xl p-3 relative overflow-hidden">
+            <div className={`absolute top-0 left-0 w-1 h-full bg-gradient-to-b ${card.color}`} />
+            <div className="pl-2">
+              <div className="text-lg mb-0.5">{card.icon}</div>
+              <div className="text-xl font-bold text-slate-900 dark:text-white">{card.value}</div>
+              <div className="text-[10px] text-slate-500">{card.label}</div>
+              {card.sub && <div className="text-[10px] text-slate-400 mt-0.5">{card.sub}</div>}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Search + Category bar */}
+      <div className="flex gap-3 mb-4">
+        <input
+          type="text" placeholder="搜索服务器..."
+          className="flex-1 px-3 py-2 rounded-lg border border-white/[0.08] bg-white/5 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 transition-all max-w-xs"
+        />
       </div>
 
       {/* Category filter */}
