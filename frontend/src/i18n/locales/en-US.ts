@@ -392,6 +392,7 @@ const enUS = {
     'statusPageConfig.webhookHint': 'Send POST notifications on status change (Slack, Discord, WeCom supported)',
     'statusPageConfig.notifyOnDown': 'Notify on service down',
     'statusPageConfig.notifyOnUp': 'Notify on service recovery',
+    'statusPageConfig.notifyTemplate': 'Notification template',
     'statusPageConfig.appearance': 'Appearance Settings',
     'statusPageConfig.pageTitle': 'Status Page Title',
     'statusPageConfig.pageTitlePlaceholder': 'Enter status page title',

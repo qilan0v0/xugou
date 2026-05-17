@@ -392,6 +392,7 @@ const zhCN = {
     'statusPageConfig.webhookHint': '当监控状态变化时发送 POST 通知（支持 Slack、Discord、企业微信）',
     'statusPageConfig.notifyOnDown': '服务故障时通知',
     'statusPageConfig.notifyOnUp': '服务恢复时通知',
+    'statusPageConfig.notifyTemplate': '通知消息模板',
     'statusPageConfig.appearance': '外观设置',
     'statusPageConfig.pageTitle': '状态页标题',
     'statusPageConfig.pageTitlePlaceholder': '输入状态页标题',

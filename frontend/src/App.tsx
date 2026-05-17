@@ -4,6 +4,7 @@ import { LanguageProvider } from './contexts/LanguageContext';
 import { useTranslation } from 'react-i18next';
 
 import Layout from './components/Layout';
+import Home from './pages/Home';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import Dashboard from './pages/Dashboard';
@@ -42,7 +43,7 @@ function App() {
   return (
     <LanguageProvider>
       <Routes>
-        <Route path="/" element={<StatusPage />} />
+        <Route path="/" element={<Layout><Home /></Layout>} />
         <Route path="/login" element={<Layout><Login /></Layout>} />
         <Route path="/register" element={<Layout><Register /></Layout>} />
         <Route path="/status" element={<StatusPage />} />

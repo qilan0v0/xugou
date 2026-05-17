@@ -23,8 +23,11 @@ const StatusPageConfig = () => {
   const [copied, setCopied] = useState(false);
   const [tab, setTab] = useState('general');
   const [webhookUrl, setWebhookUrl] = useState('');
+  const [tgBotToken, setTgBotToken] = useState('');
+  const [tgChatId, setTgChatId] = useState('');
   const [notifyDown, setNotifyDown] = useState(true);
   const [notifyUp, setNotifyUp] = useState(true);
+  const [notifyTemplate, setNotifyTemplate] = useState('{name} 状态变为 {status}，时间 {time}');
   const hasInit = useRef(false);
   const { t } = useTranslation();
 
@@ -207,26 +210,49 @@ const StatusPageConfig = () => {
 
           {tab === 'notifications' && (
             <div className="flex flex-col gap-5">
+              {/* Webhook */}
               <div>
                 <label className="block text-xs font-medium text-slate-500 mb-1.5">{t('statusPageConfig.webhookUrl')}</label>
                 <input value={webhookUrl} onChange={e => setWebhookUrl(e.target.value)} placeholder="https://hooks.slack.com/..." className={inputClass} />
                 <p className="text-xs text-slate-500 mt-1">{t('statusPageConfig.webhookHint')}</p>
               </div>
-              <div className="flex flex-col gap-3">
-                <label className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors cursor-pointer">
+
+              {/* Telegram */}
+              <div className="p-4 rounded-lg border border-white/[0.06] bg-white/[0.02] flex flex-col gap-3">
+                <h4 className="text-sm font-semibold text-slate-900 dark:text-white">Telegram</h4>
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 mb-1">Bot Token</label>
+                  <input value={tgBotToken} onChange={e => setTgBotToken(e.target.value)} placeholder="123456:ABC-DEF1234ghikl-..." className={inputClass} />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 mb-1">Chat ID</label>
+                  <input value={tgChatId} onChange={e => setTgChatId(e.target.value)} placeholder="-100123456789" className={inputClass} />
+                </div>
+              </div>
+
+              {/* Notification toggles */}
+              <div className="flex flex-col gap-2">
+                <label className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/5 transition-colors cursor-pointer">
                   <span className="text-sm text-slate-700 dark:text-slate-300">{t('statusPageConfig.notifyOnDown')}</span>
                   <span className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${notifyDown ? 'bg-blue-500 border-blue-500' : 'border-slate-400'}`}>
                     {notifyDown && <CheckIcon className="w-3.5 h-3.5 text-white" />}
                   </span>
                   <input type="checkbox" checked={notifyDown} onChange={() => setNotifyDown(!notifyDown)} className="sr-only" />
                 </label>
-                <label className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors cursor-pointer">
+                <label className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/5 transition-colors cursor-pointer">
                   <span className="text-sm text-slate-700 dark:text-slate-300">{t('statusPageConfig.notifyOnUp')}</span>
                   <span className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${notifyUp ? 'bg-blue-500 border-blue-500' : 'border-slate-400'}`}>
                     {notifyUp && <CheckIcon className="w-3.5 h-3.5 text-white" />}
                   </span>
                   <input type="checkbox" checked={notifyUp} onChange={() => setNotifyUp(!notifyUp)} className="sr-only" />
                 </label>
+              </div>
+
+              {/* Custom template */}
+              <div>
+                <label className="block text-xs font-medium text-slate-500 mb-1.5">{t('statusPageConfig.notifyTemplate')}</label>
+                <textarea value={notifyTemplate} onChange={e => setNotifyTemplate(e.target.value)} className={inputClass} rows={2} style={{ minHeight: '60px' }} />
+                <p className="text-xs text-slate-500 mt-1">{'{name} {status} {time} {hostname} {message}'}</p>
               </div>
             </div>
           )}
