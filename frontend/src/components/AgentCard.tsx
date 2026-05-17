@@ -103,16 +103,6 @@ const AgentCard = ({ agent }: AgentCardProps) => {
           <span className="w-5 h-3.5 rounded-sm bg-slate-200 dark:bg-slate-700 flex-shrink-0" />
         )}
         <span className="font-semibold text-sm text-slate-900 dark:text-white truncate">{agent.name}</span>
-        {agent.category && (
-          <span className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 flex-shrink-0">
-            {agent.category}
-          </span>
-        )}
-        {agent.tags && agent.tags.split(',').filter(Boolean).map((tag: string, i: number) => (
-          <span key={i} className="text-[9px] px-1 py-0.5 rounded bg-slate-500/10 text-slate-500 dark:text-slate-400 flex-shrink-0">
-            {tag.trim()}
-          </span>
-        ))}
         {agent.os && (
           <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium flex-shrink-0 hidden sm:inline ${osBadgeColor}`}>
             {agent.os.split(' ')[0]} {agent.version?.split(' ')[0] || ''}
@@ -125,6 +115,22 @@ const AgentCard = ({ agent }: AgentCardProps) => {
           </span>
         </span>
       </div>
+
+      {/* Tags row */}
+      {(agent.category || agent.tags) && (
+        <div className="flex items-center gap-1.5 mb-2 flex-wrap">
+          {agent.category && (
+            <span className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400">
+              {agent.category}
+            </span>
+          )}
+          {agent.tags && agent.tags.split(',').filter(Boolean).map((tag: string, i: number) => (
+            <span key={i} className="text-[9px] px-1.5 py-0.5 rounded bg-slate-500/10 text-slate-500 dark:text-slate-400">
+              {tag.trim()}
+            </span>
+          ))}
+        </div>
+      )}
 
       {/* Two-column metrics - paired rows for alignment */}
       <div className="flex flex-col gap-1.5">
