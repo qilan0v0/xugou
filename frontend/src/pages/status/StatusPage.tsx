@@ -6,6 +6,7 @@ import AgentCard from '../../components/AgentCard';
 import MonitorCard from '../../components/MonitorCard';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import LanguageSelector from "../../components/LanguageSelector";
 import { SunIcon, MoonIcon, CubeIcon, CheckCircledIcon, CrossCircledIcon, GlobeIcon, ArrowUpIcon } from '@radix-ui/react-icons';
 import { useTranslation } from 'react-i18next';
 
@@ -45,24 +46,28 @@ const StatusPage = () => {
 
   return (
     <div>
-      {/* Header */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-grid pointer-events-none" />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-gradient-radial from-blue-500/15 via-transparent to-transparent pointer-events-none" />
-        {/* Top bar: theme + login */}
-        <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
-          <button onClick={toggleTheme}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-all"
-            title={theme === 'dark' ? 'Light' : 'Dark'}>
-            {theme === 'dark' ? <SunIcon className="w-4 h-4" /> : <MoonIcon className="w-4 h-4" />}
-          </button>
-          <button onClick={() => navigate(isAuthenticated ? '/dashboard' : '/login')}
-            className="btn-gradient text-sm px-4 py-2">
-            {isAuthenticated ? t('navbar.dashboard') : t('navbar.login')}
-          </button>
+      {/* Top bar */}
+      <nav className="sticky top-0 z-50 w-full bg-white/[0.85] dark:bg-[#0f0f1a]/[0.85] backdrop-blur-xl border-b border-white/[0.06]">
+        <div className="max-w-6xl mx-auto px-4 h-[54px] flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+              <CubeIcon className="w-3.5 h-3.5 text-white" />
+            </div>
+            <span className="text-base font-bold text-slate-900 dark:text-white tracking-tight">XUGOU</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <LanguageSelector />
+            <button onClick={toggleTheme}
+              className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-all">
+              {theme === 'dark' ? <SunIcon className="w-4 h-4" /> : <MoonIcon className="w-4 h-4" />}
+            </button>
+            <button onClick={() => navigate(isAuthenticated ? '/dashboard' : '/login')}
+              className="btn-gradient text-sm px-4 py-2">
+              {isAuthenticated ? t('navbar.dashboard') : t('navbar.login')}
+            </button>
+          </div>
         </div>
-
-      </section>
+      </nav>
 
       <div className="max-w-5xl mx-auto px-4 pb-16">
         {/* Summary cards */}
