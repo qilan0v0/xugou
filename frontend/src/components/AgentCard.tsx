@@ -69,20 +69,19 @@ const AgentCard = ({ agent }: AgentCardProps) => {
     <span className={`w-4 h-4 flex items-center justify-center rounded ${color}`}>{children}</span>
   );
 
+  const hasAny = (v: any) => v != null;
   const MetricItem = ({ icon, iconColor, label, value, sub, barValue, barColor }: { icon: React.ReactNode; iconColor: string; label: string; value: string; sub?: string; barValue?: number; barColor?: string }) => (
-    <div className="flex flex-col">
+    <div className="flex flex-col gap-0.5">
       <div className="flex items-center justify-between">
         <span className="text-[11px] text-slate-500 flex items-center gap-1">
           <IconWrap color={iconColor}>{icon}</IconWrap>{label}
         </span>
         <span className="text-[11px] font-medium text-slate-700 dark:text-slate-300">{value || ''}</span>
       </div>
-      <span className="text-[10px] text-slate-400 leading-none h-[14px]">{sub || ''}</span>
-      {barValue != null && barColor ? (
-        <ResourceBar value={Math.min(barValue, 100)} color={barColor} height={5} />
-      ) : (
-        <div className="h-[7px]" />
-      )}
+      {sub ? <span className="text-[10px] text-slate-400 leading-none">{sub}</span> : <div className="h-[2px]" />}
+      {hasAny(barValue) && barColor ? (
+        <ResourceBar value={Math.min(barValue!, 100)} color={barColor} height={5} />
+      ) : sub ? <div className="h-[5px]" /> : null}
     </div>
   );
 
