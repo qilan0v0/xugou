@@ -1,12 +1,19 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getStatusPageData, StatusAgent } from '../../api/status';
 import { Monitor } from '../../api/monitors';
 import AgentCard from '../../components/AgentCard';
 import MonitorCard from '../../components/MonitorCard';
+import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
+import { SunIcon, MoonIcon } from '@radix-ui/react-icons';
 import { useTranslation } from 'react-i18next';
 
 const StatusPage = () => {
+  const navigate = useNavigate();
   const { t } = useTranslation();
+  const { isAuthenticated } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [data, setData] = useState<{ monitors: Monitor[], agents: StatusAgent[] }>({ monitors: [], agents: [] });
   const [loading, setLoading] = useState(false);
   const [pageTitle, setPageTitle] = useState(t('statusPage.title'));
@@ -56,6 +63,19 @@ const StatusPage = () => {
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-grid pointer-events-none" />
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-gradient-radial from-blue-500/15 via-transparent to-transparent pointer-events-none" />
+        {/* Top bar: theme + login */}
+        <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
+          <button onClick={toggleTheme}
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-all"
+            title={theme === 'dark' ? 'Light' : 'Dark'}>
+            {theme === 'dark' ? <SunIcon className="w-4 h-4" /> : <MoonIcon className="w-4 h-4" />}
+          </button>
+          <button onClick={() => navigate(isAuthenticated ? '/dashboard' : '/login')}
+            className="btn-gradient text-sm px-4 py-2">
+            {isAuthenticated ? t('navbar.dashboard') : t('navbar.login')}
+          </button>
+        </div>
+
         <div className="relative max-w-4xl mx-auto px-4 py-16 flex flex-col items-center gap-4 text-center">
           <span className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium ${
             allUp ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
