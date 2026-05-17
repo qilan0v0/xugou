@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getStatusPageData, StatusAgent } from '../../api/status';
 import { Monitor } from '../../api/monitors';
@@ -20,19 +20,12 @@ const StatusPage = () => {
   const [pageTitle, setPageTitle] = useState(t('statusPage.title'));
   const [pageDescription, setPageDescription] = useState(t('statusPage.allOperational'));
   const [error, setError] = useState<string | null>(null);
-  const reqRef = useRef(false);
-  const ctrlRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
-      if (reqRef.current && ctrlRef.current) ctrlRef.current.abort();
-      reqRef.current = true;
-      ctrlRef.current = new AbortController();
-      const signal = ctrlRef.current.signal;
       try {
         if (initialLoad) setLoading(true);
         const res = await getStatusPageData();
-        if (signal.aborted) return;
         if (res.success && res.data) {
           setPageTitle(res.data.title || t('statusPage.title'));
           setPageDescription(res.data.description || t('statusPage.allOperational'));
@@ -41,17 +34,15 @@ const StatusPage = () => {
           setError(res.message || t('statusPage.fetchError'));
         }
       } catch (err: any) {
-        if (err.name !== 'AbortError') setError(t('statusPage.fetchError'));
+        setError(t('statusPage.fetchError'));
       } finally {
-        reqRef.current = false;
-        ctrlRef.current = null;
         if (initialLoad) { setLoading(false); setInitialLoad(false); }
       }
     };
     fetchData();
     const interval = setInterval(fetchData, 60000);
-    return () => { clearInterval(interval); if (ctrlRef.current) ctrlRef.current.abort(); };
-  }, [t]);
+    return () => clearInterval(interval);
+  }, []);
 
   if (error) return <div className="flex justify-center items-center min-h-[50vh]"><span className="text-red-500">{error}</span></div>;
   if (loading) return <div className="flex justify-center items-center min-h-[50vh]"><span className="text-slate-500">{t('common.loading')}</span></div>;
