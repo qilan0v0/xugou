@@ -56,12 +56,12 @@ export async function createAdminUser(env: Bindings): Promise<void> {
   // 如果不存在管理员用户，则创建一个
   if (!adminUser) {
     console.log('创建管理员用户...');
-    // 密码: admin123
     const hashedPassword = hashPassword('admin123');
+    console.log('DEBUG: hashedPassword length:', hashedPassword.length);
     const now = new Date().toISOString();
 
-    await env.DB.prepare(
-      `INSERT INTO users (username, password, email, role, created_at, updated_at) 
+    const result = env.DB.prepare(
+      `INSERT INTO users (username, password, email, role, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?)`
     ).bind(
       'admin',
@@ -71,6 +71,12 @@ export async function createAdminUser(env: Bindings): Promise<void> {
       now,
       now
     ).run();
+
+    console.log('DEBUG: insert result:', JSON.stringify(result));
+
+    // Verify
+    const verify = env.DB.prepare('SELECT id, username FROM users WHERE username = ?').bind('admin').first<any>();
+    console.log('DEBUG: verify user:', JSON.stringify(verify));
   }
 }
 
