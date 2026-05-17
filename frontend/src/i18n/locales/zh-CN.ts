@@ -281,6 +281,7 @@ const zhCN = {
     'agent.agentVersion': 'Agent版本',
     'agent.networkTotalRx': '总下载量',
     'agent.traffic': '流量',
+    'agent.monthlyTraffic': '月度流量',
     'agent.expiry': '到期',
     'agent.expired': '已过期',
     'agent.days': '天',
