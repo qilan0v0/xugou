@@ -57,6 +57,7 @@ const EditAgent = () => {
   };
 
   const inputClass = "w-full px-3 py-2 rounded-lg border border-white/[0.08] bg-white/5 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 transition-all";
+  const selectClass = "px-2 py-2 rounded-lg border border-white/[0.08] bg-white/5 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 transition-all";
 
   if (fetching) return <div className="flex justify-center items-center min-h-[50vh]"><span className="text-slate-500">{t('common.loading')}</span></div>;
 
@@ -76,7 +77,7 @@ const EditAgent = () => {
             <label className="block text-xs font-medium text-slate-500 mb-1.5">{t('agent.trafficLimit')}</label>
             <div className="flex gap-2">
               <input type="number" step="0.1" min="0" value={trafficVal} onChange={e => setTrafficVal(e.target.value)} placeholder="1" className={`${inputClass} flex-1`} />
-              <select value={trafficUnit} onChange={e => setTrafficUnit(e.target.value)} className={`${inputClass} w-12 flex-shrink-0`}>
+              <select value={trafficUnit} onChange={e => setTrafficUnit(e.target.value)} className={`${selectClass} w-12 flex-shrink-0`}>
                 {units.map(u => <option key={u} value={u}>{u}</option>)}
               </select>
             </div>
