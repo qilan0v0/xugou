@@ -145,8 +145,31 @@ app.get('/api/trigger-check', async (c) => {
   return c.json({ success: true, message: '监控检查和客户端状态已触发' });
 });
 
-// Debug: test DB write with raw sql.js API
+// Debug: test adapter UPDATE with various approaches
 app.get('/api/debug/test-write', async (c) => {
+  try {
+    const db_ = getRawDb();
+    const agent = env.DB.prepare("SELECT id FROM agents LIMIT 1").first<any>();
+    if (!agent) return c.json({ error: 'no agent' });
+    const id = agent.id;
+
+    // Test 1: adapter run with 2 params (simple)
+    const r1 = env.DB.prepare("UPDATE agents SET cpu_usage = ? WHERE id = ?").bind(88, id).run();
+    const s1 = db_.prepare("SELECT cpu_usage FROM agents WHERE id = ?"); s1.bind([id]); s1.step(); const v1 = s1.getAsObject(); s1.free();
+
+    // Test 2: adapter run with 26 params (full status)
+    const now = new Date().toISOString();
+    const r2 = env.DB.prepare(
+      "UPDATE agents SET status='active', cpu_usage=?, memory_total=?, memory_used=?, disk_total=?, disk_used=?, hostname=?, ip_address=?, os=?, version=?, updated_at=? WHERE id=?"
+    ).bind(99, 100, 50, 200, 100, 't2', '2.2.2.2', 'linux2', 'v2', now, id).run();
+    const s2 = db_.prepare("SELECT cpu_usage, hostname, status FROM agents WHERE id = ?"); s2.bind([id]); s2.step(); const v2 = s2.getAsObject(); s2.free();
+
+    return c.json({ test1: { r1, cpu: v1?.cpu_usage }, test2: { r2, cpu: v2?.cpu_usage, host: v2?.hostname, status: v2?.status } });
+  } catch(e: any) { return c.json({ error: e.message }, 500); }
+});
+
+// Debug old: test DB write with raw sql.js API
+app.get('/api/debug/test-write-old', async (c) => {
   try {
     const db_: any = getRawDb();
     if (!db_) return c.json({ error: 'no db' });
