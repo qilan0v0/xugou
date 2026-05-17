@@ -22,6 +22,9 @@ const StatusPageConfig = () => {
   const [toastType, setToastType] = useState<'success'|'error'>('success');
   const [copied, setCopied] = useState(false);
   const [tab, setTab] = useState('general');
+  const [webhookUrl, setWebhookUrl] = useState('');
+  const [notifyDown, setNotifyDown] = useState(true);
+  const [notifyUp, setNotifyUp] = useState(true);
   const hasInit = useRef(false);
   const { t } = useTranslation();
 
@@ -92,10 +95,6 @@ const StatusPageConfig = () => {
 
   if (loading) return <div className="flex justify-center items-center min-h-[50vh]"><span className="text-slate-500">{t('common.loading')}</span></div>;
   if (error) return <div className="flex justify-center items-center min-h-[50vh] gap-3"><span className="text-red-500">{error}</span><button onClick={() => window.location.reload()} className="btn-gradient px-4 py-2 text-sm">{t('common.retry')}</button></div>;
-
-  const [webhookUrl, setWebhookUrl] = useState('');
-  const [notifyDown, setNotifyDown] = useState(true);
-  const [notifyUp, setNotifyUp] = useState(true);
 
   const tabs = [
     { key: 'general', label: t('statusPageConfig.general') },
