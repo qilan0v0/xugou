@@ -107,38 +107,31 @@ const AgentCard = ({ agent }: AgentCardProps) => {
       {/* Two-column metrics grid */}
       <div className="grid grid-cols-2 gap-x-4 gap-y-2">
         <MetricItem icon={<MixerHorizontalIcon />} iconColor="bg-emerald-500/10 text-emerald-600" label="CPU" value={`${cpu.toFixed(1)}%`} barValue={cpu} barColor="green" />
-        <MetricItem icon={<StackIcon />} iconColor="bg-blue-500/10 text-blue-600" label={t('agent.memory')} value={`${memPct.toFixed(1)}%`} sub={`${memUsedStr} / ${memTotalStr}`} barValue={memPct} barColor="blue" />
         <MetricItem icon={<CrumpledPaperIcon />} iconColor="bg-amber-500/10 text-amber-600" label={t('agent.disk')} value={`${diskPct.toFixed(1)}%`} sub={`${diskUsedStr} / ${diskTotalStr}`} barValue={diskPct} barColor="amber" />
-        <MetricItem icon={<DownloadIcon />} iconColor="bg-slate-500/10 text-slate-500" label={t('agent.networkTotalRx')} value="" sub={rxTotalStr} />
+        <MetricItem icon={<StackIcon />} iconColor="bg-blue-500/10 text-blue-600" label={t('agent.memory')} value={`${memPct.toFixed(1)}%`} sub={`${memUsedStr} / ${memTotalStr}`} barValue={memPct} barColor="blue" />
+        <MetricItem icon={<DownloadIcon />} iconColor="bg-violet-500/10 text-violet-600" label={t('agent.traffic')} value={trafficLimit > 0 ? `${totalTrafficStr} / ${trafficLimitStr}` : totalTrafficStr} barValue={trafficLimit > 0 ? trafficPct : undefined} barColor="purple" />
         <MetricItem icon={<ArrowDownIcon />} iconColor="bg-cyan-500/10 text-cyan-600" label={t('clientResource.download')} value={netRx >= 1024 ? `${(netRx / 1024).toFixed(1)} MB/s` : `${netRx.toFixed(1)} KB/s`} barValue={Math.min(netRx / 51.2, 100)} barColor="cyan" />
         <MetricItem icon={<ArrowUpIcon />} iconColor="bg-indigo-500/10 text-indigo-600" label={t('clientResource.upload')} value={netTx >= 1024 ? `${(netTx / 1024).toFixed(1)} MB/s` : `${netTx.toFixed(1)} KB/s`} barValue={Math.min(netTx / 51.2, 100)} barColor="indigo" />
+        <MetricItem icon={<DownloadIcon />} iconColor="bg-slate-500/10 text-slate-500" label={t('agent.networkTotalRx')} value="" sub={rxTotalStr} />
         <MetricItem icon={<UploadIcon />} iconColor="bg-slate-500/10 text-slate-500" label={t('agent.networkTotalTx')} value="" sub={txTotalStr} />
-        {trafficLimit > 0 && (
-          <div className="col-span-2">
-            <MetricItem icon={<ArrowDownIcon />} iconColor="bg-violet-500/10 text-violet-600" label={t('agent.traffic')} value={`${totalTrafficStr} / ${trafficLimitStr}`} barValue={trafficPct} barColor="purple" />
-          </div>
-        )}
       </div>
 
-      {/* Bottom divider + uptime + expiry */}
-      {(uptimeStr || expiryDays >= 0) && (
-        <>
-          <div className="my-2.5 border-t border-slate-200 dark:border-white/[0.06]" />
-          <div className="flex justify-between text-[10px] text-slate-400">
-            {expiryDays >= 0 ? (
-              <span className={expiryDays < 30 ? 'text-red-500' : 'text-slate-400'}>
-                {expiryDays <= 0 ? t('agent.expired') : `${t('agent.expiry')} ${expiryDays}${t('agent.days')}`}
-              </span>
-            ) : (
-              <span>{t('agent.uptime')}</span>
-            )}
-            <span className="font-medium text-slate-600 dark:text-slate-400">
-              {uptimeStr}
-              {expiryDays >= 0 && uptimeStr ? ' · ' : ''}
+      {/* Bottom divider + expiry + uptime */}
+      <div className="my-2.5 border-t border-slate-200 dark:border-white/[0.06]" />
+      <div className="grid grid-cols-2 gap-x-4 text-[10px] text-slate-400">
+        <span>
+          {expiryDays >= 0 ? (
+            <span className={expiryDays <= 0 ? 'text-red-500' : expiryDays < 30 ? 'text-amber-500' : ''}>
+              {expiryDays <= 0 ? t('agent.expired') : `${t('agent.expiry')} ${expiryDays}${t('agent.days')}`}
             </span>
-          </div>
-        </>
-      )}
+          ) : (
+            <span>-</span>
+          )}
+        </span>
+        <span className="text-right">
+          {uptimeStr ? <span>{t('agent.uptime')} {uptimeStr}</span> : <span>-</span>}
+        </span>
+      </div>
     </div>
   );
 };
