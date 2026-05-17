@@ -117,7 +117,7 @@ app.post('/api/agents/status', async (c) => {
         toD1Primitive(body.hostname),
         toD1Primitive(body.ip_address ?? (Array.isArray(body.ip_addresses) ? body.ip_addresses[0] : null) ?? (Array.isArray(body.ip) ? body.ip[0] : body.ip) ?? body.IP),
         toD1Primitive(body.os), toD1Primitive(body.version),
-        cpuArch, cpuModelName, cpuCores, l1, l5, l15, bt, netRxTotal, netTxTotal, av,
+        cpuArch, cpuModelName, cpuCores, l1, l5, l15, bt, netRxTotal, netTxTotal, av, null, // country
         connectedAt ?? now,
         now, raw.slice(0, 2000), agent.id
       ];
