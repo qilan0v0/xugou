@@ -7,7 +7,7 @@ import { prettyJSON } from 'hono/pretty-json';
 import { Bindings } from './models/db';
 
 // SQLite adapter
-import { createDb, closeDb } from './adapters/sqlite';
+import { createDb, closeDb, getRawDb } from './adapters/sqlite';
 
 // Import routes
 import authRoutes from './routes/auth';
@@ -145,12 +145,34 @@ app.get('/api/trigger-check', async (c) => {
   return c.json({ success: true, message: '监控检查和客户端状态已触发' });
 });
 
-// Debug: test DB write
+// Debug: test DB write with raw sql.js API
 app.get('/api/debug/test-write', async (c) => {
   try {
-    const r1 = env.DB.prepare("UPDATE agents SET cpu_usage = 99 WHERE id = (SELECT id FROM agents LIMIT 1)").run();
-    const row = env.DB.prepare("SELECT id, cpu_usage FROM agents LIMIT 1").first<any>();
-    return c.json({ runResult: r1, row });
+    const db_: any = getRawDb();
+    if (!db_) return c.json({ error: 'no db' });
+    const methods: any = {};
+
+    // Method 1: db.run() - direct raw sql.js
+    try { db_.run("UPDATE agents SET cpu_usage = 11 WHERE id = 1"); methods.method1_dbRun = 'ok'; }
+    catch(e: any) { methods.method1_dbRun = e.message; }
+    let s1 = db_.prepare("SELECT cpu_usage FROM agents WHERE id = 1"); s1.step(); methods.after_dbRun = s1.getAsObject(); s1.free();
+
+    // Method 2: db.exec() - direct raw sql.js
+    try { db_.exec("UPDATE agents SET cpu_usage = 22 WHERE id = 1"); methods.method2_dbExec = 'ok'; }
+    catch(e: any) { methods.method2_dbExec = e.message; }
+    let s2 = db_.prepare("SELECT cpu_usage FROM agents WHERE id = 1"); s2.step(); methods.after_dbExec = s2.getAsObject(); s2.free();
+
+    // Method 3: stmt.bind + step - raw sql.js
+    try {
+      const st = db_.prepare("UPDATE agents SET cpu_usage = ? WHERE id = ?");
+      st.bind([33, 1]);
+      st.step();
+      st.free();
+      methods.method3_bindStep = 'ok';
+    } catch(e: any) { methods.method3_bindStep = e.message; }
+    let s3 = db_.prepare("SELECT cpu_usage FROM agents WHERE id = 1"); s3.step(); methods.after_bindStep = s3.getAsObject(); s3.free();
+
+    return c.json(methods);
   } catch(e: any) { return c.json({ error: e.message }, 500); }
 });
 

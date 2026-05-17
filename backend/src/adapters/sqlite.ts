@@ -60,8 +60,21 @@ class D1PreparedStatement {
 
   run<T = unknown>(): D1Result<T> {
     try {
-      const stmt = db!.prepare(this.sql);
-      stmt.bind(this.params);
+      // Embed values directly in SQL (sql.js bind may not work for non-SELECT)
+      let sql = this.sql;
+      const params = [...this.params];
+      for (let i = 0; i < params.length; i++) {
+        const val = params[i];
+        if (val === null || val === undefined) {
+          sql = sql.replace('?', 'NULL');
+        } else if (typeof val === 'string') {
+          sql = sql.replace('?', "'" + val.replace(/'/g, "''") + "'");
+        } else {
+          sql = sql.replace('?', String(val));
+        }
+      }
+      // Use step() to execute (no bind needed since values are embedded)
+      const stmt = db!.prepare(sql);
       stmt.step();
       stmt.free();
       if (dbPath) saveDb();
@@ -152,6 +165,10 @@ export async function createDb(path?: string): Promise<SqliteAdapter> {
       return results;
     },
   };
+}
+
+export function getRawDb(): SqlJsDb | null {
+  return db;
 }
 
 export function closeDb() {
