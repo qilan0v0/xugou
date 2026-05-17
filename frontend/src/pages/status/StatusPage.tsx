@@ -15,7 +15,8 @@ const StatusPage = () => {
   const { isAuthenticated } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [data, setData] = useState<{ monitors: Monitor[], agents: StatusAgent[] }>({ monitors: [], agents: [] });
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [initialLoad, setInitialLoad] = useState(true);
   const [pageTitle, setPageTitle] = useState(t('statusPage.title'));
   const [pageDescription, setPageDescription] = useState(t('statusPage.allOperational'));
   const [error, setError] = useState<string | null>(null);
@@ -29,7 +30,7 @@ const StatusPage = () => {
       ctrlRef.current = new AbortController();
       const signal = ctrlRef.current.signal;
       try {
-        setLoading(true);
+        if (initialLoad) setLoading(true);
         const res = await getStatusPageData();
         if (signal.aborted) return;
         if (res.success && res.data) {
@@ -44,7 +45,7 @@ const StatusPage = () => {
       } finally {
         reqRef.current = false;
         ctrlRef.current = null;
-        setLoading(false);
+        if (initialLoad) { setLoading(false); setInitialLoad(false); }
       }
     };
     fetchData();

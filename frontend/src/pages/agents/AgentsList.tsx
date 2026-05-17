@@ -13,13 +13,14 @@ const AgentsList = () => {
   const navigate = useNavigate();
   const [agents, setAgents] = useState<ClientWithStatus[]>([]);
   const [loading, setLoading] = useState(true);
+  const [initialLoad, setInitialLoad] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<'table' | 'card'>('card');
   const { t } = useTranslation();
 
   const fetchAgents = async () => {
-    setLoading(true);
+    if (initialLoad) setLoading(true);
     setError(null);
     try {
       const response = await getAllAgents();
@@ -30,10 +31,12 @@ const AgentsList = () => {
       })));
     } catch (err) {
       setError(err instanceof Error ? err.message : t('common.error.fetch'));
-    } finally { setLoading(false); }
+    } finally {
+      if (initialLoad) { setLoading(false); setInitialLoad(false); }
+    }
   };
 
-  useEffect(() => { fetchAgents(); const i = setInterval(fetchAgents, 60000); return () => clearInterval(i); }, [t]);
+  useEffect(() => { fetchAgents(); const i = setInterval(fetchAgents, 60000); return () => clearInterval(i); }, []);
 
   const handleDelete = async () => {
     if (!deleteId) return;
