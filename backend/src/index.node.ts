@@ -111,7 +111,8 @@ app.post('/api/agents/status', async (c) => {
       const stmt = rawDb!.prepare(
         `UPDATE agents SET status='active', cpu_usage=?, memory_total=?, memory_used=?, disk_total=?, disk_used=?, network_rx=?, network_tx=?, hostname=?, ip_address=?, os=?, version=?, cpu_arch=?, cpu_model_name=?, cpu_cores=?, load1=?, load5=?, load15=?, boot_time=?, network_rx_total=?, network_tx_total=?, agent_version=?, country=?, connected_at = COALESCE(connected_at, ?), updated_at=?, last_payload=? WHERE id=?`
       );
-      stmt.bind([
+            console.log('STATUS_SQL:', `UPDATE agents SET status='active', cpu_usage=?, memory_total=?, memory_used=?, disk_total=?, disk_used=?, network_rx=?, network_tx=?, hostname=?, ip_address=?, os=?, version=?, cpu_arch=?, cpu_model_name=?, cpu_cores=?, load1=?, load5=?, load15=?, boot_time=?, network_rx_total=?, network_tx_total=?, agent_version=?, country=?, connected_at = COALESCE(connected_at, ?), updated_at=?, last_payload=? WHERE id=?`);
+      const params = [
         cpu, memTotal, memUsed, diskTotal, diskUsed, netRx, netTx,
         toD1Primitive(body.hostname),
         toD1Primitive(body.ip_address ?? (Array.isArray(body.ip_addresses) ? body.ip_addresses[0] : null) ?? (Array.isArray(body.ip) ? body.ip[0] : body.ip) ?? body.IP),
@@ -119,8 +120,10 @@ app.post('/api/agents/status', async (c) => {
         cpuArch, cpuModelName, cpuCores, l1, l5, l15, bt, netRxTotal, netTxTotal, av,
         connectedAt ?? now,
         now, raw.slice(0, 2000), agent.id
-      ]);
-      stmt.step();
+      ];
+      console.log('STATUS_PARAMS length:', params.length, 'first3:', JSON.stringify(params.slice(0, 3)));
+      stmt.bind(params);
+      stmt.step();      stmt.step();
       stmt.free();
       // Verify
       const vs = rawDb!.prepare("SELECT cpu_usage, status FROM agents WHERE id = ?");
