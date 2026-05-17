@@ -70,18 +70,18 @@ const AgentCard = ({ agent }: AgentCardProps) => {
   );
 
   const MetricItem = ({ icon, iconColor, label, value, sub, barValue, barColor }: { icon: React.ReactNode; iconColor: string; label: string; value: string; sub?: string; barValue?: number; barColor?: string }) => (
-    <div className="flex flex-col gap-0.5">
+    <div className="flex flex-col">
       <div className="flex items-center justify-between">
         <span className="text-[11px] text-slate-500 flex items-center gap-1">
           <IconWrap color={iconColor}>{icon}</IconWrap>{label}
         </span>
         <span className="text-[11px] font-medium text-slate-700 dark:text-slate-300">{value || ''}</span>
       </div>
-      {sub && <span className="text-[10px] text-slate-400 leading-none">{sub}</span>}
+      <span className="text-[10px] text-slate-400 leading-none h-[14px]">{sub || ''}</span>
       {barValue != null && barColor ? (
-        <div className="mt-0.5"><ResourceBar value={Math.min(barValue, 100)} color={barColor} height={5} /></div>
+        <ResourceBar value={Math.min(barValue, 100)} color={barColor} height={5} />
       ) : (
-        <div className="h-1" />
+        <div className="h-[7px]" />
       )}
     </div>
   );
