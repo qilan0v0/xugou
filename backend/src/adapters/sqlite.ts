@@ -1,6 +1,6 @@
 // SQLite adapter using sql.js (pure JS/WASM, zero native deps)
 import initSqlJs, { Database as SqlJsDb, Statement, SqlJsStatic, BindParams } from 'sql.js';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync, statSync } from 'fs';
 import { dirname } from 'path';
 
 let db: SqlJsDb | null = null;
@@ -88,7 +88,21 @@ class D1PreparedStatement {
 }
 
 function saveDb() {
-  console.log('DEBUG saveDb called, dbPath:', dbPath, 'db exists:', !!db);
+  if (db && dbPath) {
+    try {
+      const data = db.export();
+      const buffer = Buffer.from(data);
+      writeFileSync(dbPath, buffer);
+      if (existsSync(dbPath)) {
+        const stats = statSync(dbPath);
+        console.log('saveDb: wrote', stats.size, 'bytes to', dbPath);
+      }
+    } catch (e) {
+      console.error('saveDb error:', e);
+    }
+  }
+}
+  
   if (db && dbPath) {
     try {
       const data = db.export();
