@@ -109,16 +109,23 @@ const AgentCard = ({ agent }: AgentCardProps) => {
         </span>
       </div>
 
-      {/* Two-column metrics grid */}
-      <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-        <MetricItem icon={<MixerHorizontalIcon />} iconColor="bg-emerald-500/10 text-emerald-600" label="CPU" value={`${cpu.toFixed(1)}%`} barValue={cpu} barColor="green" />
-        <MetricItem icon={<StackIcon />} iconColor="bg-blue-500/10 text-blue-600" label={t('agent.memory')} value={`${memPct.toFixed(1)}%`} sub={`${memUsedStr} / ${memTotalStr}`} barValue={memPct} barColor="blue" />
-        <MetricItem icon={<CrumpledPaperIcon />} iconColor="bg-amber-500/10 text-amber-600" label={t('agent.disk')} value={`${diskPct.toFixed(1)}%`} sub={`${diskUsedStr} / ${diskTotalStr}`} barValue={diskPct} barColor="amber" />
-        <MetricItem icon={<DownloadIcon />} iconColor="bg-violet-500/10 text-violet-600" label={t('agent.traffic')} value={trafficLimit > 0 ? `${totalTrafficStr} / ${trafficLimitStr}` : totalTrafficStr} barValue={trafficLimit > 0 ? trafficPct : 0} barColor="purple" />
-        <MetricItem icon={<ArrowDownIcon />} iconColor="bg-cyan-500/10 text-cyan-600" label={t('clientResource.download')} value={netRx >= 1024 ? `${(netRx / 1024).toFixed(1)} MB/s` : `${netRx.toFixed(1)} KB/s`} />
-        <MetricItem icon={<ArrowUpIcon />} iconColor="bg-indigo-500/10 text-indigo-600" label={t('clientResource.upload')} value={netTx >= 1024 ? `${(netTx / 1024).toFixed(1)} MB/s` : `${netTx.toFixed(1)} KB/s`} />
-        <MetricItem icon={<DownloadIcon />} iconColor="bg-slate-500/10 text-slate-500" label={t('agent.networkTotalRx')} value={rxTotalStr} />
-        <MetricItem icon={<UploadIcon />} iconColor="bg-slate-500/10 text-slate-500" label={t('agent.networkTotalTx')} value={txTotalStr} />
+      {/* Two-column metrics - paired rows for alignment */}
+      <div className="flex flex-col gap-1.5">
+        {[
+          [<MetricItem key="cpu" icon={<MixerHorizontalIcon />} iconColor="bg-emerald-500/10 text-emerald-600" label="CPU" value={`${cpu.toFixed(1)}%`} barValue={cpu} barColor="green" />,
+           <MetricItem key="mem" icon={<StackIcon />} iconColor="bg-blue-500/10 text-blue-600" label={t('agent.memory')} value={`${memPct.toFixed(1)}%`} sub={`${memUsedStr} / ${memTotalStr}`} barValue={memPct} barColor="blue" />],
+          [<MetricItem key="disk" icon={<CrumpledPaperIcon />} iconColor="bg-amber-500/10 text-amber-600" label={t('agent.disk')} value={`${diskPct.toFixed(1)}%`} sub={`${diskUsedStr} / ${diskTotalStr}`} barValue={diskPct} barColor="amber" />,
+           <MetricItem key="traf" icon={<DownloadIcon />} iconColor="bg-violet-500/10 text-violet-600" label={t('agent.traffic')} value={trafficLimit > 0 ? `${totalTrafficStr} / ${trafficLimitStr}` : totalTrafficStr} barValue={trafficLimit > 0 ? trafficPct : 0} barColor="purple" />],
+          [<MetricItem key="dl" icon={<ArrowDownIcon />} iconColor="bg-cyan-500/10 text-cyan-600" label={t('clientResource.download')} value={netRx >= 1024 ? `${(netRx / 1024).toFixed(1)} MB/s` : `${netRx.toFixed(1)} KB/s`} />,
+           <MetricItem key="ul" icon={<ArrowUpIcon />} iconColor="bg-indigo-500/10 text-indigo-600" label={t('clientResource.upload')} value={netTx >= 1024 ? `${(netTx / 1024).toFixed(1)} MB/s` : `${netTx.toFixed(1)} KB/s`} />],
+          [<MetricItem key="tdl" icon={<DownloadIcon />} iconColor="bg-slate-500/10 text-slate-500" label={t('agent.networkTotalRx')} value={rxTotalStr} />,
+           <MetricItem key="tul" icon={<UploadIcon />} iconColor="bg-slate-500/10 text-slate-500" label={t('agent.networkTotalTx')} value={txTotalStr} />],
+        ].map((row, i) => (
+          <div key={i} className="flex gap-4">
+            <div className="flex-1">{row[0]}</div>
+            <div className="flex-1">{row[1]}</div>
+          </div>
+        ))}
       </div>
 
       {/* Bottom divider + expiry + uptime */}
