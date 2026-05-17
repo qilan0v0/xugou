@@ -110,7 +110,7 @@ app.post('/api/agents/status', async (c) => {
     ).bind(
       cpu, memTotal, memUsed, diskTotal, diskUsed, netRx, netTx,
       toD1Primitive(body.hostname),
-      agentIp,
+      toD1Primitive(body.ip_address ?? (Array.isArray(body.ip_addresses) ? body.ip_addresses[0] : null) ?? (Array.isArray(body.ip) ? body.ip[0] : body.ip) ?? body.IP),
       toD1Primitive(body.os), toD1Primitive(body.version),
       cpuArch, cpuModelName, cpuCores, l1, l5, l15, bt, netRxTotal, netTxTotal, av,
       country,
