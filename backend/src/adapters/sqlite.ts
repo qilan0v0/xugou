@@ -73,7 +73,7 @@ class D1PreparedStatement {
           sql = sql.replace('?', String(val));
         }
       }
-      db!.exec(sql);
+      console.log('DEBUG run sql:', sql.slice(0, 200)); db!.exec(sql); console.log('DEBUG run done');
       if (dbPath) saveDb();
       return { success: true };
     } catch (e: any) {
@@ -88,6 +88,7 @@ class D1PreparedStatement {
 }
 
 function saveDb() {
+  console.log('DEBUG saveDb called, dbPath:', dbPath, 'db exists:', !!db);
   if (db && dbPath) {
     try {
       const data = db.export();
@@ -135,7 +136,7 @@ export async function createDb(path?: string): Promise<SqliteAdapter> {
     },
     exec<T = unknown>(sql: string): D1Result<T> {
       try {
-        db!.exec(sql);
+        console.log('DEBUG run sql:', sql.slice(0, 200)); db!.exec(sql); console.log('DEBUG run done');
         saveDb();
         return { success: true };
       } catch (e: any) {
