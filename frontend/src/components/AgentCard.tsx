@@ -54,10 +54,11 @@ const AgentCard = ({ agent }: AgentCardProps) => {
 
   const rxTotalStr = formatBytes(agent.network_rx_total || 0);
   const txTotalStr = formatBytes(agent.network_tx_total || 0);
-  const memUsedStr = formatBytes(agent.memory_used || 0);
-  const memTotalStr = formatBytes(agent.memory_total || 0);
-  const diskUsedStr = formatBytes(agent.disk_used || 0);
-  const diskTotalStr = formatBytes(agent.disk_total || 0);
+  // Agent reports mem/disk in KB, convert to bytes for formatBytes
+  const memUsedStr = formatBytes((agent.memory_used || 0) * 1024);
+  const memTotalStr = formatBytes((agent.memory_total || 0) * 1024);
+  const diskUsedStr = formatBytes((agent.disk_used || 0) * 1024);
+  const diskTotalStr = formatBytes((agent.disk_total || 0) * 1024);
   const osBadgeColor = (agent.os || '').toLowerCase().includes('debian') ? 'text-rose-500 bg-rose-500/10' :
                        (agent.os || '').toLowerCase().includes('ubuntu') ? 'text-orange-500 bg-orange-500/10' :
                        (agent.os || '').toLowerCase().includes('alpine') ? 'text-sky-500 bg-sky-500/10' :
