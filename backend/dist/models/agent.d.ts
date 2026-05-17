@@ -31,4 +31,5 @@ export interface Agent {
     connected_at?: string;
     traffic_limit?: number;
     expiry_time?: string;
+    category?: string;
 }

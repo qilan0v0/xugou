@@ -17,6 +17,7 @@ const AgentsList = () => {
   const [error, setError] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<'table' | 'card'>('card');
+  const [categoryFilter, setCategoryFilter] = useState('');
   const { t } = useTranslation();
 
   const fetchAgents = async () => {
@@ -73,7 +74,27 @@ const AgentsList = () => {
         </div>
       </div>
 
-      {agents.length === 0 ? (
+      {/* Category filter */}
+      {(() => {
+        const cats = [...new Set(agents.map(a => a.category).filter(Boolean))] as string[];
+        if (cats.length === 0) return null;
+        return (
+          <div className="flex gap-2 mb-4 flex-wrap">
+            <button onClick={() => setCategoryFilter('')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${!categoryFilter ? 'bg-blue-500/10 text-blue-600' : 'text-slate-500 hover:text-slate-700 bg-slate-100 dark:bg-white/5'}`}>
+              全部
+            </button>
+            {cats.map(cat => (
+              <button key={cat} onClick={() => setCategoryFilter(cat)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${categoryFilter === cat ? 'bg-blue-500/10 text-blue-600' : 'text-slate-500 hover:text-slate-700 bg-slate-100 dark:bg-white/5'}`}>
+                {cat}
+              </button>
+            ))}
+          </div>
+        );
+      })()}
+
+      {agents.filter(a => !categoryFilter || a.category === categoryFilter).length === 0 ? (
         <div className="glass p-8 text-center border-dashed">
           <p className="text-slate-500 mb-3">{t('agents.noAgents')}</p>
           <button onClick={() => navigate('/agents/create')} className="btn-gradient px-4 py-2 text-sm inline-flex items-center gap-1.5"><PlusIcon />{t('agents.create')}</button>
@@ -93,7 +114,7 @@ const AgentsList = () => {
               </tr>
             </thead>
             <tbody>
-              {agents.map(a => {
+              {agents.filter(a => !categoryFilter || a.category === categoryFilter).map(a => {
                 const cfg = statusConfig[a.status || 'inactive'] || statusConfig.inactive;
                 const label = a.status === 'active' ? t('agent.status.online') : a.status === 'connecting' ? t('agent.status.connecting') : t('agent.status.offline');
                 return (
@@ -123,7 +144,7 @@ const AgentsList = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {agents.map(a => (
+          {agents.filter(a => !categoryFilter || a.category === categoryFilter).map(a => (
             <div key={a.id} className="relative group cursor-pointer" onClick={() => navigate(`/agents/${a.id}`)}>
               <AgentCard agent={a} />
               <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>

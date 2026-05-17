@@ -103,6 +103,11 @@ const AgentCard = ({ agent }: AgentCardProps) => {
           <span className="w-5 h-3.5 rounded-sm bg-slate-200 dark:bg-slate-700 flex-shrink-0" />
         )}
         <span className="font-semibold text-sm text-slate-900 dark:text-white truncate">{agent.name}</span>
+        {agent.category && (
+          <span className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 flex-shrink-0">
+            {agent.category}
+          </span>
+        )}
         {agent.os && (
           <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium flex-shrink-0 hidden sm:inline ${osBadgeColor}`}>
             {agent.os.split(' ')[0]} {agent.version?.split(' ')[0] || ''}

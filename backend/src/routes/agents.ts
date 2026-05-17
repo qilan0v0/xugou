@@ -51,7 +51,7 @@ agents.get('/', async (c) => {
 // 创建新客户端
 agents.post('/', async (c) => {
   try {
-    const { name, token: reqToken } = await c.req.json();
+    const { name, token: reqToken, category } = await c.req.json();
     const payload = c.get('jwtPayload');
     
     const token = reqToken || await generateToken();
@@ -59,14 +59,15 @@ agents.post('/', async (c) => {
     
     // 插入新客户端
     const result = await c.env.DB.prepare(
-      `INSERT INTO agents 
-       (name, token, created_by, status, created_at, updated_at) 
-       VALUES (?, ?, ?, ?, ?, ?)`
+      `INSERT INTO agents
+       (name, token, created_by, status, category, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`
     ).bind(
       name,
       token,
       payload.id,
       'inactive',
+      category || null,
       now,
       now
     ).run();
@@ -135,7 +136,8 @@ agents.get('/:id', async (c) => {
         country: agent.country || null,
         connected_at: agent.connected_at || null,
         traffic_limit: agent.traffic_limit || null,
-        expiry_time: agent.expiry_time || null
+        expiry_time: agent.expiry_time || null,
+        category: agent.category || null
       }
     });
   } catch (error) {
@@ -166,7 +168,7 @@ agents.put('/:id', async (c) => {
     
     // 获取更新数据
     const updateData = await c.req.json();
-    const { name, hostname, ip_address, os, version, status, traffic_limit, expiry_time } = updateData;
+    const { name, hostname, ip_address, os, version, status, traffic_limit, expiry_time, category } = updateData;
     
     // 准备更新的字段和值
     const fieldsToUpdate = [];
@@ -210,6 +212,11 @@ agents.put('/:id', async (c) => {
     if (expiry_time !== undefined) {
       fieldsToUpdate.push('expiry_time = ?');
       values.push(expiry_time);
+    }
+
+    if (category !== undefined) {
+      fieldsToUpdate.push('category = ?');
+      values.push(category);
     }
 
     fieldsToUpdate.push('updated_at = ?');

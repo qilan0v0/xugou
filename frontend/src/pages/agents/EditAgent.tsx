@@ -14,6 +14,7 @@ const EditAgent = () => {
   const [trafficVal, setTrafficVal] = useState('');
   const [trafficUnit, setTrafficUnit] = useState('TB');
   const units = ['GB', 'TB'] as const;
+  const [category, setCategory] = useState('');
   const [expiryTime, setExpiryTime] = useState('');
   const [toastOpen, setToastOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
@@ -25,6 +26,7 @@ const EditAgent = () => {
     getAgent(parseInt(id)).then(res => {
       if (res.success && res.agent) {
         setName(res.agent.name || '');
+        setCategory(res.agent.category || '');
         const tl = res.agent.traffic_limit;
         if (tl && tl > 0) {
           if (tl >= 1099511627776) { setTrafficVal(String(Math.round(tl / 1099511627776 * 10) / 10)); setTrafficUnit('TB'); }
@@ -49,6 +51,7 @@ const EditAgent = () => {
       } else data.traffic_limit = null;
       if (expiryTime) data.expiry_time = new Date(expiryTime).toISOString();
       else data.expiry_time = null;
+      if (category) data.category = category; else data.category = null;
       const res = await updateAgent(parseInt(id), data);
       if (res.success) { setToastMsg(t('agent.updateSuccess')); setToastType('success'); setToastOpen(true); setTimeout(() => navigate('/agents'), 1500); }
       else { setToastMsg(res.message || t('agent.updateFailed')); setToastType('error'); setToastOpen(true); }
@@ -72,6 +75,10 @@ const EditAgent = () => {
           <div>
             <label className="block text-xs font-medium text-slate-500 mb-1.5">{t('agent.name')} *</label>
             <input value={name} onChange={e => setName(e.target.value)} required className={inputClass} />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-500 mb-1.5">分类</label>
+            <input value={category} onChange={e => setCategory(e.target.value)} placeholder="如: 生产环境、测试环境" className={inputClass} />
           </div>
           <div>
             <label className="block text-xs font-medium text-slate-500 mb-1.5">{t('agent.trafficLimit')}</label>

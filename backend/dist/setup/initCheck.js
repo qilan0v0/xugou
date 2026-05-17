@@ -21,6 +21,7 @@ async function runMigrations(env) {
         'last_payload TEXT',
         'traffic_limit INTEGER',
         'expiry_time TEXT',
+        'category TEXT',
     ];
     for (const col of newColumns) {
         try {
