@@ -62,13 +62,12 @@ class D1PreparedStatement {
     try {
       const stmt = db!.prepare(this.sql);
       stmt.bind(this.params);
-      console.log('run: sql=', this.sql.slice(0, 100), 'params=[' + this.params.length + ']=', JSON.stringify(this.params.slice(0, 3)), '...');
       stmt.step();
       stmt.free();
       if (dbPath) saveDb();
       return { success: true };
     } catch (e: any) {
-      console.error('run error:', e.message, 'sql:', this.sql.slice(0, 100));
+      console.error('run error:', e.message);
       return { success: false, error: e.message };
     }
   }
@@ -85,10 +84,6 @@ function saveDb() {
       const data = db.export();
       const buffer = Buffer.from(data);
       writeFileSync(dbPath, buffer);
-      if (existsSync(dbPath)) {
-        const stats = statSync(dbPath);
-        console.log('saveDb: wrote', stats.size, 'bytes to', dbPath);
-      }
     } catch (e) {
       console.error('saveDb error:', e);
     }
@@ -131,7 +126,7 @@ export async function createDb(path?: string): Promise<SqliteAdapter> {
     },
     exec<T = unknown>(sql: string): D1Result<T> {
       try {
-        console.log('DEBUG run sql:', sql.slice(0, 200)); db!.run(sql); console.log('DEBUG run done');
+        db!.run(sql);
         saveDb();
         return { success: true };
       } catch (e: any) {
