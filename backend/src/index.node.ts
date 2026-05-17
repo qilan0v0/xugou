@@ -122,6 +122,13 @@ app.post('/api/agents/status', async (c) => {
       ]);
       stmt.step();
       stmt.free();
+      // Verify
+      const vs = rawDb!.prepare("SELECT cpu_usage, status FROM agents WHERE id = ?");
+      vs.bind([agent.id]);
+      vs.step();
+      const v = vs.getAsObject() as any;
+      vs.free();
+      console.log('STATUS_VERIFY:', JSON.stringify(v));
     } catch(e: any) {
       return c.json({ success: false, message: 'update failed: ' + e.message }, 500);
     }
