@@ -62,7 +62,7 @@ class D1PreparedStatement {
     try {
       const stmt = db!.prepare(this.sql);
       stmt.bind(this.params);
-      console.log('run: sql=', this.sql.slice(0, 100), 'params=', JSON.stringify(this.params.slice(0, 5)));
+      console.log('run: sql=', this.sql.slice(0, 100), 'params=[' + this.params.length + ']=', JSON.stringify(this.params.slice(0, 3)), '...');
       stmt.step();
       stmt.free();
       if (dbPath) saveDb();
