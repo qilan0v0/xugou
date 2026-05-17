@@ -11,7 +11,9 @@ const EditAgent = () => {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [name, setName] = useState('');
-  const [trafficLimit, setTrafficLimit] = useState('');
+  const [trafficVal, setTrafficVal] = useState('');
+  const [trafficUnit, setTrafficUnit] = useState('TB');
+  const units = ['MB', 'GB', 'TB', 'PB'] as const;
   const [expiryTime, setExpiryTime] = useState('');
   const [toastOpen, setToastOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
@@ -23,7 +25,13 @@ const EditAgent = () => {
     getAgent(parseInt(id)).then(res => {
       if (res.success && res.agent) {
         setName(res.agent.name || '');
-        setTrafficLimit(res.agent.traffic_limit ? String(res.agent.traffic_limit) : '');
+        const tl = res.agent.traffic_limit;
+        if (tl && tl > 0) {
+          if (tl >= 1125899906842624) { setTrafficVal(String(Math.round(tl / 1125899906842624 * 10) / 10)); setTrafficUnit('PB'); }
+          else if (tl >= 1099511627776) { setTrafficVal(String(Math.round(tl / 1099511627776 * 10) / 10)); setTrafficUnit('TB'); }
+          else if (tl >= 1073741824) { setTrafficVal(String(Math.round(tl / 1073741824 * 10) / 10)); setTrafficUnit('GB'); }
+          else { setTrafficVal(String(Math.round(tl / 1048576 * 10) / 10)); setTrafficUnit('MB'); }
+        }
         setExpiryTime(res.agent.expiry_time ? res.agent.expiry_time.slice(0, 10) : '');
       }
       setFetching(false);
@@ -36,8 +44,11 @@ const EditAgent = () => {
     setLoading(true);
     try {
       const data: any = { name };
-      if (trafficLimit) data.traffic_limit = parseInt(trafficLimit) || 0;
-      else data.traffic_limit = null;
+      if (trafficVal) {
+        const v = parseFloat(trafficVal) || 0;
+        const multipliers: Record<string, number> = { MB: 1048576, GB: 1073741824, TB: 1099511627776, PB: 1125899906842624 };
+        data.traffic_limit = Math.round(v * (multipliers[trafficUnit] || 1073741824));
+      } else data.traffic_limit = null;
       if (expiryTime) data.expiry_time = new Date(expiryTime).toISOString();
       else data.expiry_time = null;
       const res = await updateAgent(parseInt(id), data);
@@ -64,9 +75,13 @@ const EditAgent = () => {
             <input value={name} onChange={e => setName(e.target.value)} required className={inputClass} />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1.5">{t('agent.trafficLimit')} (bytes)</label>
-            <input value={trafficLimit} onChange={e => setTrafficLimit(e.target.value)} placeholder="1073741824000" className={inputClass} />
-            <p className="text-[10px] text-slate-400 mt-1">1 TB = 1099511627776</p>
+            <label className="block text-xs font-medium text-slate-500 mb-1.5">{t('agent.trafficLimit')}</label>
+            <div className="flex gap-2">
+              <input type="number" step="0.1" min="0" value={trafficVal} onChange={e => setTrafficVal(e.target.value)} placeholder="1" className={`${inputClass} flex-1`} />
+              <select value={trafficUnit} onChange={e => setTrafficUnit(e.target.value)} className={`${inputClass} w-20`}>
+                {units.map(u => <option key={u} value={u}>{u}</option>)}
+              </select>
+            </div>
           </div>
           <div>
             <label className="block text-xs font-medium text-slate-500 mb-1.5">{t('agent.expiryTime')}</label>
