@@ -61,11 +61,26 @@ app.post('/api/agents/status', async (c) => {
       diskTotal = body.disks.reduce((s: number, d: any) => s + (d.total || 0), 0);
       diskUsed = body.disks.reduce((s: number, d: any) => s + (d.used || 0), 0);
     }
+    // Calculate network totals from cumulative bytes
+    let netRxTotal = body.network_rx_total;
+    let netTxTotal = body.network_tx_total;
+    if ((netRxTotal == null) && Array.isArray(body.network)) {
+      netRxTotal = body.network.reduce((s: number, n: any) => s + (n.bytes_recv || 0), 0);
+      netTxTotal = body.network.reduce((s: number, n: any) => s + (n.bytes_sent || 0), 0);
+    }
+
+    // Calculate network rate from delta of cumulative bytes
     let netRx = body.network_rx;
     let netTx = body.network_tx;
-    if ((netRx == null) && Array.isArray(body.network)) {
-      netRx = body.network.reduce((s: number, n: any) => s + (n.bytes_recv || 0), 0);
-      netTx = body.network.reduce((s: number, n: any) => s + (n.bytes_sent || 0), 0);
+    if ((netRx == null || netRx === 0) && netRxTotal != null && agent) {
+      const prev = env.DB.prepare('SELECT network_rx_total, network_tx_total, updated_at FROM agents WHERE id = ?').bind(agent.id).first<any>();
+      if (prev && prev.network_rx_total != null) {
+        const elapsed = (Date.now() - new Date(prev.updated_at).getTime()) / 1000;
+        if (elapsed > 0 && elapsed < 3600) {
+          netRx = Math.max(0, Math.round((netRxTotal - prev.network_rx_total) / elapsed / 1024));
+          netTx = Math.max(0, Math.round((netTxTotal - prev.network_tx_total) / elapsed / 1024));
+        }
+      }
     }
 
     const cpuArch = toD1Primitive(body.cpu_arch ?? body.cpu?.arch ?? null);
@@ -76,12 +91,6 @@ app.post('/api/agents/status', async (c) => {
     const l15 = body.load15 ?? body.load?.load15 ?? null;
     const bt = toD1Primitive(body.boot_time ?? null);
     const av = toD1Primitive(body.agent_version ?? null);
-    let netRxTotal = body.network_rx_total;
-    let netTxTotal = body.network_tx_total;
-    if ((netRxTotal == null) && Array.isArray(body.network)) {
-      netRxTotal = body.network.reduce((s: number, n: any) => s + (n.bytes_recv || 0), 0);
-      netTxTotal = body.network.reduce((s: number, n: any) => s + (n.bytes_sent || 0), 0);
-    }
 
     if (!token) return c.json({ success: false, message: 'no token' }, 400);
 
