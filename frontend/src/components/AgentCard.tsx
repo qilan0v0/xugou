@@ -124,11 +124,15 @@ const AgentCard = ({ agent }: AgentCardProps) => {
               {agent.category}
             </span>
           )}
-          {agent.tags && agent.tags.split(',').filter(Boolean).map((tag: string, i: number) => (
-            <span key={i} className="text-[9px] px-1.5 py-0.5 rounded bg-slate-500/10 text-slate-500 dark:text-slate-400">
-              {tag.trim()}
-            </span>
-          ))}
+          {agent.tags && agent.tags.split(',').filter(Boolean).map((tag: string, i: number) => {
+            const colors = ['bg-blue-500/10 text-blue-600', 'bg-emerald-500/10 text-emerald-600', 'bg-amber-500/10 text-amber-600', 'bg-purple-500/10 text-purple-600', 'bg-rose-500/10 text-rose-600', 'bg-cyan-500/10 text-cyan-600', 'bg-orange-500/10 text-orange-600', 'bg-indigo-500/10 text-indigo-600'];
+            const c = colors[tag.trim().length % colors.length];
+            return (
+              <span key={i} className={`text-[9px] px-1.5 py-0.5 rounded font-medium ${c}`}>
+                {tag.trim()}
+              </span>
+            );
+          })}
         </div>
       )}
 
