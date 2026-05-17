@@ -96,11 +96,12 @@ app.post('/api/agents/status', async (c) => {
       connectedAt = now;
     }
 
-    // Detect country from agent IP via geoip-lite
-    const agentIp = toD1Primitive(body.ip_address ?? (Array.isArray(body.ip_addresses) ? body.ip_addresses[0] : null) ?? (Array.isArray(body.ip) ? body.ip[0] : body.ip) ?? body.IP);
+    // Detect country from request public IP (agent reports local IP, use x-forwarded-for)
+    const forwarded = c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || '';
+    const clientIp = forwarded.split(',')[0]?.trim();
     let country: string | null = null;
-    if (typeof agentIp === 'string') {
-      const geo = geoip.lookup(agentIp);
+    if (clientIp) {
+      const geo = geoip.lookup(clientIp);
       country = geo?.country || null;
     }
 
