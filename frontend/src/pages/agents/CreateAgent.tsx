@@ -101,7 +101,7 @@ const CreateAgent = () => {
           <label className="block text-xs font-semibold text-slate-500 mb-1.5">总流量上限</label>
           <div className="flex gap-2">
             <input type="number" step="0.1" min="0" value={trafficVal} onChange={e => setTrafficVal(e.target.value)} placeholder="1" className={`${inputClass} flex-1`} />
-            <select value={trafficUnit} onChange={e => setTrafficUnit(e.target.value)} className="px-3 py-2 rounded-lg border border-white/[0.08] bg-white/5 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-500 transition-all w-16 flex-shrink-0">
+            <select value={trafficUnit} onChange={e => setTrafficUnit(e.target.value)} className="px-3 py-2 rounded-lg border border-white/[0.08] bg-white/5 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-500 transition-all w-20 flex-shrink-0">
               {(['GB','TB'] as const).map(u => <option key={u} value={u}>{u}</option>)}
             </select>
           </div>
