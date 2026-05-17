@@ -17,8 +17,6 @@ const StatusPage = () => {
   const [data, setData] = useState<{ monitors: Monitor[], agents: StatusAgent[] }>({ monitors: [], agents: [] });
   const [loading, setLoading] = useState(true);
   const [initialLoad, setInitialLoad] = useState(true);
-  const [pageTitle, setPageTitle] = useState(t('statusPage.title'));
-  const [pageDescription, setPageDescription] = useState(t('statusPage.allOperational'));
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -27,8 +25,6 @@ const StatusPage = () => {
         if (initialLoad) setLoading(true);
         const res = await getStatusPageData();
         if (res.success && res.data) {
-          setPageTitle(res.data.title || t('statusPage.title'));
-          setPageDescription(res.data.description || t('statusPage.allOperational'));
           setData({ monitors: res.data.monitors || [], agents: res.data.agents || [] });
         } else {
           setError(res.message || t('statusPage.fetchError'));
@@ -46,8 +42,6 @@ const StatusPage = () => {
 
   if (error) return <div className="flex justify-center items-center min-h-[50vh]"><span className="text-red-500">{error}</span></div>;
   if (loading) return <div className="flex justify-center items-center min-h-[50vh]"><span className="text-slate-500">{t('common.loading')}</span></div>;
-
-  const allUp = data.monitors.every(m => m.status === 'up') && data.agents.every(a => a.status === 'active');
 
   return (
     <div>
@@ -68,19 +62,6 @@ const StatusPage = () => {
           </button>
         </div>
 
-        <div className="relative max-w-4xl mx-auto px-4 py-16 flex flex-col items-center gap-4 text-center">
-          <span className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium ${
-            allUp ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
-          }`}>
-            <span className={`w-2 h-2 rounded-full ${allUp ? 'bg-emerald-500 animate-pulse-dot' : 'bg-amber-500'}`} />
-            {allUp ? t('statusPage.allOperational') : t('statusPage.someIssues')}
-          </span>
-          <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-white">{pageTitle}</h1>
-          <p className="text-lg text-slate-500 dark:text-slate-400 max-w-2xl">{pageDescription}</p>
-          <span className="text-xs text-slate-400 bg-slate-100 dark:bg-white/5 px-3 py-1 rounded-full">
-            {t('statusPage.lastUpdated')}: {t('statusPage.justNow')}
-          </span>
-        </div>
       </section>
 
       <div className="max-w-5xl mx-auto px-4 pb-16">
