@@ -2,7 +2,7 @@ import { Agent } from '../api/agents';
 import ResourceBar from './ResourceBar';
 import { useTranslation } from 'react-i18next';
 import {
-  CrumpledPaperIcon, MixerHorizontalIcon, StackIcon,
+  CrumpledPaperIcon, MixerHorizontalIcon, StackIcon, TimerIcon,
   DownloadIcon, UploadIcon, ArrowDownIcon, ArrowUpIcon,
 } from '@radix-ui/react-icons';
 
@@ -115,7 +115,7 @@ const AgentCard = ({ agent }: AgentCardProps) => {
           [<MetricItem key="cpu" icon={<MixerHorizontalIcon />} iconColor="bg-emerald-500/10 text-emerald-600" label="CPU" value={`${cpu.toFixed(1)}%`} barValue={cpu} barColor="green" />,
            <MetricItem key="mem" icon={<StackIcon />} iconColor="bg-blue-500/10 text-blue-600" label={t('agent.memory')} value={`${memPct.toFixed(1)}%`} sub={`${memUsedStr} / ${memTotalStr}`} barValue={memPct} barColor="blue" />],
           [<MetricItem key="disk" icon={<CrumpledPaperIcon />} iconColor="bg-amber-500/10 text-amber-600" label={t('agent.disk')} value={`${diskPct.toFixed(1)}%`} sub={`${diskUsedStr} / ${diskTotalStr}`} barValue={diskPct} barColor="amber" />,
-           <MetricItem key="traf" icon={<DownloadIcon />} iconColor="bg-violet-500/10 text-violet-600" label={t('agent.traffic')} value={trafficLimit > 0 ? `${totalTrafficStr} / ${trafficLimitStr}` : '--'} barValue={trafficLimit > 0 ? trafficPct : undefined} barColor="purple" />],
+           <MetricItem key="traf" icon={<DownloadIcon />} iconColor="bg-violet-500/10 text-violet-600" label={t('agent.traffic')} value={trafficLimit > 0 ? `${totalTrafficStr} / ${trafficLimitStr}` : '--'} barValue={trafficLimit > 0 ? trafficPct : 0} barColor="purple" />],
           [<MetricItem key="dl" icon={<ArrowDownIcon />} iconColor="bg-cyan-500/10 text-cyan-600" label={t('clientResource.download')} value={netRx >= 1024 ? `${(netRx / 1024).toFixed(1)} MB/s` : `${netRx.toFixed(1)} KB/s`} />,
            <MetricItem key="ul" icon={<ArrowUpIcon />} iconColor="bg-indigo-500/10 text-indigo-600" label={t('clientResource.upload')} value={netTx >= 1024 ? `${(netTx / 1024).toFixed(1)} MB/s` : `${netTx.toFixed(1)} KB/s`} />],
           [<MetricItem key="tdl" icon={<DownloadIcon />} iconColor="bg-slate-500/10 text-slate-500" label={t('agent.networkTotalRx')} value={rxTotalStr} />,
@@ -130,17 +130,21 @@ const AgentCard = ({ agent }: AgentCardProps) => {
 
       {/* Bottom divider + expiry + uptime */}
       <div className="my-2.5 border-t border-slate-200 dark:border-white/[0.06]" />
-      <div className="grid grid-cols-2 gap-x-4 text-[10px] text-slate-400">
-        <span>
-          {expiryDays >= 0 ? (
-            <span className={expiryDays <= 0 ? 'text-red-500' : expiryDays < 30 ? 'text-amber-500' : ''}>
-              {expiryDays <= 0 ? t('agent.expired') : `${t('agent.expiry')} ${expiryDays}${t('agent.days')}`}
-            </span>
-          ) : '-'}
-        </span>
-        <span className="text-right">
-          {t('agent.uptime')} {uptimeStr || '-'}
-        </span>
+      <div className="flex gap-4">
+        <div className="flex-1">
+          <MetricItem
+            icon={<TimerIcon />} iconColor="bg-slate-500/10 text-slate-500"
+            label={t('agent.expiry')}
+            value={expiryDays >= 0 ? `${expiryDays}${t('agent.days')}` : '--'}
+          />
+        </div>
+        <div className="flex-1">
+          <MetricItem
+            icon={<TimerIcon />} iconColor="bg-slate-500/10 text-slate-500"
+            label={t('agent.uptime')}
+            value={uptimeStr || '--'}
+          />
+        </div>
       </div>
     </div>
   );
