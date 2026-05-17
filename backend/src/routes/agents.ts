@@ -133,7 +133,9 @@ agents.get('/:id', async (c) => {
         network_tx_total: agent.network_tx_total || 0,
         agent_version: agent.agent_version || null,
         country: agent.country || null,
-        connected_at: agent.connected_at || null
+        connected_at: agent.connected_at || null,
+        traffic_limit: agent.traffic_limit || null,
+        expiry_time: agent.expiry_time || null
       }
     });
   } catch (error) {
@@ -164,7 +166,7 @@ agents.put('/:id', async (c) => {
     
     // 获取更新数据
     const updateData = await c.req.json();
-    const { name, hostname, ip_address, os, version, status } = updateData;
+    const { name, hostname, ip_address, os, version, status, traffic_limit, expiry_time } = updateData;
     
     // 准备更新的字段和值
     const fieldsToUpdate = [];
@@ -199,7 +201,17 @@ agents.put('/:id', async (c) => {
       fieldsToUpdate.push('status = ?');
       values.push(status);
     }
-    
+
+    if (traffic_limit !== undefined) {
+      fieldsToUpdate.push('traffic_limit = ?');
+      values.push(traffic_limit);
+    }
+
+    if (expiry_time !== undefined) {
+      fieldsToUpdate.push('expiry_time = ?');
+      values.push(expiry_time);
+    }
+
     fieldsToUpdate.push('updated_at = ?');
     values.push(new Date().toISOString());
     

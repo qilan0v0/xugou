@@ -9,7 +9,7 @@ const app = new hono_1.Hono();
 const adminRoutes = new hono_1.Hono()
     .use('*', async (c, next) => {
     try {
-        const jwtMiddleware = (0, jwt_1.jwt)({
+        const jwtMiddleware = (0, jwt_1.jwt)({ alg: "HS256",
             secret: (0, jwt_2.getJwtSecret)(c)
         });
         await jwtMiddleware(c, next);

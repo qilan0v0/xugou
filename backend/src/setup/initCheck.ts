@@ -27,6 +27,8 @@ export async function runMigrations(env: Bindings): Promise<void> {
     'country TEXT',
     'connected_at TEXT',
     'last_payload TEXT',
+    'traffic_limit INTEGER',
+    'expiry_time TEXT',
   ];
   for (const col of newColumns) {
     try {

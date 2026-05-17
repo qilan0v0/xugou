@@ -45,6 +45,13 @@ const AgentCard = ({ agent }: AgentCardProps) => {
   const isOnline = agent.status === 'active';
   const netRx = agent.network_rx || 0;
   const netTx = agent.network_tx || 0;
+  const totalTraffic = (agent.network_rx_total || 0) + (agent.network_tx_total || 0);
+  const totalTrafficStr = formatBytes(totalTraffic);
+  const trafficLimit = agent.traffic_limit || 0;
+  const trafficLimitStr = trafficLimit > 0 ? formatBytes(trafficLimit) : '';
+  const trafficPct = trafficLimit > 0 ? Math.round((totalTraffic / trafficLimit) * 1000) / 10 : 0;
+  const expiryDays = agent.expiry_time ? Math.ceil((new Date(agent.expiry_time).getTime() - Date.now()) / 86400000) : -1;
+
   const rxTotalStr = formatBytes(agent.network_rx_total || 0);
   const txTotalStr = formatBytes(agent.network_tx_total || 0);
   const memUsedStr = formatBytes(agent.memory_used || 0);
@@ -106,15 +113,29 @@ const AgentCard = ({ agent }: AgentCardProps) => {
         <MetricItem icon={<ArrowDownIcon />} iconColor="bg-cyan-500/10 text-cyan-600" label={t('clientResource.download')} value={netRx >= 1024 ? `${(netRx / 1024).toFixed(1)} MB/s` : `${netRx.toFixed(1)} KB/s`} barValue={Math.min(netRx / 51.2, 100)} barColor="cyan" />
         <MetricItem icon={<ArrowUpIcon />} iconColor="bg-indigo-500/10 text-indigo-600" label={t('clientResource.upload')} value={netTx >= 1024 ? `${(netTx / 1024).toFixed(1)} MB/s` : `${netTx.toFixed(1)} KB/s`} barValue={Math.min(netTx / 51.2, 100)} barColor="indigo" />
         <MetricItem icon={<UploadIcon />} iconColor="bg-slate-500/10 text-slate-500" label={t('agent.networkTotalTx')} value="" sub={txTotalStr} />
+        {trafficLimit > 0 && (
+          <div className="col-span-2">
+            <MetricItem icon={<ArrowDownIcon />} iconColor="bg-violet-500/10 text-violet-600" label={t('agent.traffic')} value={`${totalTrafficStr} / ${trafficLimitStr}`} barValue={trafficPct} barColor="purple" />
+          </div>
+        )}
       </div>
 
-      {/* Bottom divider + uptime */}
-      {uptimeStr && (
+      {/* Bottom divider + uptime + expiry */}
+      {(uptimeStr || expiryDays >= 0) && (
         <>
           <div className="my-2.5 border-t border-slate-200 dark:border-white/[0.06]" />
           <div className="flex justify-between text-[10px] text-slate-400">
-            <span>{t('agent.uptime')}</span>
-            <span className="font-medium text-slate-600 dark:text-slate-400">{uptimeStr}</span>
+            {expiryDays >= 0 ? (
+              <span className={expiryDays < 30 ? 'text-red-500' : 'text-slate-400'}>
+                {expiryDays <= 0 ? t('agent.expired') : `${t('agent.expiry')} ${expiryDays}${t('agent.days')}`}
+              </span>
+            ) : (
+              <span>{t('agent.uptime')}</span>
+            )}
+            <span className="font-medium text-slate-600 dark:text-slate-400">
+              {uptimeStr}
+              {expiryDays >= 0 && uptimeStr ? ' · ' : ''}
+            </span>
           </div>
         </>
       )}

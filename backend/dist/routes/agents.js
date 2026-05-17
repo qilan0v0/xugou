@@ -10,7 +10,7 @@ agents.use('*', async (c, next) => {
     if ((c.req.path.endsWith('/status') || c.req.path.endsWith('/register')) && c.req.method === 'POST') {
         return next();
     }
-    const jwtMiddleware = (0, jwt_1.jwt)({
+    const jwtMiddleware = (0, jwt_1.jwt)({ alg: "HS256",
         secret: (0, jwt_2.getJwtSecret)(c)
     });
     return jwtMiddleware(c, next);
@@ -101,7 +101,9 @@ agents.get('/:id', async (c) => {
                 network_tx_total: agent.network_tx_total || 0,
                 agent_version: agent.agent_version || null,
                 country: agent.country || null,
-                connected_at: agent.connected_at || null
+                connected_at: agent.connected_at || null,
+                traffic_limit: agent.traffic_limit || null,
+                expiry_time: agent.expiry_time || null
             }
         });
     }
@@ -126,7 +128,7 @@ agents.put('/:id', async (c) => {
         }
         // 获取更新数据
         const updateData = await c.req.json();
-        const { name, hostname, ip_address, os, version, status } = updateData;
+        const { name, hostname, ip_address, os, version, status, traffic_limit, expiry_time } = updateData;
         // 准备更新的字段和值
         const fieldsToUpdate = [];
         const values = [];
@@ -153,6 +155,14 @@ agents.put('/:id', async (c) => {
         if (status !== undefined) {
             fieldsToUpdate.push('status = ?');
             values.push(status);
+        }
+        if (traffic_limit !== undefined) {
+            fieldsToUpdate.push('traffic_limit = ?');
+            values.push(traffic_limit);
+        }
+        if (expiry_time !== undefined) {
+            fieldsToUpdate.push('expiry_time = ?');
+            values.push(expiry_time);
         }
         fieldsToUpdate.push('updated_at = ?');
         values.push(new Date().toISOString());

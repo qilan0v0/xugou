@@ -18,6 +18,9 @@ async function runMigrations(env) {
         'agent_version TEXT',
         'country TEXT',
         'connected_at TEXT',
+        'last_payload TEXT',
+        'traffic_limit INTEGER',
+        'expiry_time TEXT',
     ];
     for (const col of newColumns) {
         try {
@@ -32,31 +35,24 @@ async function checkAndInitializeDatabase(env) {
     try {
         console.log('检查数据库是否需要初始化...');
         // 检查用户表是否存在，如果不存在或为空则需要初始化
-        let tablesExist = true;
+        let hasUsers = false;
         try {
-            // 尝试查询用户表
             const userCount = await env.DB.prepare('SELECT COUNT(*) as count FROM users').first();
-            // 如果数据库中已经有用户，则不需要初始化
             if (userCount && userCount.count > 0) {
-                console.log('数据库已初始化，运行迁移...');
-                await runMigrations(env);
-                return {
-                    initialized: false,
-                    message: '数据库已经初始化，已运行迁移',
-                };
+                hasUsers = true;
             }
         }
         catch (error) {
             console.log('检查表出错，表可能不存在:', error);
-            tablesExist = false;
         }
-        // 如果表不存在或为空，则进行初始化
+        if (hasUsers) {
+            console.log('数据库已初始化，运行迁移...');
+            await runMigrations(env);
+            return { initialized: false, message: '数据库已经初始化，已运行迁移' };
+        }
+        // 新数据库：创建表、初始化
         console.log('开始初始化数据库...');
-        // 创建表（只有在表不存在时才创建）
-        if (!tablesExist) {
-            // 使用database.ts中的函数创建表
-            await (0, database_1.createTables)(env);
-        }
+        await (0, database_1.createTables)(env);
         // 运行迁移（确保所有列都存在）
         await runMigrations(env);
         // 创建管理员用户（复用database.ts中的函数）

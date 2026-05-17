@@ -5,7 +5,17 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const hono_1 = require("hono");
 const jwt_1 = require("hono/jwt");
-const bcryptjs_1 = __importDefault(require("bcryptjs"));
+const crypto_1 = __importDefault(require("crypto"));
+function hashPassword(password) {
+    const salt = crypto_1.default.randomBytes(16).toString('hex');
+    const hash = crypto_1.default.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
+    return salt + ':' + hash;
+}
+function verifyPassword(password, stored) {
+    const [salt, hash] = stored.split(':');
+    const verify = crypto_1.default.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
+    return hash === verify;
+}
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const jwt_2 = require("../utils/jwt");
 const auth = new hono_1.Hono();
@@ -19,8 +29,7 @@ auth.post('/register', async (c) => {
             return c.json({ success: false, message: '用户名已存在' }, 400);
         }
         // 加密密码
-        const salt = await bcryptjs_1.default.genSalt(10);
-        const hashedPassword = await bcryptjs_1.default.hash(password, salt);
+        const hashedPassword = hashPassword(password);
         // 创建新用户
         const result = await c.env.DB.prepare('INSERT INTO users (username, password, email, role, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)').bind(username, hashedPassword, email || null, 'user', new Date().toISOString(), new Date().toISOString()).run();
         if (!result.success) {
@@ -49,7 +58,7 @@ auth.post('/login', async (c) => {
             return c.json({ success: false, message: '用户名或密码错误' }, 401);
         }
         // 验证密码
-        const isPasswordValid = await bcryptjs_1.default.compare(password, user.password);
+        const isPasswordValid = verifyPassword(password, user.password);
         if (!isPasswordValid) {
             return c.json({ success: false, message: '用户名或密码错误' }, 401);
         }
@@ -75,7 +84,7 @@ auth.post('/login', async (c) => {
 });
 // 获取当前用户信息
 auth.use('/me', async (c, next) => {
-    const jwtMiddleware = (0, jwt_1.jwt)({
+    const jwtMiddleware = (0, jwt_1.jwt)({ alg: "HS256",
         secret: (0, jwt_2.getJwtSecret)(c)
     });
     return jwtMiddleware(c, next);

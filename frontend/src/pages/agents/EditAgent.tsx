@@ -11,6 +11,8 @@ const EditAgent = () => {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [name, setName] = useState('');
+  const [trafficLimit, setTrafficLimit] = useState('');
+  const [expiryTime, setExpiryTime] = useState('');
   const [toastOpen, setToastOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
   const [toastType, setToastType] = useState<'success'|'error'>('success');
@@ -19,7 +21,11 @@ const EditAgent = () => {
   useEffect(() => {
     if (!id) return;
     getAgent(parseInt(id)).then(res => {
-      if (res.success && res.agent) setName(res.agent.name);
+      if (res.success && res.agent) {
+        setName(res.agent.name || '');
+        setTrafficLimit(res.agent.traffic_limit ? String(res.agent.traffic_limit) : '');
+        setExpiryTime(res.agent.expiry_time ? res.agent.expiry_time.slice(0, 10) : '');
+      }
       setFetching(false);
     }).catch(() => setFetching(false));
   }, [id]);
@@ -29,7 +35,12 @@ const EditAgent = () => {
     if (!id) return;
     setLoading(true);
     try {
-      const res = await updateAgent(parseInt(id), { name });
+      const data: any = { name };
+      if (trafficLimit) data.traffic_limit = parseInt(trafficLimit) || 0;
+      else data.traffic_limit = null;
+      if (expiryTime) data.expiry_time = new Date(expiryTime).toISOString();
+      else data.expiry_time = null;
+      const res = await updateAgent(parseInt(id), data);
       if (res.success) { setToastMsg(t('agent.updateSuccess')); setToastType('success'); setToastOpen(true); setTimeout(() => navigate('/agents'), 1500); }
       else { setToastMsg(res.message || t('agent.updateFailed')); setToastType('error'); setToastOpen(true); }
     } catch { setToastMsg(t('agent.updateFailed')); setToastType('error'); setToastOpen(true); }
@@ -51,6 +62,15 @@ const EditAgent = () => {
           <div>
             <label className="block text-xs font-medium text-slate-500 mb-1.5">{t('agent.name')} *</label>
             <input value={name} onChange={e => setName(e.target.value)} required className={inputClass} />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-500 mb-1.5">{t('agent.trafficLimit')} (bytes)</label>
+            <input value={trafficLimit} onChange={e => setTrafficLimit(e.target.value)} placeholder="1073741824000" className={inputClass} />
+            <p className="text-[10px] text-slate-400 mt-1">1 TB = 1099511627776</p>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-500 mb-1.5">{t('agent.expiryTime')}</label>
+            <input type="date" value={expiryTime} onChange={e => setExpiryTime(e.target.value)} className={inputClass} />
           </div>
           <div className="flex justify-end gap-3 pt-2 border-t border-white/[0.06]">
             <button type="button" onClick={() => navigate('/agents')} className="px-4 py-2 rounded-lg text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors">{t('common.cancel')}</button>

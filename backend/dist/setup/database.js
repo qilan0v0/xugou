@@ -12,7 +12,17 @@ exports.addSampleAgents = addSampleAgents;
 exports.initializeDatabase = initializeDatabase;
 exports.createDefaultStatusPage = createDefaultStatusPage;
 const hono_1 = require("hono");
-const bcryptjs_1 = __importDefault(require("bcryptjs"));
+const crypto_1 = __importDefault(require("crypto"));
+function hashPassword(password) {
+    const salt = crypto_1.default.randomBytes(16).toString('hex');
+    const hash = crypto_1.default.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
+    return salt + ':' + hash;
+}
+function verifyPassword(password, stored) {
+    const [salt, hash] = stored.split(':');
+    const verify = crypto_1.default.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
+    return hash === verify;
+}
 const initDb = new hono_1.Hono();
 // 创建数据库表结构
 async function createTables(env) {
@@ -25,7 +35,7 @@ async function createTables(env) {
     console.log('创建监控状态历史表...');
     await env.DB.exec("CREATE TABLE IF NOT EXISTS monitor_status_history (id INTEGER PRIMARY KEY AUTOINCREMENT, monitor_id INTEGER NOT NULL, status TEXT NOT NULL, timestamp TEXT DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (monitor_id) REFERENCES monitors(id))");
     console.log('创建客户端表...');
-    await env.DB.exec("CREATE TABLE IF NOT EXISTS agents (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, token TEXT NOT NULL UNIQUE, created_by INTEGER NOT NULL, status TEXT DEFAULT 'inactive', created_at TEXT NOT NULL, updated_at TEXT NOT NULL, hostname TEXT, ip_address TEXT, os TEXT, version TEXT, cpu_usage REAL, memory_total INTEGER, memory_used INTEGER, disk_total INTEGER, disk_used INTEGER, network_rx INTEGER, network_tx INTEGER, cpu_arch TEXT, cpu_model_name TEXT, cpu_cores INTEGER, load1 REAL, load5 REAL, load15 REAL, boot_time TEXT, network_rx_total INTEGER, network_tx_total INTEGER, agent_version TEXT, country TEXT, connected_at TEXT, FOREIGN KEY (created_by) REFERENCES users(id))");
+    await env.DB.exec("CREATE TABLE IF NOT EXISTS agents (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, token TEXT NOT NULL UNIQUE, created_by INTEGER NOT NULL, status TEXT DEFAULT 'inactive', created_at TEXT NOT NULL, updated_at TEXT NOT NULL, hostname TEXT, ip_address TEXT, os TEXT, version TEXT, cpu_usage REAL, memory_total INTEGER, memory_used INTEGER, disk_total INTEGER, disk_used INTEGER, network_rx INTEGER, network_tx INTEGER, cpu_arch TEXT, cpu_model_name TEXT, cpu_cores INTEGER, load1 REAL, load5 REAL, load15 REAL, boot_time TEXT, network_rx_total INTEGER, network_tx_total INTEGER, agent_version TEXT, country TEXT, connected_at TEXT, last_payload TEXT, traffic_limit INTEGER, expiry_time TEXT, FOREIGN KEY (created_by) REFERENCES users(id))");
     console.log('创建状态页配置表...');
     await env.DB.exec("CREATE TABLE IF NOT EXISTS status_page_config (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, title TEXT NOT NULL DEFAULT '系统状态', description TEXT DEFAULT '系统当前运行状态', logo_url TEXT DEFAULT '', custom_css TEXT DEFAULT '', created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (user_id) REFERENCES users(id))");
     console.log('创建状态页监控项关联表...');
@@ -40,11 +50,9 @@ async function createAdminUser(env) {
     // 如果不存在管理员用户，则创建一个
     if (!adminUser) {
         console.log('创建管理员用户...');
-        // 密码: admin123
-        const salt = await bcryptjs_1.default.genSalt(10);
-        const hashedPassword = await bcryptjs_1.default.hash('admin123', salt);
+        const hashedPassword = hashPassword('admin123');
         const now = new Date().toISOString();
-        await env.DB.prepare(`INSERT INTO users (username, password, email, role, created_at, updated_at) 
+        env.DB.prepare(`INSERT INTO users (username, password, email, role, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?)`).bind('admin', hashedPassword, 'admin@mdzz.uk', 'admin', now, now).run();
     }
 }
@@ -52,7 +60,7 @@ async function createAdminUser(env) {
 async function addSampleMonitors(env) {
     // 检查是否已有示例监控数据
     const existingMonitors = await env.DB.prepare('SELECT COUNT(*) as count FROM monitors').first();
-    if (existingMonitors.count === 0) {
+    if (!existingMonitors || existingMonitors.count === 0) {
         console.log('添加示例监控...');
         const now = new Date().toISOString();
         const userId = 1; // 管理员用户ID
@@ -68,7 +76,7 @@ async function addSampleMonitors(env) {
 async function addSampleAgents(env) {
     // 检查是否已有示例客户端数据
     const existingAgents = await env.DB.prepare('SELECT COUNT(*) as count FROM agents').first();
-    if (existingAgents.count === 0) {
+    if (!existingAgents || existingAgents.count === 0) {
         console.log('添加示例客户端...');
         const now = new Date().toISOString();
         const userId = 1; // 管理员用户ID

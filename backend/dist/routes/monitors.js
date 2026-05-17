@@ -6,7 +6,7 @@ const jwt_2 = require("../utils/jwt");
 const monitors = new hono_1.Hono();
 // 中间件：JWT 认证
 monitors.use('*', async (c, next) => {
-    const jwtMiddleware = (0, jwt_1.jwt)({
+    const jwtMiddleware = (0, jwt_1.jwt)({ alg: "HS256",
         secret: (0, jwt_2.getJwtSecret)(c)
     });
     return jwtMiddleware(c, next);

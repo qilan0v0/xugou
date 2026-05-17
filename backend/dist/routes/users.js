@@ -1,13 +1,26 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const hono_1 = require("hono");
 const jwt_1 = require("hono/jwt");
-const bcryptjs_1 = require("bcryptjs");
+const crypto_1 = __importDefault(require("crypto"));
+function hashPassword(password) {
+    const salt = crypto_1.default.randomBytes(16).toString('hex');
+    const hash = crypto_1.default.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
+    return salt + ':' + hash;
+}
+function verifyPassword(password, stored) {
+    const [salt, hash] = stored.split(':');
+    const verify = crypto_1.default.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
+    return hash === verify;
+}
 const jwt_2 = require("../utils/jwt");
 const users = new hono_1.Hono();
 // 中间件：JWT 认证
 users.use('*', async (c, next) => {
-    const jwtMiddleware = (0, jwt_1.jwt)({
+    const jwtMiddleware = (0, jwt_1.jwt)({ alg: "HS256",
         secret: (0, jwt_2.getJwtSecret)(c)
     });
     return jwtMiddleware(c, next);
@@ -74,7 +87,7 @@ users.post('/', async (c) => {
             return c.json({ success: false, message: '无效的角色' }, 400);
         }
         // 哈希密码
-        const hashedPassword = await (0, bcryptjs_1.hash)(data.password, 10);
+        const hashedPassword = hashPassword(data.password);
         const now = new Date().toISOString();
         // 插入新用户
         const result = await c.env.DB.prepare(`INSERT INTO users (username, password, email, role, created_at, updated_at) 
@@ -134,7 +147,7 @@ users.put('/:id', async (c) => {
         }
         // 如果提供了新密码，则更新密码
         if (data.password) {
-            const hashedPassword = await (0, bcryptjs_1.hash)(data.password, 10);
+            const hashedPassword = hashPassword(data.password);
             updates.push('password = ?');
             values.push(hashedPassword);
         }
@@ -214,13 +227,13 @@ users.post('/:id/change-password', async (c) => {
         }
         // 非管理员需要验证当前密码
         if (payload.role !== 'admin') {
-            const isPasswordValid = await (0, bcryptjs_1.compare)(currentPassword, user.password);
+            const isPasswordValid = verifyPassword(currentPassword, user.password);
             if (!isPasswordValid) {
                 return c.json({ success: false, message: '当前密码不正确' }, 400);
             }
         }
         // 哈希新密码
-        const hashedPassword = await (0, bcryptjs_1.hash)(newPassword, 10);
+        const hashedPassword = hashPassword(newPassword);
         // 更新密码
         const result = await c.env.DB.prepare('UPDATE users SET password = ?, updated_at = ? WHERE id = ?').bind(hashedPassword, new Date().toISOString(), id).run();
         if (!result.success) {
