@@ -2,7 +2,7 @@ import { Agent } from '../api/agents';
 import ResourceBar from './ResourceBar';
 import { useTranslation } from 'react-i18next';
 import {
-  CrumpledPaperIcon, MixerHorizontalIcon, StackIcon, TimerIcon,
+  CrumpledPaperIcon, MixerHorizontalIcon, StackIcon, TimerIcon, CalendarIcon,
   DownloadIcon, UploadIcon, ArrowDownIcon, ArrowUpIcon, ActivityLogIcon,
 } from '@radix-ui/react-icons';
 
@@ -133,7 +133,7 @@ const AgentCard = ({ agent }: AgentCardProps) => {
       <div className="flex gap-4">
         <div className="flex-1">
           <MetricItem
-            icon={<TimerIcon />} iconColor="bg-slate-500/10 text-slate-500"
+            icon={<CalendarIcon />} iconColor="bg-slate-500/10 text-slate-500"
             label={t('agent.expiry')}
             value={expiryDays >= 0 ? `${expiryDays}${t('agent.days')}` : '--'}
           />
