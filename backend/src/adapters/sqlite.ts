@@ -60,20 +60,10 @@ class D1PreparedStatement {
 
   run<T = unknown>(): D1Result<T> {
     try {
-      // Manual parameter substitution (sql.js stmt.run may not work for complex queries)
-      let sql = this.sql;
-      const params = [...this.params];
-      for (let i = 0; i < params.length; i++) {
-        const val = params[i];
-        if (val === null || val === undefined) {
-          sql = sql.replace('?', 'NULL');
-        } else if (typeof val === 'string') {
-          sql = sql.replace('?', "'" + val.replace(/'/g, "''") + "'");
-        } else {
-          sql = sql.replace('?', String(val));
-        }
-      }
-      console.log('DEBUG run sql:', sql.slice(0, 200)); db!.run(sql); console.log('DEBUG run done');
+      const stmt = db!.prepare(this.sql);
+      stmt.bind(this.params);
+      stmt.step();
+      stmt.free();
       if (dbPath) saveDb();
       return { success: true };
     } catch (e: any) {
