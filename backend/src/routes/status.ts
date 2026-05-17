@@ -465,7 +465,8 @@ app.get('/data', async (c) => {
         connected_at: agent.connected_at || null,
         traffic_limit: agent.traffic_limit || null,
         expiry_time: agent.expiry_time || null,
-        category: agent.category || null
+        category: agent.category || null,
+        tags: agent.tags || null
       };
     });
     
@@ -509,7 +510,8 @@ app.get('/data', async (c) => {
           connected_at: agent.connected_at,
           traffic_limit: agent.traffic_limit,
           expiry_time: agent.expiry_time,
-          category: agent.category
+          category: agent.category,
+          tags: agent.tags
         }))
       }
     });
