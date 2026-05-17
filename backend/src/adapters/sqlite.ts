@@ -73,7 +73,7 @@ class D1PreparedStatement {
           sql = sql.replace('?', String(val));
         }
       }
-      console.log('DEBUG run sql:', sql.slice(0, 200)); db!.exec(sql); console.log('DEBUG run done');
+      console.log('DEBUG run sql:', sql.slice(0, 200)); db!.run(sql); console.log('DEBUG run done');
       if (dbPath) saveDb();
       return { success: true };
     } catch (e: any) {
@@ -139,7 +139,7 @@ export async function createDb(path?: string): Promise<SqliteAdapter> {
     },
     exec<T = unknown>(sql: string): D1Result<T> {
       try {
-        console.log('DEBUG run sql:', sql.slice(0, 200)); db!.exec(sql); console.log('DEBUG run done');
+        console.log('DEBUG run sql:', sql.slice(0, 200)); db!.run(sql); console.log('DEBUG run done');
         saveDb();
         return { success: true };
       } catch (e: any) {
