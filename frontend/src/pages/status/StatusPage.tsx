@@ -6,7 +6,7 @@ import AgentCard from '../../components/AgentCard';
 import MonitorCard from '../../components/MonitorCard';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
-import { SunIcon, MoonIcon } from '@radix-ui/react-icons';
+import { SunIcon, MoonIcon, CubeIcon, CheckCircledIcon, CrossCircledIcon, GlobeIcon, ArrowUpIcon } from '@radix-ui/react-icons';
 import { useTranslation } from 'react-i18next';
 
 const StatusPage = () => {
@@ -84,6 +84,43 @@ const StatusPage = () => {
       </section>
 
       <div className="max-w-5xl mx-auto px-4 pb-16">
+        {/* Summary cards */}
+        {(() => {
+          const agents = data.agents || [];
+          const monitors = data.monitors || [];
+          const totalRx = agents.reduce((s: number, a: any) => s + (a.network_rx_total || 0), 0);
+          const totalTx = agents.reduce((s: number, a: any) => s + (a.network_tx_total || 0), 0);
+          const fmt = (bytes: number) => { if (!bytes) return '0 B'; const u = ['B','KB','MB','GB','TB']; let i=0,v=bytes; while(v>=1024&&i<u.length-1){v/=1024;i++;} return v.toFixed(1)+' '+u[i]; };
+          const online = agents.filter((a: any) => a.status === 'active').length;
+          const offline = agents.length - online;
+          const regions = [...new Set(agents.map((a: any) => a.country).filter(Boolean))].length;
+          const upMonitors = monitors.filter((m: any) => m.status === 'up').length;
+          const cards = [
+            { label: t('statusPage.summary.servers'), value: agents.length, bg: 'bg-blue-500/10', text: 'text-blue-600', icon: <CubeIcon /> },
+            { label: t('statusPage.summary.online'), value: online, bg: 'bg-emerald-500/10', text: 'text-emerald-600', icon: <CheckCircledIcon /> },
+            { label: t('statusPage.summary.offline'), value: offline, bg: 'bg-slate-500/10', text: 'text-slate-500', icon: <CrossCircledIcon /> },
+            { label: t('statusPage.summary.regions'), value: regions, bg: 'bg-purple-500/10', text: 'text-purple-600', icon: <GlobeIcon /> },
+            { label: t('statusPage.summary.services'), value: `${upMonitors}/${monitors.length}`, bg: 'bg-amber-500/10', text: 'text-amber-600', icon: <CheckCircledIcon /> },
+            { label: t('statusPage.summary.traffic'), value: fmt(totalTx + totalRx), sub: `↑${fmt(totalTx)}  ↓${fmt(totalRx)}`, bg: 'bg-orange-500/10', text: 'text-orange-600', icon: <ArrowUpIcon /> },
+          ];
+          return (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+              {cards.map((card: any, i: number) => (
+                <div key={i} className="glass rounded-xl p-3 flex items-center gap-2">
+                  <div className={`w-8 h-8 rounded-lg ${card.bg} ${card.text} flex items-center justify-center flex-shrink-0`}>
+                    {card.icon}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-[10px] text-slate-500 truncate">{card.label}</div>
+                    <div className="text-sm font-bold text-slate-900 dark:text-white truncate">{card.value}</div>
+                    {card.sub && <div className="text-[10px] text-slate-400 truncate">{card.sub}</div>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+        })()}
+
         {data.monitors.length > 0 && (
           <section className="mb-8">
             <h2 className="text-lg font-bold text-slate-900 dark:text-white section-heading mb-4">{t('statusPage.apiServices')}</h2>
