@@ -73,7 +73,7 @@ class D1PreparedStatement {
           sql = sql.replace('?', String(val));
         }
       }
-      db!.run(sql);
+      db!.exec(sql);
       if (dbPath) saveDb();
       return { success: true };
     } catch (e: any) {
@@ -135,7 +135,7 @@ export async function createDb(path?: string): Promise<SqliteAdapter> {
     },
     exec<T = unknown>(sql: string): D1Result<T> {
       try {
-        db!.run(sql);
+        db!.exec(sql);
         saveDb();
         return { success: true };
       } catch (e: any) {
