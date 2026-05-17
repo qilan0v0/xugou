@@ -60,9 +60,20 @@ class D1PreparedStatement {
 
   run<T = unknown>(): D1Result<T> {
     try {
-      const stmt = db!.prepare(this.sql);
-      stmt.run(this.params);
-      stmt.free();
+      // Manual parameter substitution (sql.js stmt.run may not work for complex queries)
+      let sql = this.sql;
+      const params = [...this.params];
+      for (let i = 0; i < params.length; i++) {
+        const val = params[i];
+        if (val === null || val === undefined) {
+          sql = sql.replace('?', 'NULL');
+        } else if (typeof val === 'string') {
+          sql = sql.replace('?', "'" + val.replace(/'/g, "''") + "'");
+        } else {
+          sql = sql.replace('?', String(val));
+        }
+      }
+      db!.run(sql);
       if (dbPath) saveDb();
       return { success: true };
     } catch (e: any) {
