@@ -2,7 +2,8 @@
 // 用于在 Cloudflare Workers 环境中创建数据库表和初始数据
 
 import { Hono } from 'hono';
-import bcrypt from 'bcryptjs';
+import bcryptjs from 'bcryptjs';
+const bcrypt = (bcryptjs as any).default || bcryptjs;
 import { Bindings } from '../models/db';
 
 const initDb = new Hono<{ Bindings: Bindings }>();

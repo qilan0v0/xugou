@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { jwt } from 'hono/jwt';
-import bcrypt from 'bcryptjs';
+import bcryptjs from 'bcryptjs';
+const bcrypt = (bcryptjs as any).default || bcryptjs;
 const { compare, hash } = bcrypt;
 import { Bindings } from '../models/db';
 import { getJwtSecret } from '../utils/jwt';
