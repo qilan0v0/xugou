@@ -1,4 +1,4 @@
-import { dataApi as api } from './index';
+import api from './index';
 
 export interface Monitor {
   id: number;
