@@ -72,7 +72,7 @@ const AgentsList = () => {
     { label: '在线', value: online, bg: 'bg-emerald-500/10', text: 'text-emerald-600', icon: <CheckCircledIcon /> },
     { label: '离线', value: offline, bg: 'bg-slate-500/10', text: 'text-slate-500', icon: <CrossCircledIcon /> },
     { label: '地区', value: regions, bg: 'bg-purple-500/10', text: 'text-purple-600', icon: <GlobeIcon /> },
-    { label: '总流量', value: `↑${formatBytes(totalTx)} ↓${formatBytes(totalRx)}`, bg: 'bg-orange-500/10', text: 'text-orange-600', icon: <ArrowUpIcon /> },
+    { label: '总流量', value: formatBytes(totalTx + totalRx), sub: `↑${formatBytes(totalTx)}  ↓${formatBytes(totalRx)}`, bg: 'bg-orange-500/10', text: 'text-orange-600', icon: <ArrowUpIcon /> },
   ];
 
   return (
@@ -99,6 +99,7 @@ const AgentsList = () => {
             <div className="min-w-0">
               <div className="text-xs text-slate-500 truncate">{card.label}</div>
               <div className="text-lg font-bold text-slate-900 dark:text-white truncate">{card.value}</div>
+              {'sub' in card && (card as any).sub && <div className="text-[10px] text-slate-400 truncate mt-0.5">{(card as any).sub}</div>}
             </div>
           </div>
         ))}
