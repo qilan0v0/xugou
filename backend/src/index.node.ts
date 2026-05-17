@@ -3,6 +3,7 @@ import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
 import { logger } from 'hono/logger';
 import { cors } from 'hono/cors';
+import geoip from 'geoip-lite';
 import { prettyJSON } from 'hono/pretty-json';
 import { Bindings } from './models/db';
 
@@ -95,15 +96,23 @@ app.post('/api/agents/status', async (c) => {
       connectedAt = now;
     }
 
+    // Detect country from agent IP via geoip-lite
+    const agentIp = toD1Primitive(body.ip_address ?? (Array.isArray(body.ip_addresses) ? body.ip_addresses[0] : null) ?? (Array.isArray(body.ip) ? body.ip[0] : body.ip) ?? body.IP);
+    let country: string | null = null;
+    if (typeof agentIp === 'string') {
+      const geo = geoip.lookup(agentIp);
+      country = geo?.country || null;
+    }
+
     const result = env.DB.prepare(
       `UPDATE agents SET status='active', cpu_usage=?, memory_total=?, memory_used=?, disk_total=?, disk_used=?, network_rx=?, network_tx=?, hostname=?, ip_address=?, os=?, version=?, cpu_arch=?, cpu_model_name=?, cpu_cores=?, load1=?, load5=?, load15=?, boot_time=?, network_rx_total=?, network_tx_total=?, agent_version=?, country=?, connected_at = COALESCE(connected_at, ?), updated_at=?, last_payload=? WHERE id=?`
     ).bind(
       cpu, memTotal, memUsed, diskTotal, diskUsed, netRx, netTx,
       toD1Primitive(body.hostname),
-      toD1Primitive(body.ip_address ?? (Array.isArray(body.ip_addresses) ? body.ip_addresses[0] : null) ?? (Array.isArray(body.ip) ? body.ip[0] : body.ip) ?? body.IP),
+      agentIp,
       toD1Primitive(body.os), toD1Primitive(body.version),
       cpuArch, cpuModelName, cpuCores, l1, l5, l15, bt, netRxTotal, netTxTotal, av,
-      null,
+      country,
       connectedAt ?? now,
       now, raw.slice(0, 2000), agent.id
     ).run();
