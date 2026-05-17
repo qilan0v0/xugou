@@ -13,7 +13,7 @@ const EditAgent = () => {
   const [name, setName] = useState('');
   const [trafficVal, setTrafficVal] = useState('');
   const [trafficUnit, setTrafficUnit] = useState('TB');
-  const units = ['MB', 'GB', 'TB', 'PB'] as const;
+  const units = ['GB', 'TB'] as const;
   const [expiryTime, setExpiryTime] = useState('');
   const [toastOpen, setToastOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
@@ -27,10 +27,8 @@ const EditAgent = () => {
         setName(res.agent.name || '');
         const tl = res.agent.traffic_limit;
         if (tl && tl > 0) {
-          if (tl >= 1125899906842624) { setTrafficVal(String(Math.round(tl / 1125899906842624 * 10) / 10)); setTrafficUnit('PB'); }
-          else if (tl >= 1099511627776) { setTrafficVal(String(Math.round(tl / 1099511627776 * 10) / 10)); setTrafficUnit('TB'); }
-          else if (tl >= 1073741824) { setTrafficVal(String(Math.round(tl / 1073741824 * 10) / 10)); setTrafficUnit('GB'); }
-          else { setTrafficVal(String(Math.round(tl / 1048576 * 10) / 10)); setTrafficUnit('MB'); }
+          if (tl >= 1099511627776) { setTrafficVal(String(Math.round(tl / 1099511627776 * 10) / 10)); setTrafficUnit('TB'); }
+          else { setTrafficVal(String(Math.round(tl / 1073741824 * 10) / 10)); setTrafficUnit('GB'); }
         }
         setExpiryTime(res.agent.expiry_time ? res.agent.expiry_time.slice(0, 10) : '');
       }
