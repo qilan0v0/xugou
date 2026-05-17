@@ -69,19 +69,8 @@ app.post('/api/agents/status', async (c) => {
       netTxTotal = body.network.reduce((s: number, n: any) => s + (n.bytes_sent || 0), 0);
     }
 
-    // Calculate network rate from delta of cumulative bytes
     let netRx = body.network_rx;
     let netTx = body.network_tx;
-    if ((netRx == null || netRx === 0) && netRxTotal != null && agent) {
-      const prev = env.DB.prepare('SELECT network_rx_total, network_tx_total, updated_at FROM agents WHERE id = ?').bind(agent.id).first<any>();
-      if (prev && prev.network_rx_total != null) {
-        const elapsed = (Date.now() - new Date(prev.updated_at).getTime()) / 1000;
-        if (elapsed > 0 && elapsed < 3600) {
-          netRx = Math.max(0, Math.round((netRxTotal - prev.network_rx_total) / elapsed / 1024));
-          netTx = Math.max(0, Math.round((netTxTotal - prev.network_tx_total) / elapsed / 1024));
-        }
-      }
-    }
 
     const cpuArch = toD1Primitive(body.cpu_arch ?? body.cpu?.arch ?? null);
     const cpuModelName = toD1Primitive(body.cpu_model_name ?? body.cpu?.model_name ?? null);
@@ -96,6 +85,18 @@ app.post('/api/agents/status', async (c) => {
 
     const agent = await env.DB.prepare('SELECT id FROM agents WHERE token = ?').bind(token).first<{id: number}>();
     if (!agent) return c.json({ success: false, message: 'agent not found' }, 404);
+
+    // Recalc network rate from cumulative byte delta if agent reports 0
+    if ((netRx == null || netRx === 0) && netRxTotal != null) {
+      const prev = env.DB.prepare('SELECT network_rx_total, network_tx_total, updated_at FROM agents WHERE id = ?').bind(agent.id).first<any>();
+      if (prev && prev.network_rx_total != null) {
+        const elapsed = (Date.now() - new Date(prev.updated_at).getTime()) / 1000;
+        if (elapsed > 0 && elapsed < 3600) {
+          netRx = Math.max(0, Math.round((netRxTotal - (prev.network_rx_total || 0)) / elapsed / 1024));
+          netTx = Math.max(0, Math.round((netTxTotal - (prev.network_tx_total || 0)) / elapsed / 1024));
+        }
+      }
+    }
 
     const now = new Date().toISOString();
     let connectedAt: string | null = null;
