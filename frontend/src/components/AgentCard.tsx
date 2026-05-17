@@ -69,21 +69,29 @@ const AgentCard = ({ agent }: AgentCardProps) => {
     <span className={`w-4 h-4 flex items-center justify-center rounded ${color}`}>{children}</span>
   );
 
-  const hasAny = (v: any) => v != null;
-  const MetricItem = ({ icon, iconColor, label, value, sub, barValue, barColor }: { icon: React.ReactNode; iconColor: string; label: string; value: string; sub?: string; barValue?: number; barColor?: string }) => (
-    <div className="flex flex-col gap-0.5">
+  const MetricItem = ({ icon, iconColor, label, value, sub, barValue, barColor }: { icon: React.ReactNode; iconColor: string; label: string; value: string; sub?: string; barValue?: number; barColor?: string }) => {
+    const hasBar = barValue != null && barColor;
+    const hasSub = !!sub;
+    return (
+    <div className="flex flex-col">
       <div className="flex items-center justify-between">
         <span className="text-[11px] text-slate-500 flex items-center gap-1">
           <IconWrap color={iconColor}>{icon}</IconWrap>{label}
         </span>
         <span className="text-[11px] font-medium text-slate-700 dark:text-slate-300">{value || ''}</span>
       </div>
-      {sub ? <span className="text-[10px] text-slate-400 leading-none">{sub}</span> : <div className="h-[2px]" />}
-      {hasAny(barValue) && barColor ? (
-        <ResourceBar value={Math.min(barValue!, 100)} color={barColor} height={5} />
-      ) : sub ? <div className="h-[5px]" /> : null}
+      {/* Always reserve sub line for alignment */}
+      <div className="text-[10px] leading-[14px] h-[14px]">
+        {hasSub && <span className="text-slate-400">{sub}</span>}
+      </div>
+      {/* Always reserve bar area for alignment */}
+      {hasBar ? (
+        <ResourceBar value={Math.min(barValue!, 100)} color={barColor!} height={5} />
+      ) : (
+        <div className="h-[5px]" />
+      )}
     </div>
-  );
+  );};
 
   return (
     <div className="glass rounded-xl p-4 hover:shadow-lg transition-shadow duration-200">
