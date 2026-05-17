@@ -76,7 +76,7 @@ const EditAgent = () => {
             <label className="block text-xs font-medium text-slate-500 mb-1.5">{t('agent.trafficLimit')}</label>
             <div className="flex gap-2">
               <input type="number" step="0.1" min="0" value={trafficVal} onChange={e => setTrafficVal(e.target.value)} placeholder="1" className={`${inputClass} flex-1`} />
-              <select value={trafficUnit} onChange={e => setTrafficUnit(e.target.value)} className={`${inputClass} w-20`}>
+              <select value={trafficUnit} onChange={e => setTrafficUnit(e.target.value)} className={`${inputClass} w-14`}>
                 {units.map(u => <option key={u} value={u}>{u}</option>)}
               </select>
             </div>
