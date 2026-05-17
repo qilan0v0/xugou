@@ -104,6 +104,7 @@ app.post('/api/agents/status', async (c) => {
     let country: string | null = null;
     if (clientIp) {
       const geo = geoip.lookup(clientIp);
+      console.log('GEOIP_LOOKUP:', clientIp, '=>', geo);
       country = geo?.country || null;
     }
 
