@@ -117,12 +117,14 @@ auth.post('/login', async (c) => {
     ).bind(username).first<User>();
     
     if (!user) {
+      console.log('LOGIN: user not found:', username);
       return c.json({ success: false, message: '用户名或密码错误' }, 401);
     }
-    
+
     // 验证密码
     const isPasswordValid = verifyPassword(password, user.password);
     if (!isPasswordValid) {
+      console.log('LOGIN: password mismatch for', username, 'stored length:', user.password?.length);
       return c.json({ success: false, message: '用户名或密码错误' }, 401);
     }
     
