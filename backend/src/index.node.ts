@@ -3,7 +3,6 @@ import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
 import { logger } from 'hono/logger';
 import { cors } from 'hono/cors';
-import geoip from 'geoip-lite';
 import { prettyJSON } from 'hono/pretty-json';
 import { Bindings } from './models/db';
 
@@ -96,16 +95,18 @@ app.post('/api/agents/status', async (c) => {
       connectedAt = now;
     }
 
-    // Detect country from request public IP
-    console.log('COUNTRY_DEBUG: x-forwarded-for=', c.req.header('x-forwarded-for'), 'x-real-ip=', c.req.header('x-real-ip'));
-    // Detect country from request public IP (agent reports local IP, use x-forwarded-for)
+    // Detect country from request public IP via ip-api.com (free, no key needed)
     const forwarded = c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || '';
     const clientIp = forwarded.split(',')[0]?.trim();
     let country: string | null = null;
-    if (clientIp) {
-      const geo = geoip.lookup(clientIp);
-      console.log('GEOIP_LOOKUP:', clientIp, '=>', geo);
-      country = geo?.country || null;
+    if (clientIp && clientIp !== '127.0.0.1' && clientIp !== '::1') {
+      try {
+        const res = await fetch('http://ip-api.com/json/' + clientIp + '?fields=countryCode');
+        if (res.ok) {
+          const data = await res.json() as any;
+          country = data?.countryCode || null;
+        }
+      } catch (e) { /* ignore geoip failures */ }
     }
 
     const result = env.DB.prepare(
