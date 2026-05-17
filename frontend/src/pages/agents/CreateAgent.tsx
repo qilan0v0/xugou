@@ -13,6 +13,11 @@ const CreateAgent = () => {
   const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null);
   const [selectedArch, setSelectedArch] = useState<string | null>(null);
   const [agentName, setAgentName] = useState('');
+  const [category, setCategory] = useState('');
+  const [tags, setTags] = useState('');
+  const [trafficVal, setTrafficVal] = useState('');
+  const [trafficUnit, setTrafficUnit] = useState('TB');
+  const [expiryTime, setExpiryTime] = useState('');
   const [created, setCreated] = useState(false);
   const [error, setError] = useState('');
   const { t } = useTranslation();
@@ -22,7 +27,15 @@ const CreateAgent = () => {
     setLoading(true);
     setError('');
     try {
-      const res = await api.post('/api/agents', { name: agentName.trim() });
+      const data: any = { name: agentName.trim() };
+      if (category) data.category = category;
+      if (tags) data.tags = tags;
+      if (trafficVal) {
+        const multipliers: Record<string, number> = { GB: 1073741824, TB: 1099511627776 };
+        data.traffic_limit = Math.round(parseFloat(trafficVal) * (multipliers[trafficUnit] || 1073741824));
+      }
+      if (expiryTime) data.expiry_time = new Date(expiryTime).toISOString();
+      const res = await api.post('/api/agents', data);
       if (res.data.success && res.data.agent) {
         setToken(res.data.agent.token);
         setCreated(true);
@@ -73,6 +86,31 @@ const CreateAgent = () => {
           </div>
           {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
         </div>
+
+        {/* Extra fields - hidden after creation */}
+        {!created && <>
+        <div>
+          <label className="block text-xs font-semibold text-slate-500 mb-1.5">分类</label>
+          <input value={category} onChange={e => setCategory(e.target.value)} placeholder="如: 生产环境" className={inputClass} />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-slate-500 mb-1.5">标签</label>
+          <input value={tags} onChange={e => setTags(e.target.value)} placeholder="多个用逗号分隔，如: web,nginx" className={inputClass} />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-slate-500 mb-1.5">总流量上限</label>
+          <div className="flex gap-2">
+            <input type="number" step="0.1" min="0" value={trafficVal} onChange={e => setTrafficVal(e.target.value)} placeholder="1" className={`${inputClass} flex-1`} />
+            <select value={trafficUnit} onChange={e => setTrafficUnit(e.target.value)} className="px-2 py-2 rounded-lg border border-white/[0.08] bg-white/5 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-500 transition-all w-12 flex-shrink-0">
+              {(['GB','TB'] as const).map(u => <option key={u} value={u}>{u}</option>)}
+            </select>
+          </div>
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-slate-500 mb-1.5">到期时间</label>
+          <input type="date" value={expiryTime} onChange={e => setExpiryTime(e.target.value)} className={inputClass} />
+        </div>
+        </>}
 
         {created && (
           <>
