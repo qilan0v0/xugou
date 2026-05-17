@@ -1,0 +1,17 @@
+{
+  "name": "backend-node",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/index.node.ts"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.13.8",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^17.4.2",
+    "hono": "^4.7.4",
+    "jsonwebtoken": "^9.0.2",
+    "sql.js": "^1.14.1",
+    "tsx": "^4.22.0"
+  }
+}
