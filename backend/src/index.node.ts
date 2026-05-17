@@ -37,19 +37,13 @@ checkAndInitializeDatabase(env).then(r => console.log('DB init:', r.message));
 // Middleware
 app.use('*', logger());
 app.use('*', cors({
-  origin: (origin) => origin || '*',
+  origin: '*',
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowHeaders: ['Content-Type', 'Authorization'],
+  allowHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'Referer', 'User-Agent'],
   exposeHeaders: ['Content-Length', 'Content-Type'],
   maxAge: 86400,
-  credentials: true,
 }));
 app.use('*', prettyJSON());
-app.use('*', async (c, next) => {
-  await next();
-  c.header('Access-Control-Allow-Origin', c.req.header('origin') || '*');
-  c.header('Access-Control-Allow-Credentials', 'true');
-});
 
 // Inline env setter
 app.use('*', async (c, next) => {
