@@ -100,7 +100,7 @@ const app = new Hono<{ Bindings: Bindings }>();
 const adminRoutes = new Hono<{ Bindings: Bindings }>()
   .use('*', async (c, next) => {
     try {
-      const jwtMiddleware = jwt({
+      const jwtMiddleware = jwt({ alg: "HS256", 
         secret: getJwtSecret(c)
       });
       await jwtMiddleware(c, next);

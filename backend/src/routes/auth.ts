@@ -152,7 +152,7 @@ auth.post('/login', async (c) => {
 
 // 获取当前用户信息
 auth.use('/me', async (c, next) => {
-  const jwtMiddleware = jwt({
+  const jwtMiddleware = jwt({ alg: "HS256", 
     secret: getJwtSecret(c)
   });
   return jwtMiddleware(c, next);

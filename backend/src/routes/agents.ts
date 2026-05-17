@@ -14,7 +14,7 @@ agents.use('*', async (c, next) => {
     return next();
   }
   
-  const jwtMiddleware = jwt({
+  const jwtMiddleware = jwt({ alg: "HS256", 
     secret: getJwtSecret(c)
   });
   return jwtMiddleware(c, next);

@@ -31,7 +31,7 @@ const users = new Hono<{ Bindings: Bindings }>();
 
 // 中间件：JWT 认证
 users.use('*', async (c, next) => {
-  const jwtMiddleware = jwt({
+  const jwtMiddleware = jwt({ alg: "HS256", 
     secret: getJwtSecret(c)
   });
   return jwtMiddleware(c, next);
