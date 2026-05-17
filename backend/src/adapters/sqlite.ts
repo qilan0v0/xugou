@@ -60,7 +60,9 @@ class D1PreparedStatement {
 
   run<T = unknown>(): D1Result<T> {
     try {
-      db!.run(this.sql, this.params);
+      const stmt = db!.prepare(this.sql);
+      stmt.run(this.params);
+      stmt.free();
       if (dbPath) saveDb();
       return { success: true };
     } catch (e: any) {
