@@ -462,7 +462,10 @@ app.get('/data', async (c) => {
         network_tx_total: agent.network_tx_total || 0,
         agent_version: agent.agent_version || null,
         country: agent.country || null,
-        connected_at: agent.connected_at || null
+        connected_at: agent.connected_at || null,
+        traffic_limit: agent.traffic_limit || null,
+        expiry_time: agent.expiry_time || null,
+        category: agent.category || null
       };
     });
     
@@ -503,7 +506,10 @@ app.get('/data', async (c) => {
           disk_total: agent.disk_total,
           disk_used: agent.disk_used,
           country: agent.country,
-          connected_at: agent.connected_at
+          connected_at: agent.connected_at,
+          traffic_limit: agent.traffic_limit,
+          expiry_time: agent.expiry_time,
+          category: agent.category
         }))
       }
     });
