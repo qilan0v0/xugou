@@ -102,17 +102,6 @@ function saveDb() {
     }
   }
 }
-  
-  if (db && dbPath) {
-    try {
-      const data = db.export();
-      const buffer = Buffer.from(data);
-      writeFileSync(dbPath, buffer);
-    } catch (e) {
-      console.error('Failed to save DB:', e);
-    }
-  }
-}
 
 // Match D1Database interface
 interface SqliteAdapter {
