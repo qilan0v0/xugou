@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PlusIcon, Cross2Icon, Pencil1Icon, InfoCircledIcon, ReloadIcon, LayoutIcon, ViewGridIcon } from '@radix-ui/react-icons';
+import { PlusIcon, Cross2Icon, Pencil1Icon, InfoCircledIcon, ReloadIcon, LayoutIcon, ViewGridIcon, CubeIcon, CheckCircledIcon, CrossCircledIcon, GlobeIcon, ArrowUpIcon } from '@radix-ui/react-icons';
 import { getAllAgents, deleteAgent, Agent } from '../../api/agents';
 import AgentCard from '../../components/AgentCard';
 import { useTranslation } from 'react-i18next';
@@ -68,11 +68,11 @@ const AgentsList = () => {
   const regions = [...new Set(agents.map(a => a.country).filter(Boolean))].length;
 
   const summaryCards = [
-    { label: '服务器总数', value: agents.length, color: 'from-blue-500 to-cyan-400', icon: '🖥️' },
-    { label: '在线', value: online, color: 'from-emerald-500 to-teal-400', icon: '🟢' },
-    { label: '离线', value: offline, color: 'from-slate-500 to-slate-400', icon: '🔴' },
-    { label: '地区', value: regions, color: 'from-purple-500 to-pink-400', icon: '🌍' },
-    { label: '总流量 ↑', value: formatBytes(totalTx), color: 'from-orange-500 to-amber-400', icon: '📤', sub: `↓ ${formatBytes(totalRx)}` },
+    { label: '服务器总数', value: agents.length, bg: 'bg-blue-500/10', text: 'text-blue-600', icon: <CubeIcon /> },
+    { label: '在线', value: online, bg: 'bg-emerald-500/10', text: 'text-emerald-600', icon: <CheckCircledIcon /> },
+    { label: '离线', value: offline, bg: 'bg-slate-500/10', text: 'text-slate-500', icon: <CrossCircledIcon /> },
+    { label: '地区', value: regions, bg: 'bg-purple-500/10', text: 'text-purple-600', icon: <GlobeIcon /> },
+    { label: '总流量', value: `↑${formatBytes(totalTx)} ↓${formatBytes(totalRx)}`, bg: 'bg-orange-500/10', text: 'text-orange-600', icon: <ArrowUpIcon /> },
   ];
 
   return (
@@ -90,15 +90,15 @@ const AgentsList = () => {
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-5">
         {summaryCards.map((card, i) => (
-          <div key={i} className="glass rounded-xl p-3 relative overflow-hidden">
-            <div className={`absolute top-0 left-0 w-1 h-full bg-gradient-to-b ${card.color}`} />
-            <div className="pl-2">
-              <div className="text-lg mb-0.5">{card.icon}</div>
-              <div className="text-xl font-bold text-slate-900 dark:text-white">{card.value}</div>
-              <div className="text-[10px] text-slate-500">{card.label}</div>
-              {card.sub && <div className="text-[10px] text-slate-400 mt-0.5">{card.sub}</div>}
+          <div key={i} className="glass rounded-xl p-4 flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-xl ${card.bg} ${card.text} flex items-center justify-center flex-shrink-0`}>
+              {card.icon}
+            </div>
+            <div className="min-w-0">
+              <div className="text-xs text-slate-500 truncate">{card.label}</div>
+              <div className="text-lg font-bold text-slate-900 dark:text-white truncate">{card.value}</div>
             </div>
           </div>
         ))}
@@ -107,8 +107,8 @@ const AgentsList = () => {
       {/* Search + Category bar */}
       <div className="flex gap-3 mb-4">
         <input
-          type="text" placeholder="搜索服务器..."
-          className="flex-1 px-3 py-2 rounded-lg border border-white/[0.08] bg-white/5 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 transition-all max-w-xs"
+          type="text" placeholder="搜索服务器名称、主机名、IP..."
+          className="flex-1 px-4 py-2.5 rounded-lg border border-white/[0.08] bg-white/5 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 transition-all"
         />
       </div>
 
