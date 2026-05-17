@@ -1,4 +1,4 @@
-import api from './index';
+import { dataApi as api } from './index';
 
 export interface Agent {
   id: number;

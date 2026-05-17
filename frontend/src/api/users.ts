@@ -1,4 +1,4 @@
-import api from './index';
+import { authApi as api } from './index';
 import { User } from './auth';
 
 export interface UserResponse {

@@ -1,48 +1,40 @@
 import axios from 'axios';
-import { ENV_API_BASE_URL, ENV_API_TIMEOUT } from '../config';
+import { AUTH_API_URL, DATA_API_URL, ENV_API_TIMEOUT } from '../config';
 
-// 创建 axios 实例
-const api = axios.create({
-  baseURL: ENV_API_BASE_URL, // 从配置中获取API基础URL
-  timeout: ENV_API_TIMEOUT, // 从配置中获取超时设置
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  // Cloudflare Pages 访问 Cloudflare Workers 时的跨域设置
-  withCredentials: false, // 不发送 cookies
-});
+function createApi(baseURL: string) {
+  const api = axios.create({
+    baseURL,
+    timeout: ENV_API_TIMEOUT,
+    headers: { 'Content-Type': 'application/json' },
+    withCredentials: false,
+  });
 
-// 请求拦截器
-api.interceptors.request.use(
-  (config) => {
-    // 从 localStorage 获取 token
+  api.interceptors.request.use((config) => {
     const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+    if (token) config.headers.Authorization = `Bearer ${token}`;
     return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
+  });
 
-// 响应拦截器
-api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  (error) => {
-    if (error.response) {
-      // 处理 401 未授权错误
-      if (error.response.status === 401) {
+  api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      if (error.response?.status === 401) {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         window.location.href = '/login';
       }
+      return Promise.reject(error);
     }
-    return Promise.reject(error);
-  }
-);
+  );
 
-export default api; 
+  return api;
+}
+
+// Auth 后端 (CF Workers: 登录、注册、用户、设置)
+export const authApi = createApi(AUTH_API_URL);
+
+// Data 后端 (Node.js / CF Workers: agent、monitor、状态页数据)
+export const dataApi = createApi(DATA_API_URL);
+
+// 默认导出 — 向后兼容 (指向 data 后端)
+export default dataApi;

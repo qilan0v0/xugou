@@ -1,4 +1,4 @@
-import api from './index';
+import { authApi as api } from './index';
 
 export interface LoginRequest {
   username: string;

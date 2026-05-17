@@ -1,9 +1,9 @@
-/**
- * 应用配置
- */
+// 应用配置
 
-// 优先从环境变量获取API基础URL
-export const ENV_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+// Auth/设置后端 (CF Workers: 用户、密码、设置 — 低频)
+export const AUTH_API_URL = import.meta.env.VITE_AUTH_API_URL || import.meta.env.VITE_API_BASE_URL || '';
 
-// 优先从环境变量获取API请求超时时间
+// 数据后端 (Node.js/CF Workers: agent、monitor — 高频)
+export const DATA_API_URL = import.meta.env.VITE_DATA_API_URL || import.meta.env.VITE_API_BASE_URL || '';
+
 export const ENV_API_TIMEOUT = import.meta.env.VITE_API_TIMEOUT || 10000;

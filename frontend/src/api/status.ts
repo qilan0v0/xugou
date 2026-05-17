@@ -1,4 +1,4 @@
-import api from './index';
+import { dataApi as api } from './index';
 import { Monitor } from './monitors';
 import { Agent } from './agents';
 
