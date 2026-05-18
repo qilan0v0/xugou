@@ -60,7 +60,7 @@ func saveToken(token string) {
 
 	config := map[string]interface{}{
 		"server":    viper.GetString("server"),
-		"token":     token,
+		"uuid":      token,
 		"interval":  viper.GetInt("interval"),
 		"log_level": viper.GetString("log_level"),
 	}
@@ -73,13 +73,13 @@ func saveToken(token string) {
 
 func runStart(cmd *cobra.Command, args []string) {
 	// 检查必要的配置
-	token := viper.GetString("token")
+	token := viper.GetString("uuid")
 	server := viper.GetString("server")
 	interval := viper.GetInt("interval")
 
 	if token == "" {
 		token = generateUUID()
-		viper.Set("token", token)
+		viper.Set("uuid", token)
 		saveToken(token)
 		fmt.Printf("已自动生成 UUID Token: %s (已保存到配置文件)\n", token)
 	}

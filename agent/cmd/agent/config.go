@@ -24,14 +24,14 @@ func init() {
 func runConfig(cmd *cobra.Command, args []string) {
 	// 获取当前配置
 	server := viper.GetString("server")
-	token := viper.GetString("token")
+	token := viper.GetString("uuid")
 	interval := viper.GetInt("interval")
 	logLevel := viper.GetString("log_level")
 
 	// 创建配置结构
 	config := map[string]interface{}{
 		"server":    server,
-		"token":     token,
+		"uuid":      token,
 		"interval":  interval,
 		"log_level": logLevel,
 	}

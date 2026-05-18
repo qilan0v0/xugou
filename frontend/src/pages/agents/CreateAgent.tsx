@@ -201,8 +201,8 @@ const CreateAgent = () => {
                 </div>
                 <div>
                   <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-2">{t('agent.add.step2')}</h4>
-                  <code className={codeClass}>{`./xugou-agent start --server ${serverUrl} --token ${token} --interval 60`}</code>
-                  <button onClick={() => handleCopy(`./xugou-agent start --server ${serverUrl} --token ${token} --interval 60`)}
+                  <code className={codeClass}>{`./xugou-agent start --server ${serverUrl} --uuid ${token} --interval 60`}</code>
+                  <button onClick={() => handleCopy(`./xugou-agent start --server ${serverUrl} --uuid ${token} --interval 60`)}
                     className="mt-2 text-xs text-blue-500 hover:text-blue-400 transition-colors flex items-center gap-1">
                     {copied ? <CheckIcon className="w-3 h-3" /> : <CopyIcon className="w-3 h-3" />}{t('agents.copyCommand')}
                   </button>
