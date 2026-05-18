@@ -13,8 +13,7 @@ interface ClientWithStatus extends Agent {
 const AgentsList = () => {
   const navigate = useNavigate();
   const [agents, setAgents] = useState<ClientWithStatus[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [initialLoad, setInitialLoad] = useState(true);
+  const [fetched, setFetched] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<'table' | 'card'>('card');
@@ -22,7 +21,6 @@ const AgentsList = () => {
   const { t } = useTranslation();
 
   const fetchAgents = async () => {
-    if (initialLoad) setLoading(true);
     setError(null);
     try {
       const response = await getAllAgents();
@@ -34,7 +32,7 @@ const AgentsList = () => {
     } catch (err) {
       setError(err instanceof Error ? err.message : t('common.error.fetch'));
     } finally {
-      if (initialLoad) { setLoading(false); setInitialLoad(false); }
+      setFetched(true);
     }
   };
 
@@ -63,14 +61,13 @@ const AgentsList = () => {
 
   const handleDelete = async () => {
     if (!deleteId) return;
-    setLoading(true);
     try {
       const r = await deleteAgent(deleteId);
       if (r.success) fetchAgents();
       else setError(r.message || t('common.error.delete'));
     } catch (err) {
       setError(err instanceof Error ? err.message : t('common.error.delete'));
-    } finally { setDeleteId(null); setLoading(false); }
+    } finally { setDeleteId(null); }
   };
 
   const statusConfig: Record<string, { bg: string; text: string; dot: string }> = {
@@ -79,7 +76,7 @@ const AgentsList = () => {
     inactive: { bg: 'bg-slate-500/10', text: 'text-slate-500', dot: 'bg-slate-400' },
   };
 
-  if (loading) return <div className="flex justify-center items-center min-h-[50vh]"><span className="text-slate-500">{t('common.loading')}</span></div>;
+  if (!fetched) return <div className="flex justify-center items-center min-h-[50vh]"><span className="text-slate-500">{t('common.loading')}</span></div>;
   if (error) return <div className="max-w-6xl mx-auto px-4 py-8"><div className="glass p-4 mb-4 border-l-4 border-red-500"><span className="text-red-500">{error}</span></div><button onClick={() => window.location.reload()} className="btn-gradient px-4 py-2 text-sm">{t('common.retry')}</button></div>;
 
   const totalRx = agents.reduce((s, a) => s + (a.network_rx_total || 0), 0);
