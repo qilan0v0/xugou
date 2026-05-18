@@ -71,7 +71,7 @@ const EditAgent = () => {
   if (fetching) return <div className="flex justify-center items-center min-h-[50vh]"><span className="text-slate-500">{t('common.loading')}</span></div>;
 
   return (
-    <div className="max-w-xl mx-auto px-4 py-8 animate-slide-up">
+    <div className="max-w-5xl mx-auto px-4 py-8 animate-slide-up">
       <div className="flex items-center gap-3 mb-6">
         <button onClick={() => navigate('/agents')} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors text-slate-500"><ArrowLeftIcon /></button>
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t('agent.edit')}</h1>

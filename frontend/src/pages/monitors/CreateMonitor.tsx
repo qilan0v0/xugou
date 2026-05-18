@@ -53,7 +53,7 @@ const CreateMonitor = () => {
   const labelClass = "block text-xs font-medium text-slate-500 mb-1.5";
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 animate-slide-up">
+    <div className="max-w-5xl mx-auto px-4 py-8 animate-slide-up">
       <div className="flex items-center gap-3 mb-6">
         <button onClick={() => navigate('/monitors')} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors text-slate-500"><ArrowLeftIcon /></button>
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t('monitor.form.title.create')}</h1>

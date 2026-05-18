@@ -55,7 +55,7 @@ const MonitorDetail = () => {
   };
 
   if (loading && !monitor) return <div className="flex justify-center items-center min-h-[50vh]"><div className="flex flex-col items-center gap-3"><div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" /><span className="text-sm text-slate-500">{t('common.loading')}</span></div></div>;
-  if (error || !monitor) return <div className="max-w-5xl mx-auto px-4 py-8"><div className="glass border-l-4 border-red-500 p-4 mb-4"><span className="text-red-500">{error || t('monitor.notExist')}</span></div><button onClick={() => navigate('/monitors')} className="btn-gradient px-4 py-2 text-sm">{t('monitor.returnToList')}</button></div>;
+  if (error || !monitor) return <div className="max-w-6xl mx-auto px-4 py-8"><div className="glass border-l-4 border-red-500 p-4 mb-4"><span className="text-red-500">{error || t('monitor.notExist')}</span></div><button onClick={() => navigate('/monitors')} className="btn-gradient px-4 py-2 text-sm">{t('monitor.returnToList')}</button></div>;
 
   const tabs = [
     { key: 'overview', label: t('monitor.tabs.overview') },
@@ -64,7 +64,7 @@ const MonitorDetail = () => {
   ];
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8 animate-slide-up">
+    <div className="max-w-6xl mx-auto px-4 py-8 animate-slide-up">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div className="flex items-center gap-3">
           <button onClick={() => navigate('/monitors')} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors text-slate-500"><ArrowLeftIcon /></button>

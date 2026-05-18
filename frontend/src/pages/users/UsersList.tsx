@@ -34,7 +34,7 @@ const UsersList = () => {
   if (loading) return <div className="flex justify-center items-center min-h-[50vh]"><span className="text-slate-500">{t('common.loading')}</span></div>;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 animate-slide-up">
+    <div className="max-w-5xl mx-auto px-4 py-8 animate-slide-up">
       <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">{t('users.title')}</h1>
       {error && <div className="glass border-l-4 border-red-500 p-4 mb-4"><span className="text-red-500">{error}</span></div>}
 

@@ -17,7 +17,7 @@ const Layout = ({ children }: LayoutProps) => {
         {children}
       </main>
       <footer className="w-full py-4 mt-auto border-t border-white/[0.06]">
-        <div className="max-w-7xl mx-auto px-4">
+        <div className="max-w-[1400px] mx-auto px-4">
           <div className="flex flex-col items-center gap-2 py-3">
             <span className="text-xs text-slate-500">
               {t('footer.copyright', { year: currentYear })}

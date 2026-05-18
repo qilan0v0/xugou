@@ -68,7 +68,7 @@ const StatusPage = () => {
     <div>
       {/* Top bar */}
       <nav className="sticky top-0 z-50 w-full bg-white/[0.85] dark:bg-[#0f0f1a]/[0.85] backdrop-blur-xl border-b border-white/[0.06]">
-        <div className="max-w-7xl mx-auto px-4 h-[54px] flex items-center justify-between">
+        <div className="max-w-[1400px] mx-auto px-4 h-[54px] flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
               <CubeIcon className="w-3.5 h-3.5 text-white" />
@@ -89,7 +89,7 @@ const StatusPage = () => {
         </div>
       </nav>
 
-      <div className="max-w-7xl mx-auto px-4 pb-16">
+      <div className="max-w-[1400px] mx-auto px-4 pb-16">
         {/* Summary cards */}
         {(() => {
           const agents = data.agents || [];
