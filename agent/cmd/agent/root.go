@@ -29,7 +29,7 @@ func init() {
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "配置文件路径 (默认为 $HOME/.xugou-agent.yaml)")
 	rootCmd.PersistentFlags().String("server", "", "监控服务器地址")
-	rootCmd.PersistentFlags().String("token", "", "API 令牌")
+	rootCmd.PersistentFlags().String("token", "", "API 令牌 (UUID 格式，不设置则自动生成)")
 	rootCmd.PersistentFlags().String("log-level", "info", "日志级别 (debug, info, warn, error)")
 	rootCmd.PersistentFlags().Int("agent-id", 0, "客户端 ID，需要与服务器中注册的 ID 一致")
 

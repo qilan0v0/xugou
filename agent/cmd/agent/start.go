@@ -2,9 +2,11 @@ package agent
 
 import (
 	"context"
+	"crypto/rand"
 	"fmt"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
 
@@ -12,6 +14,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/xugou/agent/pkg/collector"
 	"github.com/xugou/agent/pkg/reporter"
+	"gopkg.in/yaml.v3"
 )
 
 func init() {
@@ -28,6 +31,46 @@ func init() {
 	rootCmd.AddCommand(startCmd)
 }
 
+// generateUUID generates a random UUID v4 without external dependencies
+func generateUUID() string {
+	b := make([]byte, 16)
+	_, err := rand.Read(b)
+	if err != nil {
+		// fallback: use timestamp-based pseudo-random
+		for i := range b {
+			b[i] = byte(time.Now().UnixNano()>>((i%8)*8)) ^ byte(i*37)
+		}
+	}
+	b[6] = (b[6] & 0x0f) | 0x40 // version 4
+	b[8] = (b[8] & 0x3f) | 0x80 // variant
+	return fmt.Sprintf("%08x-%04x-%04x-%04x-%012x",
+		b[0:4], b[4:6], b[6:8], b[8:10], b[10:16])
+}
+
+// saveToken persists the token to config file
+func saveToken(token string) {
+	configPath := cfgFile
+	if configPath == "" {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return
+		}
+		configPath = filepath.Join(home, ".xugou-agent.yaml")
+	}
+
+	config := map[string]interface{}{
+		"server":    viper.GetString("server"),
+		"token":     token,
+		"interval":  viper.GetInt("interval"),
+		"log_level": viper.GetString("log_level"),
+	}
+	data, err := yaml.Marshal(config)
+	if err != nil {
+		return
+	}
+	os.WriteFile(configPath, data, 0644)
+}
+
 func runStart(cmd *cobra.Command, args []string) {
 	// 检查必要的配置
 	token := viper.GetString("token")
@@ -35,8 +78,10 @@ func runStart(cmd *cobra.Command, args []string) {
 	interval := viper.GetInt("interval")
 
 	if token == "" {
-		fmt.Println("错误: 未设置 API 令牌，请使用 --token 参数或在配置文件中设置")
-		os.Exit(1)
+		token = generateUUID()
+		viper.Set("token", token)
+		saveToken(token)
+		fmt.Printf("已自动生成 UUID Token: %s (已保存到配置文件)\n", token)
 	}
 
 	if server == "" {
