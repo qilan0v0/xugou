@@ -207,6 +207,8 @@ const server = createServer((req, res) => {
       'Cache-Control': 'no-cache',
       'Connection': 'keep-alive',
       'X-Accel-Buffering': 'no',
+      'Access-Control-Allow-Origin': req.headers.origin || '*',
+      'Access-Control-Allow-Credentials': 'true',
     });
     sseClients.add(res);
     res.write('event: connected\ndata: {}\n\n');
