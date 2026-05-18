@@ -112,10 +112,11 @@ app.post('/api/agents/status', async (c) => {
     }
 
     const now = new Date().toISOString();
-    let connectedAt: string | null = null;
     const currentStatus = await env.DB.prepare('SELECT status FROM agents WHERE id = ?').bind(agent.id).first<{status: string}>();
-    if (!currentStatus || currentStatus.status === 'inactive') {
-      connectedAt = now;
+    const wasInactive = !currentStatus || currentStatus.status === 'inactive';
+    // Reset connected_at when transitioning from inactive to active
+    if (wasInactive) {
+      env.DB.prepare('UPDATE agents SET connected_at = ? WHERE id = ?').bind(now, agent.id).run();
     }
 
     const forwarded = c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || '';
@@ -137,7 +138,7 @@ app.post('/api/agents/status', async (c) => {
     }
 
     const result = env.DB.prepare(
-      `UPDATE agents SET status='active', cpu_usage=?, memory_total=?, memory_used=?, disk_total=?, disk_used=?, network_rx=?, network_tx=?, hostname=?, ip_address=?, os=?, version=?, cpu_arch=?, cpu_model_name=?, cpu_cores=?, load1=?, load5=?, load15=?, boot_time=?, network_rx_total=?, network_tx_total=?, agent_version=?, country=?, connected_at = COALESCE(connected_at, ?), updated_at=?, last_payload=? WHERE id=?`
+      `UPDATE agents SET status='active', cpu_usage=?, memory_total=?, memory_used=?, disk_total=?, disk_used=?, network_rx=?, network_tx=?, hostname=?, ip_address=?, os=?, version=?, cpu_arch=?, cpu_model_name=?, cpu_cores=?, load1=?, load5=?, load15=?, boot_time=?, network_rx_total=?, network_tx_total=?, agent_version=?, country=?, updated_at=?, last_payload=? WHERE id=?`
     ).bind(
       cpu, memTotal, memUsed, diskTotal, diskUsed, netRx, netTx,
       toD1Primitive(body.hostname),
@@ -145,7 +146,6 @@ app.post('/api/agents/status', async (c) => {
       toD1Primitive(body.os), toD1Primitive(body.version),
       cpuArch, cpuModelName, cpuCores, l1, l5, l15, bt, netRxTotal, netTxTotal, av,
       country,
-      connectedAt ?? now,
       now, raw.slice(0, 2000), agent.id
     ).run();
 

@@ -94,15 +94,14 @@ app.post('/api/agents/status', async (c) => {
             return c.json({ success: false, message: 'agent not found' }, 404);
         // 从 Cloudflare 请求元数据提取国家代码
         const country = c.req.raw?.cf?.country ?? null;
-        // 首次连接时记录 connected_at
+        // 首次连接/重连时刷新 connected_at
         const now = new Date().toISOString();
-        let connectedAt = null;
-        // 查询当前 status，若为 inactive 则本次为首次连接
         const currentStatus = await c.env.DB.prepare('SELECT status FROM agents WHERE id = ?').bind(agent.id).first();
-        if (!currentStatus || currentStatus.status === 'inactive') {
-            connectedAt = now;
+        const wasInactive = !currentStatus || currentStatus.status === 'inactive';
+        if (wasInactive) {
+            await c.env.DB.prepare('UPDATE agents SET connected_at = ? WHERE id = ?').bind(now, agent.id).run();
         }
-        const result = await c.env.DB.prepare(`UPDATE agents SET status='active', cpu_usage=?, memory_total=?, memory_used=?, disk_total=?, disk_used=?, network_rx=?, network_tx=?, hostname=?, ip_address=?, os=?, version=?, cpu_arch=?, cpu_model_name=?, cpu_cores=?, load1=?, load5=?, load15=?, boot_time=?, network_rx_total=?, network_tx_total=?, agent_version=?, country=?, connected_at = COALESCE(connected_at, ?), updated_at=?, last_payload=? WHERE id=?`).bind(cpu, memTotal, memUsed, diskTotal, diskUsed, netRx, netTx, (0, jwt_1.toD1Primitive)(body.hostname), (0, jwt_1.toD1Primitive)(body.ip_address ?? (Array.isArray(body.ip_addresses) ? body.ip_addresses[0] : null) ?? (Array.isArray(body.ip) ? body.ip[0] : body.ip) ?? body.IP), (0, jwt_1.toD1Primitive)(body.os), (0, jwt_1.toD1Primitive)(body.version), cpuArch, cpuModelName, cpuCores, l1, l5, l15, bt, netRxTotal, netTxTotal, av, country, connectedAt ?? now, now, raw.slice(0, 2000), agent.id).run();
+        const result = await c.env.DB.prepare(`UPDATE agents SET status='active', cpu_usage=?, memory_total=?, memory_used=?, disk_total=?, disk_used=?, network_rx=?, network_tx=?, hostname=?, ip_address=?, os=?, version=?, cpu_arch=?, cpu_model_name=?, cpu_cores=?, load1=?, load5=?, load15=?, boot_time=?, network_rx_total=?, network_tx_total=?, agent_version=?, country=?, updated_at=?, last_payload=? WHERE id=?`).bind(cpu, memTotal, memUsed, diskTotal, diskUsed, netRx, netTx, (0, jwt_1.toD1Primitive)(body.hostname), (0, jwt_1.toD1Primitive)(body.ip_address ?? (Array.isArray(body.ip_addresses) ? body.ip_addresses[0] : null) ?? (Array.isArray(body.ip) ? body.ip[0] : body.ip) ?? body.IP), (0, jwt_1.toD1Primitive)(body.os), (0, jwt_1.toD1Primitive)(body.version), cpuArch, cpuModelName, cpuCores, l1, l5, l15, bt, netRxTotal, netTxTotal, av, country, now, raw.slice(0, 2000), agent.id).run();
         if (!result.success) {
             console.error('DIRECT_STATUS update failed:', result.error);
             return c.json({ success: false, message: 'update failed: ' + (result.error || 'unknown') }, 500);
