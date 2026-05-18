@@ -1,12 +1,13 @@
 // Serv00 watchdog - loads Xugou backend directly (no TCP listening)
-// Enable TypeScript/ESM support
-require('tsx/cjs');
 const http = require("http");
 const path = require("path");
 const fs = require("fs");
 
 const PORT = process.env.PORT || 5411;
 const BACKEND_DIR = path.join(__dirname, 'xugou/backend');
+
+// Enable TypeScript/ESM support (from backend's node_modules)
+require(path.join(BACKEND_DIR, 'node_modules/tsx/cjs'));
 
 // Use Serv00 config
 const configPath = path.join(BACKEND_DIR, 'config.serv00.json');
