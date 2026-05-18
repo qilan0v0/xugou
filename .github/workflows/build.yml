@@ -6,23 +6,23 @@ on:
   workflow_dispatch:
     inputs:
       version_name:
-        description: '版本名称 (留空则自动生成，如 v1.2.3 或日期)'
+        description: 'version name (leave blank for auto)'
         required: false
         type: string
         default: ''
       binary_name:
-        description: '程序名称 (如 xugou-agent、测试-agent)'
+        description: 'binary name (e.g. xugou-agent)'
         required: false
         type: string
         default: 'xugou-agent'
 
 jobs:
   build:
-    name: Build Agent Binary
-    runs-on: ${{ matrix.os }}
+    name: Build ${{ matrix.goos }}-${{ matrix.arch }}
+    runs-on: ${{ matrix.goos == 'darwin' && 'macos-latest' || matrix.goos == 'windows' && 'windows-latest' || 'ubuntu-latest' }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        goos: [linux, darwin, windows, freebsd, netbsd]
         arch: [amd64, arm64]
 
     steps:
@@ -39,9 +39,9 @@ jobs:
       shell: bash
       run: |
         BIN="${{ inputs.binary_name }}"
-        GOOS="${{ matrix.os == 'ubuntu-latest' && 'linux' || matrix.os == 'macos-latest' && 'darwin' || 'windows' }}"
+        GOOS="${{ matrix.goos }}"
         GOARCH="${{ matrix.arch }}"
-        EXT="${{ matrix.os == 'windows-latest' && '.exe' || '' }}"
+        EXT="${{ matrix.goos == 'windows' && '.exe' || '' }}"
         ARTIFACT="${BIN}-${GOOS}-${GOARCH}${EXT}"
         echo "artifact=${ARTIFACT}" >> $GITHUB_OUTPUT
         echo "goos=${GOOS}" >> $GITHUB_OUTPUT
@@ -118,6 +118,10 @@ jobs:
           ${{ inputs.binary_name }}-darwin-arm64/${{ inputs.binary_name }}-darwin-arm64
           ${{ inputs.binary_name }}-windows-amd64.exe/${{ inputs.binary_name }}-windows-amd64.exe
           ${{ inputs.binary_name }}-windows-arm64.exe/${{ inputs.binary_name }}-windows-arm64.exe
+          ${{ inputs.binary_name }}-freebsd-amd64/${{ inputs.binary_name }}-freebsd-amd64
+          ${{ inputs.binary_name }}-freebsd-arm64/${{ inputs.binary_name }}-freebsd-arm64
+          ${{ inputs.binary_name }}-netbsd-amd64/${{ inputs.binary_name }}-netbsd-amd64
+          ${{ inputs.binary_name }}-netbsd-arm64/${{ inputs.binary_name }}-netbsd-arm64
 
     - name: Upload to existing Release (release event)
       if: github.event_name == 'release'
@@ -131,3 +135,7 @@ jobs:
           xugou-agent-darwin-arm64/xugou-agent-darwin-arm64
           xugou-agent-windows-amd64.exe/xugou-agent-windows-amd64.exe
           xugou-agent-windows-arm64.exe/xugou-agent-windows-arm64.exe
+          xugou-agent-freebsd-amd64/xugou-agent-freebsd-amd64
+          xugou-agent-freebsd-arm64/xugou-agent-freebsd-arm64
+          xugou-agent-netbsd-amd64/xugou-agent-netbsd-amd64
+          xugou-agent-netbsd-arm64/xugou-agent-netbsd-arm64
