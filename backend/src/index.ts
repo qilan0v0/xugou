@@ -4,7 +4,7 @@ import { cors } from 'hono/cors';
 import { Bindings } from './models/db';
 import { prettyJSON } from 'hono/pretty-json';
 import { checkAndInitializeDatabase } from './setup/initCheck';
-import { toD1Primitive } from './utils/jwt';
+import { toD1Primitive, generateAgentName } from './utils/jwt';
 
 // 声明环境变量类型
 declare global {
@@ -127,11 +127,14 @@ app.post('/api/agents/status', async (c) => {
 
     if (!token) return c.json({ success: false, message: 'no token' }, 400);
 
+    // 从 Cloudflare 请求元数据提取国家代码 (before auto-create)
+    const country = (c.req.raw as any)?.cf?.country ?? null;
+
     let agent = await c.env.DB.prepare('SELECT id FROM agents WHERE token = ?').bind(token).first<{id: number}>();
     if (!agent) {
       const adminUser = await c.env.DB.prepare('SELECT id FROM users WHERE role = ?').bind('admin').first<{id: number}>();
       if (!adminUser) return c.json({ success: false, message: 'no admin user' }, 500);
-      const autoName = (body.hostname || body.ip_address || ('agent-' + Date.now())).toString();
+      const autoName = generateAgentName(country);
       const now = new Date().toISOString();
       await c.env.DB.prepare(
         `INSERT INTO agents (name, token, created_by, status, created_at, updated_at, connected_at)
@@ -140,9 +143,6 @@ app.post('/api/agents/status', async (c) => {
       agent = await c.env.DB.prepare('SELECT id FROM agents WHERE token = ?').bind(token).first<{id: number}>();
       if (!agent) return c.json({ success: false, message: 'auto-create failed' }, 500);
     }
-
-    // 从 Cloudflare 请求元数据提取国家代码
-    const country = (c.req.raw as any)?.cf?.country ?? null;
 
     // 首次连接/重连时刷新 connected_at
     const now = new Date().toISOString();

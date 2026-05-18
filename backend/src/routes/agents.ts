@@ -3,7 +3,7 @@ import { jwt } from 'hono/jwt';
 import { Context, Next } from 'hono';
 import { Bindings } from '../models/db';
 import { Agent } from '../models/agent';
-import { getJwtSecret, generateToken, toD1Primitive } from '../utils/jwt';
+import { getJwtSecret, generateToken, generateAgentName, toD1Primitive } from '../utils/jwt';
 
 const agents = new Hono<{ Bindings: Bindings; Variables: { agent: Agent; jwtPayload: any } }>();
 
@@ -512,7 +512,7 @@ agents.post('/register', async (c) => {
     }
 
     // token 未匹配，使用客户端发来的 token 自动创建
-    const autoName = hostname || ip_address || ('agent-' + Date.now());
+    const autoName = generateAgentName(null);
     const insertResult = await c.env.DB.prepare(
       `INSERT INTO agents (name, token, created_by, status, hostname, ip_address, os, version, created_at, updated_at)
        VALUES (?, ?, ?, 'active', ?, ?, ?, ?, ?, ?)`

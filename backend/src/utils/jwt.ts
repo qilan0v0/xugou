@@ -38,4 +38,15 @@ export async function generateToken(): Promise<string> {
   const array = new Uint8Array(32);
   crypto.getRandomValues(array);
   return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+}
+
+export function generateAgentName(country?: string | null): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let rand = '';
+  const array = new Uint8Array(6);
+  crypto.getRandomValues(array);
+  for (let i = 0; i < 6; i++) {
+    rand += chars[array[i] % chars.length];
+  }
+  return country ? `${country}-${rand}` : rand;
 } 

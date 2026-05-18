@@ -13,7 +13,7 @@ import userRoutes from './routes/users';
 import statusRoutes from './routes/status';
 import initDbRoutes from './setup/database';
 import { monitorTask, runScheduledTasks, checkAgentsStatus } from './tasks';
-import { toD1Primitive } from './utils/jwt';
+import { toD1Primitive, generateAgentName } from './utils/jwt';
 import { WebSocketServer, WebSocket } from 'ws';
 import { rateLimit } from './utils/ratelimit';
 
@@ -96,12 +96,30 @@ app.post('/api/agents/status', async (c) => {
 
     if (!token) return c.json({ success: false, message: 'no token' }, 400);
 
+    // Look up country from client IP (before agent auto-create)
+    const forwarded = c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || '';
+    const clientIp = forwarded.split(',')[0]?.trim();
+    let country: string | null = null;
+    if (clientIp && clientIp !== '127.0.0.1' && clientIp !== '::1') {
+      if (countryCache.has(clientIp)) {
+        country = countryCache.get(clientIp)!;
+      } else {
+        try {
+          const res = await fetch('http://ip-api.com/json/' + clientIp + '?fields=countryCode');
+          if (res.ok) {
+            const data = await res.json() as any;
+            country = data?.countryCode || null;
+            if (country) countryCache.set(clientIp, country);
+          }
+        } catch (e) { /* ignore */ }
+      }
+    }
+
     let agent = await env.DB.prepare('SELECT id FROM agents WHERE token = ?').bind(token).first<{id: number}>();
     if (!agent) {
-      // Auto-create agent if token not found
       const adminUser = env.DB.prepare('SELECT id FROM users WHERE role = ?').bind('admin').first<{id: number}>();
       if (!adminUser) return c.json({ success: false, message: 'no admin user' }, 500);
-      const autoName = (body.hostname || body.ip_address || ('agent-' + Date.now())).toString();
+      const autoName = generateAgentName(country);
       const now2 = new Date().toISOString();
       env.DB.prepare(
         `INSERT INTO agents (name, token, created_by, status, created_at, updated_at, connected_at)
@@ -126,27 +144,8 @@ app.post('/api/agents/status', async (c) => {
     const now = new Date().toISOString();
     const currentStatus = await env.DB.prepare('SELECT status FROM agents WHERE id = ?').bind(agent.id).first<{status: string}>();
     const wasInactive = !currentStatus || currentStatus.status === 'inactive';
-    // Reset connected_at when transitioning from inactive to active
     if (wasInactive) {
       env.DB.prepare('UPDATE agents SET connected_at = ? WHERE id = ?').bind(now, agent.id).run();
-    }
-
-    const forwarded = c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || '';
-    const clientIp = forwarded.split(',')[0]?.trim();
-    let country: string | null = null;
-    if (clientIp && clientIp !== '127.0.0.1' && clientIp !== '::1') {
-      if (countryCache.has(clientIp)) {
-        country = countryCache.get(clientIp)!;
-      } else {
-        try {
-          const res = await fetch('http://ip-api.com/json/' + clientIp + '?fields=countryCode');
-          if (res.ok) {
-            const data = await res.json() as any;
-            country = data?.countryCode || null;
-            if (country) countryCache.set(clientIp, country);
-          }
-        } catch (e) { /* ignore */ }
-      }
     }
 
     const result = env.DB.prepare(
