@@ -16,14 +16,12 @@ const StatusPage = () => {
   const { isAuthenticated } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [data, setData] = useState<{ monitors: Monitor[], agents: StatusAgent[] }>({ monitors: [], agents: [] });
-  const [loading, setLoading] = useState(true);
-  const [initialLoad, setInitialLoad] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [fetched, setFetched] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        if (initialLoad) setLoading(true);
         const res = await getStatusPageData();
         if (res.success && res.data) {
           setData({ monitors: res.data.monitors || [], agents: res.data.agents || [] });
@@ -33,7 +31,7 @@ const StatusPage = () => {
       } catch (err: any) {
         setError(t('statusPage.fetchError'));
       } finally {
-        if (initialLoad) { setLoading(false); setInitialLoad(false); }
+        setFetched(true);
       }
     };
     fetchData();
@@ -42,7 +40,7 @@ const StatusPage = () => {
   }, []);
 
   if (error) return <div className="flex justify-center items-center min-h-[50vh]"><span className="text-red-500">{error}</span></div>;
-  if (loading) return <div className="flex justify-center items-center min-h-[50vh]"><span className="text-slate-500">{t('common.loading')}</span></div>;
+  if (!fetched) return <div className="flex justify-center items-center min-h-[50vh]"><span className="text-slate-500">{t('common.loading')}</span></div>;
 
   return (
     <div>
