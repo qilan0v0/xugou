@@ -1,55 +1,78 @@
-// Serv00 stable watchdog - keeps Xugou backend alive
-// Inspired by: https://www.nodeseek.com/post-294529-1
-const { exec } = require("child_process");
+// Serv00 watchdog - loads Xugou backend directly (no TCP listening)
+// Enable TypeScript/ESM support
+require('tsx/cjs');
 const http = require("http");
 const path = require("path");
+const fs = require("fs");
 
 const PORT = process.env.PORT || 5411;
-const USER = process.env.USER || require('os').userInfo().username;
-const BACKEND_PORT = 7860;
 const BACKEND_DIR = path.join(__dirname, 'xugou/backend');
+
+// Use Serv00 config
+const configPath = path.join(BACKEND_DIR, 'config.serv00.json');
+if (fs.existsSync(configPath)) {
+  const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+  process.env.JWT_SECRET = config.jwt_secret || 'change-me';
+  process.env.ENABLE_DB_INIT = config.enable_db_init ? 'true' : 'false';
+  process.env.DB_PATH = config.db_path || './data/xugou.db';
+}
 
 function log(msg) { console.log(`[${new Date().toLocaleString()}] ${msg}`); }
 
-// Check and restart backend every 10 seconds
-function keepAlive() {
-  const cmd = `pgrep -f "tsx src/index.node"`;
-  exec(cmd, (err, stdout) => {
-    if (stdout.trim()) {
-      // Process is running, do nothing
-    } else {
-      log('Backend not running, starting...');
-      const startCmd = `cd ${BACKEND_DIR} && nohup npx tsx src/index.node > data/backend.log 2>&1 &`;
-      exec(startCmd, (err) => {
-        if (err) log('Start error: ' + err.message);
-        else log('Backend started');
-      });
-    }
-  });
+let appFetch = null;
+
+async function loadBackend() {
+  try {
+    // Dynamic import ESM backend from CommonJS
+    const mod = await import(path.join(BACKEND_DIR, 'src/index.node.ts'));
+    // The app's fetch handler is exported via default
+    appFetch = mod.default?.fetch || mod.app?.fetch;
+    log('Backend loaded successfully');
+  } catch(e) {
+    log('Backend load error: ' + e.message);
+  }
 }
 
-setInterval(keepAlive, 10 * 1000);
+// HTTP server that uses backend directly
+const server = http.createServer(async (req, res) => {
+  if (!appFetch) {
+    res.writeHead(503, { 'Content-Type': 'text/plain' });
+    return res.end('Backend loading...');
+  }
 
-// Simple HTTP server for Passenger & health check
-http.createServer((req, res) => {
-  // Proxy to backend
-  const options = {
-    hostname: '127.0.0.1', port: BACKEND_PORT,
-    path: req.url, method: req.method,
-    headers: Object.fromEntries(
-      Object.entries(req.headers).filter(([k]) => k !== 'host')
-    ),
-  };
-  const proxy = http.request(options, (backendRes) => {
-    res.writeHead(backendRes.statusCode, backendRes.headers);
-    backendRes.pipe(res);
+  // Convert Node.js req to Web Request
+  const url = `http://${req.headers.host || 'localhost'}${req.url}`;
+  const headers = new Headers();
+  for (const [k, v] of Object.entries(req.headers)) {
+    if (v && k !== 'host') headers.set(k, Array.isArray(v) ? v.join(', ') : v);
+  }
+
+  const webReq = new Request(url, {
+    method: req.method,
+    headers,
+    body: req.method !== 'GET' && req.method !== 'HEAD' ? req : undefined,
   });
-  proxy.on('error', () => {
-    res.writeHead(502, { 'Content-Type': 'text/plain' });
-    res.end('Backend starting, retry...');
-  });
-  req.pipe(proxy);
-}).listen(PORT, () => {
-  log(`Watchdog on :${PORT}, proxy to :${BACKEND_PORT}`);
-  keepAlive();
+
+  try {
+    const webRes = await appFetch(webReq);
+    res.writeHead(webRes.status, Object.fromEntries(webRes.headers.entries()));
+    if (webRes.body) {
+      const reader = webRes.body.getReader();
+      const pump = () => reader.read().then(({ done, value }) => {
+        if (done) { res.end(); return; }
+        res.write(value); pump();
+      });
+      pump();
+    } else {
+      res.end();
+    }
+  } catch(e) {
+    res.writeHead(500);
+    res.end('Internal error');
+  }
+});
+
+server.listen(PORT, () => {
+  log(`Xugou backend on :${PORT}`);
+  loadBackend();
 });
