@@ -3,12 +3,10 @@ const { spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || '5411';
 const BACKEND_DIR = path.join(__dirname, 'xugou/backend');
 
-function log(msg) {
-  console.log(`[${new Date().toISOString()}] ${msg}`);
-}
+function log(msg) { console.log(`[${new Date().toISOString()}] ${msg}`); }
 
 const envFile = path.join(BACKEND_DIR, '.env');
 if (fs.existsSync(envFile)) {
@@ -16,9 +14,7 @@ if (fs.existsSync(envFile)) {
   fs.unlinkSync(envFile);
 }
 
-log(`Backend dir: ${BACKEND_DIR}`);
-log(`PORT=${PORT} PASSENGER_PORT=${process.env.PASSENGER_PORT} HOME=${process.env.HOME}`);
-log(`All env:`, Object.keys(process.env).filter(k => k.includes('PORT') || k.includes('PASSENGER') || k.includes('SERVER')).map(k => k+'='+process.env[k]).join(', '));
+log(`Backend: ${BACKEND_DIR}, Port: ${PORT}`);
 
 const tsxPath = path.join(BACKEND_DIR, 'node_modules', '.bin', 'tsx');
 const useNpx = !fs.existsSync(tsxPath);
