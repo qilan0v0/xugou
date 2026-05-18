@@ -188,38 +188,26 @@ app.get('/api/trigger-check', async (c) => {
   return c.json({ success: true, message: 'checks triggered' });
 });
 
-import { createServer } from 'http';
+import { serve } from '@hono/node-server';
 const port = parseInt(process.env.PORT || config.port || '7860');
 const host = process.env.HOSTNAME || config.hostname || '0.0.0.0';
 
-// WebSocket broadcast
+// WebSocket broadcast (set in serve callback)
 let broadcast = (type: string, data: any) => {};
 
-const httpServer = createServer(async (req, res) => {
-  const webRes = await app.fetch(req);
-  res.writeHead(webRes.status, Object.fromEntries(webRes.headers.entries()));
-  if (webRes.body) {
-    const reader = webRes.body.getReader();
-    const pump = () => reader.read().then(({ done, value }) => {
-      if (done) { res.end(); return; }
-      res.write(value); pump();
-    });
-    pump();
-  } else { res.end(); }
-});
+const nodeServer = serve({ fetch: app.fetch, port, hostname: host }, (info) => {
+  console.log(`Xugou Node.js backend on http://${host}:${info.port}`);
 
-const wss = new WebSocketServer({ server: httpServer });
-const clients = new Set<WebSocket>();
-wss.on('connection', (ws) => { clients.add(ws); ws.on('close', () => clients.delete(ws)); });
-broadcast = (type, data) => {
-  const msg = JSON.stringify({ type, data, time: new Date().toISOString() });
-  for (const ws of clients) {
-    if (ws.readyState === WebSocket.OPEN) ws.send(msg);
-  }
-};
-
-httpServer.listen(port, host, () => {
-  console.log(`Xugou Node.js backend on http://${host}:${port}`);
+  // Attach WebSocket to the underlying Node server
+  const wss = new WebSocketServer({ server: nodeServer });
+  const clients = new Set<WebSocket>();
+  wss.on('connection', (ws) => { clients.add(ws); ws.on('close', () => clients.delete(ws)); });
+  broadcast = (type, data) => {
+    const msg = JSON.stringify({ type, data, time: new Date().toISOString() });
+    for (const ws of clients) {
+      if (ws.readyState === WebSocket.OPEN) ws.send(msg);
+    }
+  };
   console.log('WebSocket ready');
 });
 
