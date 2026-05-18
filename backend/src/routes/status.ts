@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { jwt } from 'hono/jwt';
+import { jwt, verify } from 'hono/jwt';
 import { Bindings } from '../models/db';
 import { getJwtSecret } from '../utils/jwt';
 
@@ -290,16 +290,30 @@ adminRoutes.post('/config', async (c) => {
   }
 });
 
-// 公共路由 - 获取公开状态页数据
+// 公共路由 - 获取状态页数据（登录用户看全部，游客只看公开）
 app.get('/data', async (c) => {
   try {
-    // Get all public agents and monitors directly
-    const monitors = await c.env.DB.prepare(
-      "SELECT * FROM monitors WHERE active = 1 AND public = 1 ORDER BY created_at DESC"
-    ).all<any>();
-    const agents = await c.env.DB.prepare(
-      "SELECT * FROM agents WHERE public = 1 ORDER BY created_at DESC"
-    ).all<any>();
+    // Check if user is authenticated via JWT
+    let isAuthenticated = false;
+    const authHeader = c.req.header('Authorization');
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      try {
+        const token = authHeader.slice(7);
+        const secret = getJwtSecret(c);
+        await verify(token, secret);
+        isAuthenticated = true;
+      } catch { /* ignore invalid tokens */ }
+    }
+
+    const monitorQuery = isAuthenticated
+      ? "SELECT * FROM monitors WHERE active = 1 ORDER BY created_at DESC"
+      : "SELECT * FROM monitors WHERE active = 1 AND public = 1 ORDER BY created_at DESC";
+    const agentQuery = isAuthenticated
+      ? "SELECT * FROM agents ORDER BY created_at DESC"
+      : "SELECT * FROM agents WHERE public = 1 ORDER BY created_at DESC";
+
+    const monitors = await c.env.DB.prepare(monitorQuery).all<any>();
+    const agents = await c.env.DB.prepare(agentQuery).all<any>();
 
     // Enrich agents with computed fields
     const enrichedAgents = (agents.results || []).map((agent: any) => {
