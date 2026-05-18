@@ -16,7 +16,9 @@ if (fs.existsSync(envFile)) {
   fs.unlinkSync(envFile);
 }
 
-log(`Backend dir: ${BACKEND_DIR}, Port: ${PORT}`);
+log(`Backend dir: ${BACKEND_DIR}`);
+log(`PORT=${PORT} PASSENGER_PORT=${process.env.PASSENGER_PORT} HOME=${process.env.HOME}`);
+log(`All env:`, Object.keys(process.env).filter(k => k.includes('PORT') || k.includes('PASSENGER') || k.includes('SERVER')).map(k => k+'='+process.env[k]).join(', '));
 
 const tsxPath = path.join(BACKEND_DIR, 'node_modules', '.bin', 'tsx');
 const useNpx = !fs.existsSync(tsxPath);

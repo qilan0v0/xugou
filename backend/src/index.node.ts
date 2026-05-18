@@ -161,8 +161,30 @@ const port = parseInt(process.env.PORT || '7860');
 const host = process.env.HOSTNAME || '0.0.0.0';
 console.log(`Xugou Node.js backend on http://${host}:${port}`);
 
-serve({ fetch: app.fetch, port, hostname: host }, (info) => {
-  console.log(`Listening on http://${host}:${info.port}`);
+import { createServer } from 'http';
+const httpServer = createServer(async (req, res) => {
+  const webRes = await app.fetch(req);
+  res.writeHead(webRes.status, Object.fromEntries(webRes.headers.entries()));
+  if (webRes.body) {
+    const reader = webRes.body.getReader();
+    const pump = () => reader.read().then(({done, value}) => {
+      if (done) { res.end(); return; }
+      res.write(value); pump();
+    });
+    pump();
+  } else { res.end(); }
+});
+
+httpServer.on('error', (e: any) => {
+  if (e.code === 'EPERM') {
+    console.log('EPERM on port', port, '- trying random port on 127.0.0.1');
+    httpServer.listen(0, '127.0.0.1');
+  }
+});
+
+httpServer.listen(port, host, () => {
+  const addr = httpServer.address();
+  console.log(`Listening on http://${addr?.address}:${addr?.port}`);
 });
 
 setInterval(async () => {
