@@ -45,7 +45,7 @@ const Navbar = () => {
         ? 'bg-white/[0.85] dark:bg-[#0f0f1a]/[0.85] backdrop-blur-xl shadow-[0_2px_16px_rgba(0,0,0,0.08)] border-b border-white/[0.06]'
         : 'bg-transparent border-b border-transparent'
     }`}>
-      <div className="max-w-6xl mx-auto px-4">
+      <div className="max-w-7xl mx-auto px-4">
         <div className={`flex items-center justify-between transition-all duration-300 ${
           isScrolled ? 'h-[54px]' : 'h-[60px]'
         }`}>

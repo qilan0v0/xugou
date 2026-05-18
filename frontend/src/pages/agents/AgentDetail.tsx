@@ -72,7 +72,7 @@ const AgentDetail = () => {
   if (error || !agent) return <div className="flex justify-center items-center min-h-[50vh]"><div className="glass p-6 text-center"><h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{t('common.loadingError')}</h2><p className="text-slate-500 mb-4">{error || t('agents.notFound')}</p><button onClick={() => navigate('/agents')} className="btn-gradient px-4 py-2 text-sm">{t('common.backToList')}</button></div></div>;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 animate-slide-up">
+    <div className="max-w-5xl mx-auto px-4 py-8 animate-slide-up">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div className="flex items-center gap-3">
           <button onClick={() => navigate('/agents')} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors text-slate-500"><ArrowLeftIcon /></button>

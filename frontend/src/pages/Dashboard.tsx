@@ -68,7 +68,7 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8 animate-slide-up">
+    <div className="max-w-7xl mx-auto px-4 py-8 animate-slide-up">
       {/* Summary */}
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">{t('dashboard.summary')}</h2>

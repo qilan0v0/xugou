@@ -49,10 +49,10 @@ const MonitorsList = () => {
   const statusLabels: Record<string, string> = { up: t('monitors.status.up'), down: t('monitors.status.down'), pending: t('monitor.status.pending') };
 
   if (loading) return <div className="flex justify-center items-center min-h-[50vh]"><span className="text-slate-500">{t('common.loading')}</span></div>;
-  if (error) return <div className="max-w-6xl mx-auto px-4 py-8"><div className="glass p-4 mb-4 border-l-4 border-red-500"><span className="text-red-500">{error}</span></div><button onClick={() => window.location.reload()} className="btn-gradient px-4 py-2 text-sm">{t('monitors.retry')}</button></div>;
+  if (error) return <div className="max-w-7xl mx-auto px-4 py-8"><div className="glass p-4 mb-4 border-l-4 border-red-500"><span className="text-red-500">{error}</span></div><button onClick={() => window.location.reload()} className="btn-gradient px-4 py-2 text-sm">{t('monitors.retry')}</button></div>;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8 animate-slide-up">
+    <div className="max-w-7xl mx-auto px-4 py-8 animate-slide-up">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t('monitors.pageTitle')}</h1>
         <div className="flex items-center gap-3">

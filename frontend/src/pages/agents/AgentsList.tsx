@@ -77,7 +77,7 @@ const AgentsList = () => {
   };
 
   if (!fetched) return <div className="flex justify-center items-center min-h-[50vh]"><span className="text-slate-500">{t('common.loading')}</span></div>;
-  if (error) return <div className="max-w-6xl mx-auto px-4 py-8"><div className="glass p-4 mb-4 border-l-4 border-red-500"><span className="text-red-500">{error}</span></div><button onClick={() => window.location.reload()} className="btn-gradient px-4 py-2 text-sm">{t('common.retry')}</button></div>;
+  if (error) return <div className="max-w-7xl mx-auto px-4 py-8"><div className="glass p-4 mb-4 border-l-4 border-red-500"><span className="text-red-500">{error}</span></div><button onClick={() => window.location.reload()} className="btn-gradient px-4 py-2 text-sm">{t('common.retry')}</button></div>;
 
   const totalRx = agents.reduce((s, a) => s + (a.network_rx_total || 0), 0);
   const totalTx = agents.reduce((s, a) => s + (a.network_tx_total || 0), 0);
@@ -95,7 +95,7 @@ const AgentsList = () => {
   ];
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8 animate-slide-up">
+    <div className="max-w-7xl mx-auto px-4 py-8 animate-slide-up">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t('agents.pageTitle')}</h1>
         <div className="flex items-center gap-3">
