@@ -8,6 +8,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import LanguageSelector from "../../components/LanguageSelector";
 import { SunIcon, MoonIcon, CubeIcon, CheckCircledIcon, CrossCircledIcon, GlobeIcon, ArrowUpIcon } from '@radix-ui/react-icons';
+import { ENV_API_BASE_URL } from '../../config';
 import { useTranslation } from 'react-i18next';
 
 const StatusPage = () => {
@@ -36,7 +37,26 @@ const StatusPage = () => {
     };
     fetchData();
     const interval = setInterval(fetchData, 60000);
-    return () => clearInterval(interval);
+
+    // WebSocket real-time updates
+    const wsUrl = (ENV_API_BASE_URL || '').replace('https://', 'wss://').replace('http://', 'ws://') + '/ws';
+    let ws: WebSocket | null = null;
+    try {
+      ws = new WebSocket(wsUrl);
+      ws.onmessage = (e) => {
+        try {
+          const msg = JSON.parse(e.data);
+          if (msg.type === 'agent-update' || msg.type === 'monitor-update') {
+            fetchData();
+          }
+        } catch {}
+      };
+    } catch (e) { /* ignore ws errors */ }
+
+    return () => {
+      clearInterval(interval);
+      if (ws) ws.close();
+    };
   }, []);
 
   if (error) return <div className="flex justify-center items-center min-h-[50vh]"><span className="text-red-500">{error}</span></div>;

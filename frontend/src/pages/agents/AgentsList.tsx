@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { PlusIcon, Cross2Icon, Pencil1Icon, InfoCircledIcon, ReloadIcon, LayoutIcon, ViewGridIcon, CubeIcon, CheckCircledIcon, CrossCircledIcon, GlobeIcon, ArrowUpIcon } from '@radix-ui/react-icons';
 import { getAllAgents, deleteAgent, Agent } from '../../api/agents';
 import AgentCard from '../../components/AgentCard';
+import { ENV_API_BASE_URL } from '../../config';
 import { useTranslation } from 'react-i18next';
 
 interface ClientWithStatus extends Agent {
@@ -37,7 +38,26 @@ const AgentsList = () => {
     }
   };
 
-  useEffect(() => { fetchAgents(); const i = setInterval(fetchAgents, 60000); return () => clearInterval(i); }, []);
+  useEffect(() => {
+    fetchAgents();
+    const i = setInterval(fetchAgents, 60000);
+
+    const wsUrl = (ENV_API_BASE_URL || '').replace('https://', 'wss://').replace('http://', 'ws://') + '/ws';
+    let ws: WebSocket | null = null;
+    try {
+      ws = new WebSocket(wsUrl);
+      ws.onmessage = (e) => {
+        try {
+          const msg = JSON.parse(e.data);
+          if (msg.type === 'agent-update' || msg.type === 'monitor-update') {
+            fetchAgents();
+          }
+        } catch {}
+      };
+    } catch (e) {}
+
+    return () => { clearInterval(i); if (ws) ws.close(); };
+  }, []);
 
   const handleDelete = async () => {
     if (!deleteId) return;

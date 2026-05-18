@@ -1,4 +1,3 @@
-import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
 import { logger } from 'hono/logger';
 import { cors } from 'hono/cors';
@@ -15,6 +14,7 @@ import statusRoutes from './routes/status';
 import initDbRoutes from './setup/database';
 import { monitorTask, runScheduledTasks, checkAgentsStatus } from './tasks';
 import { toD1Primitive } from './utils/jwt';
+import { WebSocketServer, WebSocket } from 'ws';
 import { rateLimit } from './utils/ratelimit';
 
 // GeoIP cache (module-level)
@@ -153,6 +153,9 @@ app.post('/api/agents/status', async (c) => {
       console.error('Status update failed:', result.error);
       return c.json({ success: false, message: 'update failed' }, 500);
     }
+
+    // Broadcast real-time update to connected WebSocket clients
+    broadcast('agent-update', { id: agent.id });
 
     return c.json({ success: true, message: 'ok' });
   } catch (e: any) {

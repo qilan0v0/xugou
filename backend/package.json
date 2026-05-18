@@ -29,7 +29,8 @@
     "jsonwebtoken": "^9.0.2",
     "sql.js": "^1.14.1",
     "tsx": "^4.22.0",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "ws": "^8.20.1"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250317.0",
