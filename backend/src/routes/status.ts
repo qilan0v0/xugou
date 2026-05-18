@@ -315,6 +315,23 @@ app.get('/data', async (c) => {
     const monitors = await c.env.DB.prepare(monitorQuery).all<any>();
     const agents = await c.env.DB.prepare(agentQuery).all<any>();
 
+    // Enrich monitors with status history
+    const enrichedMonitors = await Promise.all((monitors.results || []).map(async (monitor: any) => {
+      try {
+        const historyResult = await c.env.DB.prepare(
+          `SELECT status, timestamp FROM monitor_status_history
+           WHERE monitor_id = ?
+           ORDER BY timestamp DESC LIMIT 24`
+        ).bind(monitor.id).all<{status: string; timestamp: string}>();
+        return {
+          ...monitor,
+          history: (historyResult.results || []).reverse(),
+        };
+      } catch {
+        return { ...monitor, history: [] };
+      }
+    }));
+
     // Enrich agents with computed fields
     const enrichedAgents = (agents.results || []).map((agent: any) => {
       const memoryPercent = agent.memory_total && agent.memory_used
@@ -334,7 +351,7 @@ app.get('/data', async (c) => {
       data: {
         title: '系统状态',
         description: '实时监控系统运行状态',
-        monitors: monitors.results || [],
+        monitors: enrichedMonitors,
         agents: enrichedAgents,
       }
     });
