@@ -15,6 +15,7 @@ i18n
       'en-US': enUS,
     },
     fallbackLng: 'zh-CN',
+    keySeparator: false,
     interpolation: {
       escapeValue: false, // 不转义 React 中的值
       prefix: '{',
