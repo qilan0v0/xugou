@@ -55,7 +55,7 @@ agents.get('/', async (c) => {
 // 创建新客户端
 agents.post('/', async (c) => {
   try {
-    const { name, token: reqToken, category, tags } = await c.req.json();
+    const { name, token: reqToken, category, tags, public: isPublic } = await c.req.json();
     const payload = c.get('jwtPayload');
     
     const token = reqToken || await generateToken();
@@ -64,14 +64,15 @@ agents.post('/', async (c) => {
     // 插入新客户端
     const result = await c.env.DB.prepare(
       `INSERT INTO agents
-       (name, token, created_by, status, category, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`
+       (name, token, created_by, status, category, public, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
     ).bind(
       name,
       token,
       payload.id,
       'inactive',
       category || null,
+      isPublic !== undefined ? (isPublic ? 1 : 0) : 1,
       now,
       now
     ).run();
@@ -142,7 +143,8 @@ agents.get('/:id', async (c) => {
         traffic_limit: agent.traffic_limit || null,
         expiry_time: agent.expiry_time || null,
         category: agent.category || null,
-        tags: agent.tags || null
+        tags: agent.tags || null,
+        public: agent.public ?? 1
       }
     });
   } catch (error) {
@@ -173,7 +175,7 @@ agents.put('/:id', async (c) => {
     
     // 获取更新数据
     const updateData = await c.req.json();
-    const { name, hostname, ip_address, os, version, status, traffic_limit, expiry_time, category, tags } = updateData;
+    const { name, hostname, ip_address, os, version, status, traffic_limit, expiry_time, category, tags, public: isPublic } = updateData;
     
     // 准备更新的字段和值
     const fieldsToUpdate = [];
@@ -227,6 +229,11 @@ agents.put('/:id', async (c) => {
     if (tags !== undefined) {
       fieldsToUpdate.push('tags = ?');
       values.push(tags);
+    }
+
+    if (isPublic !== undefined) {
+      fieldsToUpdate.push('public = ?');
+      values.push(isPublic ? 1 : 0);
     }
 
     fieldsToUpdate.push('updated_at = ?');

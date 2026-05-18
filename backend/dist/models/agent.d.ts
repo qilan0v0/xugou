@@ -33,4 +33,5 @@ export interface Agent {
     expiry_time?: string;
     category?: string;
     tags?: string;
+    public?: number;
 }

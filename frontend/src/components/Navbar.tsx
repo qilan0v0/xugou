@@ -37,8 +37,7 @@ const Navbar = () => {
     { to: '/dashboard', icon: <DashboardIcon />, label: t('navbar.dashboard') },
     { to: '/monitors', icon: <ActivityLogIcon />, label: t('navbar.apiMonitors') },
     { to: '/agents', icon: <CubeIcon />, label: t('navbar.agentMonitors') },
-    { to: '/status/config', icon: <PieChartIcon />, label: t('navbar.statusPage') },
-  ] : [];
+      ] : [];
 
   return (
     <nav className={`sticky top-0 z-50 w-full transition-all duration-300 ${

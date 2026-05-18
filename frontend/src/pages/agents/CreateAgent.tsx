@@ -18,6 +18,7 @@ const CreateAgent = () => {
   const [trafficVal, setTrafficVal] = useState('');
   const [trafficUnit, setTrafficUnit] = useState('TB');
   const [expiryTime, setExpiryTime] = useState('');
+  const [isPublic, setIsPublic] = useState(true);
   const [created, setCreated] = useState(false);
   const [error, setError] = useState('');
   const { t } = useTranslation();
@@ -35,6 +36,7 @@ const CreateAgent = () => {
         data.traffic_limit = Math.round(parseFloat(trafficVal) * (multipliers[trafficUnit] || 1073741824));
       }
       if (expiryTime) data.expiry_time = new Date(expiryTime).toISOString();
+      data.public = isPublic;
       const res = await api.post('/api/agents', data);
       if (res.data.success && res.data.agent) {
         setToken(res.data.agent.token);
@@ -109,6 +111,15 @@ const CreateAgent = () => {
         <div>
           <label className="block text-xs font-semibold text-slate-500 mb-1.5">到期时间</label>
           <input type="date" value={expiryTime} onChange={e => setExpiryTime(e.target.value)} className={inputClass} />
+        </div>
+        <div>
+          <label className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors cursor-pointer">
+            <span className="text-xs font-medium text-slate-500">公开显示</span>
+            <span className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${isPublic ? 'bg-blue-500 border-blue-500' : 'border-slate-400'}`}>
+              {isPublic && <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/></svg>}
+            </span>
+            <input type="checkbox" checked={isPublic} onChange={() => setIsPublic(!isPublic)} className="sr-only" />
+          </label>
         </div>
         </>}
 

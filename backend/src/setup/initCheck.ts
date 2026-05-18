@@ -13,6 +13,15 @@ import {
 
 // 运行 D1 迁移（安全重复执行）
 export async function runMigrations(env: Bindings): Promise<void> {
+  const newAgentColumns = [
+    'public INTEGER DEFAULT 1',
+  ];
+  for (const col of newAgentColumns) {
+    try { await env.DB.exec(`ALTER TABLE agents ADD COLUMN ${col}`); }
+    catch (e) { /* skip */ }
+  }
+  try { await env.DB.exec('ALTER TABLE monitors ADD COLUMN public INTEGER DEFAULT 1'); } catch (e) { /* skip */ }
+
   const newColumns = [
     'cpu_arch TEXT',
     'cpu_model_name TEXT',
@@ -31,6 +40,7 @@ export async function runMigrations(env: Bindings): Promise<void> {
     'expiry_time TEXT',
     'category TEXT',
     'tags TEXT',
+    'public INTEGER DEFAULT 1',
   ];
   for (const col of newColumns) {
     try {

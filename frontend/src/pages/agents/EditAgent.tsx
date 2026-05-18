@@ -16,6 +16,7 @@ const EditAgent = () => {
   const units = ['GB', 'TB'] as const;
   const [category, setCategory] = useState('');
   const [tags, setTags] = useState('');
+  const [isPublic, setIsPublic] = useState(true);
   const [expiryTime, setExpiryTime] = useState('');
   const [toastOpen, setToastOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
@@ -29,6 +30,7 @@ const EditAgent = () => {
         setName(res.agent.name || '');
         setCategory(res.agent.category || '');
         setTags(res.agent.tags || '');
+        setIsPublic(res.agent.public !== 0);
         const tl = res.agent.traffic_limit;
         if (tl && tl > 0) {
           if (tl >= 1099511627776) { setTrafficVal(String(Math.round(tl / 1099511627776 * 10) / 10)); setTrafficUnit('TB'); }
@@ -55,6 +57,7 @@ const EditAgent = () => {
       else data.expiry_time = null;
       if (category) data.category = category; else data.category = null;
       if (tags) data.tags = tags; else data.tags = null;
+      data.public = isPublic;
       const res = await updateAgent(parseInt(id), data);
       if (res.success) { setToastMsg(t('agent.updateSuccess')); setToastType('success'); setToastOpen(true); setTimeout(() => navigate('/agents'), 1500); }
       else { setToastMsg(res.message || t('agent.updateFailed')); setToastType('error'); setToastOpen(true); }
@@ -86,6 +89,15 @@ const EditAgent = () => {
           <div>
             <label className="block text-xs font-medium text-slate-500 mb-1.5">标签</label>
             <input value={tags} onChange={e => setTags(e.target.value)} placeholder="多个用逗号分隔，如: web,nginx,db" className={inputClass} />
+          </div>
+          <div>
+            <label className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors cursor-pointer">
+              <span className="text-xs font-medium text-slate-500">公开显示</span>
+              <span className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${isPublic ? 'bg-blue-500 border-blue-500' : 'border-slate-400'}`}>
+                {isPublic && <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/></svg>}
+              </span>
+              <input type="checkbox" checked={isPublic} onChange={() => setIsPublic(!isPublic)} className="sr-only" />
+            </label>
           </div>
           <div>
             <label className="block text-xs font-medium text-slate-500 mb-1.5">{t('agent.trafficLimit')}</label>
