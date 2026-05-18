@@ -38,7 +38,6 @@ const StatusPage = () => {
     fetchData();
     const interval = setInterval(fetchData, 60000);
 
-    // WebSocket real-time updates
     const wsUrl = (ENV_API_BASE_URL || '').replace('https://', 'wss://').replace('http://', 'ws://') + '/ws';
     let ws: WebSocket | null = null;
     try {
@@ -49,11 +48,11 @@ const StatusPage = () => {
           const msg = JSON.parse(e.data);
           if (msg.type === 'agent-update' || msg.type === 'monitor-update') {
             if (wsDebounce) clearTimeout(wsDebounce);
-            wsDebounce = setTimeout(() => fetchData(), 5000);
+            wsDebounce = setTimeout(() => fetchData(), 2000);
           }
         } catch {}
       };
-    } catch (e) { /* ignore ws errors */ }
+    } catch (e) {}
 
     return () => {
       clearInterval(interval);
