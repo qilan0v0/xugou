@@ -40,23 +40,18 @@ const AgentsList = () => {
     fetchAgents();
     const i = setInterval(fetchAgents, 60000);
 
-    const wsUrl = (ENV_API_BASE_URL || '').replace('https://', 'wss://').replace('http://', 'ws://') + '/ws';
-    let ws: WebSocket | null = null;
-    try {
-      ws = new WebSocket(wsUrl);
-      let wsDebounce: any = null;
-      ws.onmessage = (e) => {
-        try {
-          const msg = JSON.parse(e.data);
-          if (msg.type === 'agent-update' || msg.type === 'monitor-update') {
-            if (wsDebounce) clearTimeout(wsDebounce);
-            wsDebounce = setTimeout(() => fetchAgents(), 5000);
-          }
-        } catch {}
-      };
-    } catch (e) {}
+    let sseDebounce: any = null;
+    const es = new EventSource((ENV_API_BASE_URL || '') + '/api/events');
+    es.addEventListener('agent-update', () => {
+      if (sseDebounce) clearTimeout(sseDebounce);
+      sseDebounce = setTimeout(() => fetchAgents(), 5000);
+    });
+    es.addEventListener('monitor-update', () => {
+      if (sseDebounce) clearTimeout(sseDebounce);
+      sseDebounce = setTimeout(() => fetchAgents(), 5000);
+    });
 
-    return () => { clearInterval(i); if (ws) ws.close(); };
+    return () => { clearInterval(i); es.close(); };
   }, []);
 
   const handleDelete = async () => {

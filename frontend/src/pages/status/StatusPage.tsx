@@ -38,25 +38,20 @@ const StatusPage = () => {
     fetchData();
     const interval = setInterval(fetchData, 60000);
 
-    const wsUrl = (ENV_API_BASE_URL || '').replace('https://', 'wss://').replace('http://', 'ws://') + '/ws';
-    let ws: WebSocket | null = null;
-    try {
-      ws = new WebSocket(wsUrl);
-      let wsDebounce: any = null;
-      ws.onmessage = (e) => {
-        try {
-          const msg = JSON.parse(e.data);
-          if (msg.type === 'agent-update' || msg.type === 'monitor-update') {
-            if (wsDebounce) clearTimeout(wsDebounce);
-            wsDebounce = setTimeout(() => fetchData(), 2000);
-          }
-        } catch {}
-      };
-    } catch (e) {}
+    let sseDebounce: any = null;
+    const es = new EventSource((ENV_API_BASE_URL || '') + '/api/events');
+    es.addEventListener('agent-update', () => {
+      if (sseDebounce) clearTimeout(sseDebounce);
+      sseDebounce = setTimeout(() => fetchData(), 2000);
+    });
+    es.addEventListener('monitor-update', () => {
+      if (sseDebounce) clearTimeout(sseDebounce);
+      sseDebounce = setTimeout(() => fetchData(), 2000);
+    });
 
     return () => {
       clearInterval(interval);
-      if (ws) ws.close();
+      es.close();
     };
   }, []);
 

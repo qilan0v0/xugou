@@ -14,7 +14,6 @@ import statusRoutes from './routes/status';
 import initDbRoutes from './setup/database';
 import { monitorTask, runScheduledTasks, checkAgentsStatus } from './tasks';
 import { toD1Primitive, generateAgentName } from './utils/jwt';
-import { WebSocketServer, WebSocket } from 'ws';
 import { rateLimit } from './utils/ratelimit';
 
 // GeoIP cache (module-level)
@@ -197,37 +196,41 @@ let broadcast = (type: string, data: any) => {};
 
 const listener = getRequestListener(app.fetch);
 
-const wss = new WebSocketServer({ noServer: true });
-wss.on('error', (err) => console.error('WSS error:', err.message));
-const clients = new Set<WebSocket>();
-wss.on('connection', (ws, req) => {
-  clients.add(ws);
-  console.log('WS client connected, total:', clients.size, 'url:', req.url);
-  ws.on('close', () => { clients.delete(ws); console.log('WS client disconnected, remaining:', clients.size); });
-});
-broadcast = (type, data) => {
-  const msg = JSON.stringify({ type, data, time: new Date().toISOString() });
-  console.log('WS broadcast', type, 'to', clients.size, 'clients');
-  for (const ws of clients) {
-    if (ws.readyState === WebSocket.OPEN) ws.send(msg);
-  }
-};
+// SSE clients (ServerResponse objects kept open for streaming)
+const sseClients = new Set<any>();
 
 const server = createServer((req, res) => {
-  // Manual WebSocket upgrade — required because Apache strips Connection header
-  if (req.headers.upgrade?.toLowerCase() === 'websocket') {
-    console.log('WS upgrade request:', req.url);
-    // Remove HTTP parser data listeners so it doesn't try to parse WebSocket frames
-    req.socket.removeAllListeners('data');
-    wss.handleUpgrade(req, req.socket, Buffer.alloc(0), (ws) => {
-      ws.on('error', (err) => console.error('WS socket error:', err.message));
-      ws.on('close', (code, reason) => console.log('WS socket close:', code, reason.toString()));
-      wss.emit('connection', ws, req);
+  // SSE endpoint — works through any proxy, no special upgrade needed
+  if (req.url === '/api/events' && req.method === 'GET') {
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+      'X-Accel-Buffering': 'no',
+    });
+    sseClients.add(res);
+    res.write('event: connected\ndata: {}\n\n');
+    console.log('SSE client connected, total:', sseClients.size);
+    req.on('close', () => {
+      sseClients.delete(res);
+      console.log('SSE client disconnected, remaining:', sseClients.size);
     });
     return;
   }
   return listener(req, res);
 });
+
+// Override broadcast — send SSE events instead of WebSocket messages
+broadcast = (type, data) => {
+  const msg = `event: ${type}
+data: ${JSON.stringify({ ...data, time: new Date().toISOString() })}
+
+`;
+  console.log('SSE broadcast', type, 'to', sseClients.size, 'clients');
+  for (const res of sseClients) {
+    res.write(msg);
+  }
+};
 
 server.listen(port, host, () => {
   console.log(`Xugou Node.js backend on http://${host}:${port}`);
