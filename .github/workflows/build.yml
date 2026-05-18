@@ -116,8 +116,8 @@ jobs:
           ${{ inputs.binary_name }}-linux-arm64/${{ inputs.binary_name }}-linux-arm64
           ${{ inputs.binary_name }}-darwin-amd64/${{ inputs.binary_name }}-darwin-amd64
           ${{ inputs.binary_name }}-darwin-arm64/${{ inputs.binary_name }}-darwin-arm64
-          ${{ inputs.binary_name }}-windows-amd64/${{ inputs.binary_name }}-windows-amd64.exe
-          ${{ inputs.binary_name }}-windows-arm64/${{ inputs.binary_name }}-windows-arm64.exe
+          ${{ inputs.binary_name }}-windows-amd64.exe/${{ inputs.binary_name }}-windows-amd64.exe
+          ${{ inputs.binary_name }}-windows-arm64.exe/${{ inputs.binary_name }}-windows-arm64.exe
 
     - name: Upload to existing Release (release event)
       if: github.event_name == 'release'
@@ -129,5 +129,5 @@ jobs:
           xugou-agent-linux-arm64/xugou-agent-linux-arm64
           xugou-agent-darwin-amd64/xugou-agent-darwin-amd64
           xugou-agent-darwin-arm64/xugou-agent-darwin-arm64
-          xugou-agent-windows-amd64/xugou-agent-windows-amd64.exe
-          xugou-agent-windows-arm64/xugou-agent-windows-arm64.exe
+          xugou-agent-windows-amd64.exe/xugou-agent-windows-amd64.exe
+          xugou-agent-windows-arm64.exe/xugou-agent-windows-arm64.exe
