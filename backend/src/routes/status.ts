@@ -336,7 +336,7 @@ app.get('/data', async (c) => {
 
     // Enrich agents with computed fields, strip sensitive fields
     const enrichedAgents = (agents.results || []).map((agent: any) => {
-      const { token, ...safe } = agent;
+      const { token, last_payload, ...safe } = agent;
       const memoryPercent = safe.memory_total && safe.memory_used
         ? (safe.memory_used / safe.memory_total) * 100 : null;
       const diskPercent = safe.disk_total && safe.disk_used
