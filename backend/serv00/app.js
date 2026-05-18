@@ -3,11 +3,10 @@ const { spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
-// Use Serv00-specific JSON config
 const PORT = process.env.PORT || '5411';
-// Let backend read config.serv00.json
-process.env.CONFIG_PATH = path.join(BACKEND_DIR, 'config.serv00.json');
 const BACKEND_DIR = path.join(__dirname, 'xugou/backend');
+// Let backend read Serv00-specific JSON config
+process.env.CONFIG_PATH = path.join(BACKEND_DIR, 'config.serv00.json');
 
 function log(msg) { console.log(`[${new Date().toISOString()}] ${msg}`); }
 
