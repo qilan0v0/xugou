@@ -1,5 +1,6 @@
 import { Agent } from '../api/agents';
 import ResourceBar from './ResourceBar';
+import CountryFlag from './CountryFlag';
 import { useTranslation } from 'react-i18next';
 import {
   CrumpledPaperIcon, MixerHorizontalIcon, StackIcon, TimerIcon, CalendarIcon,
@@ -27,8 +28,6 @@ const formatDuration = (ms: number): string => {
   if (h > 0) return `${h}小时 ${m}分`;
   return `${m}分`;
 };
-
-const flagUrl = (c?: string) => c && c.length === 2 ? `https://flagcdn.com/48x36/${c.toLowerCase()}.png` : '';
 
 const AgentCard = ({ agent }: AgentCardProps) => {
   const { t } = useTranslation();
@@ -97,11 +96,7 @@ const AgentCard = ({ agent }: AgentCardProps) => {
     <div className="glass rounded-xl p-4 hover:shadow-lg transition-shadow duration-200">
       {/* Header: flag + name + OS + status */}
       <div className="flex items-center gap-2 mb-3">
-        {flagUrl(agent.country) ? (
-          <img src={flagUrl(agent.country)} alt={agent.country || ''} className="w-5 h-3.5 rounded-sm shadow-sm flex-shrink-0" />
-        ) : (
-          <span className="w-5 h-3.5 rounded-sm bg-slate-200 dark:bg-slate-700 flex-shrink-0" />
-        )}
+        <CountryFlag code={agent.country} />
         <span className="font-semibold text-sm text-slate-900 dark:text-white truncate">{agent.name}</span>
         {agent.os && (
           <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium flex-shrink-0 hidden sm:inline ${osBadgeColor}`}>

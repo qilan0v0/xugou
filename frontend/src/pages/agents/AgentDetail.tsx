@@ -3,17 +3,13 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeftIcon, Pencil1Icon, Cross2Icon, ReloadIcon, CopyIcon, ClockIcon, DesktopIcon, GlobeIcon, LaptopIcon, CrumpledPaperIcon, Component1Icon, ActivityLogIcon, TimerIcon, CodeIcon } from '@radix-ui/react-icons';
 import * as Toast from '@radix-ui/react-toast';
 import { getAgent, Agent, deleteAgent } from '../../api/agents';
+import CountryFlag from '../../components/CountryFlag';
 import ClientResourceSection from '../../components/ClientResourceSection';
 import { useTranslation } from 'react-i18next';
 
 interface AgentWithResources extends Agent {
   uptime: number; uptimeStr: string; connectStr?: string; cpuUsage?: number; memoryUsage?: number; diskUsage?: number; networkRx?: number; networkTx?: number;
 }
-
-const countryToFlag = (code: string) => {
-  if (!code || code.length !== 2) return '';
-  return `https://flagcdn.com/24x18/${code.toLowerCase()}.png`;
-};
 
 const AgentDetail = () => {
   const navigate = useNavigate();
@@ -103,7 +99,7 @@ const AgentDetail = () => {
             <h2 className="text-xl font-bold text-slate-900 dark:text-white">{agent.name}</h2>
             <p className="text-sm text-slate-500">
               {agent.hostname}{agent.hostname && agent.ip_address ? ` (${agent.ip_address})` : ''}
-              {agent.country && <> · <img src={countryToFlag(agent.country)} alt={agent.country} className='inline-block w-4 h-3 align-middle' /> {agent.country}</>}
+              {agent.country && <> · <CountryFlag code={agent.country} className='inline-block w-4 h-3 align-middle rounded-sm' /> {agent.country}</>}
             </p>
           </div>
         </div>
