@@ -334,15 +334,16 @@ app.get('/data', async (c) => {
       }
     }));
 
-    // Enrich agents with computed fields
+    // Enrich agents with computed fields, strip sensitive fields
     const enrichedAgents = (agents.results || []).map((agent: any) => {
-      const memoryPercent = agent.memory_total && agent.memory_used
-        ? (agent.memory_used / agent.memory_total) * 100 : null;
-      const diskPercent = agent.disk_total && agent.disk_used
-        ? (agent.disk_used / agent.disk_total) * 100 : null;
+      const { token, ...safe } = agent;
+      const memoryPercent = safe.memory_total && safe.memory_used
+        ? (safe.memory_used / safe.memory_total) * 100 : null;
+      const diskPercent = safe.disk_total && safe.disk_used
+        ? (safe.disk_used / safe.disk_total) * 100 : null;
       return {
-        ...agent,
-        cpu: agent.cpu_usage || 0,
+        ...safe,
+        cpu: safe.cpu_usage || 0,
         memory: memoryPercent || 0,
         disk: diskPercent || 0,
       };
