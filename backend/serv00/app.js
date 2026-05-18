@@ -1,34 +1,56 @@
-// Serv00 Passenger entry - starts Xugou backend directly
+// Serv00 Passenger entry
 const { spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
 const PORT = process.env.PORT || 3000;
 const BACKEND_DIR = path.join(__dirname, 'xugou/backend');
+const LOG = fs.createWriteStream(path.join(BACKEND_DIR, 'data/backend.log'), { flags: 'a' });
 
-// Check if tsx exists
+function log(msg) {
+  const line = `[${new Date().toISOString()}] ${msg}`;
+  console.log(line);
+  LOG.write(line + '\n');
+}
+
+// Delete .env if exists to prevent port override
+const envFile = path.join(BACKEND_DIR, '.env');
+if (fs.existsSync(envFile)) {
+  log('Removing .env file');
+  fs.unlinkSync(envFile);
+}
+
+log(`Backend dir: ${BACKEND_DIR}, Port: ${PORT}`);
+
 const tsxPath = path.join(BACKEND_DIR, 'node_modules', '.bin', 'tsx');
 const useNpx = !fs.existsSync(tsxPath);
-
-console.log('[Watchdog] Backend dir:', BACKEND_DIR);
-console.log('[Watchdog] Port:', PORT);
-
 const cmd = useNpx ? 'npx' : tsxPath;
 const args = useNpx ? ['tsx', 'src/index.node.ts'] : ['src/index.node.ts'];
+
+log(`Command: ${cmd} ${args.join(' ')}`);
 
 const child = spawn(cmd, args, {
   cwd: BACKEND_DIR,
   env: { ...process.env, PORT },
-  stdio: 'inherit',
+  stdio: ['ignore', 'pipe', 'pipe'],
+});
+
+child.stdout.on('data', (d) => {
+  process.stdout.write(d);
+  LOG.write(d);
+});
+
+child.stderr.on('data', (d) => {
+  process.stderr.write(d);
+  LOG.write('ERR: ' + d);
 });
 
 child.on('error', (err) => {
-  console.error('[Watchdog] Spawn error:', err.message);
+  log('Spawn error: ' + err.message);
 });
 
-child.on('exit', (code) => {
-  console.log('[Watchdog] Backend exited code:', code, '- Passenger will restart if needed');
+child.on('exit', (code, signal) => {
+  log(`Backend exited code=${code} signal=${signal}`);
 });
 
-// Keep process alive for Passenger
 setInterval(() => {}, 60000);
