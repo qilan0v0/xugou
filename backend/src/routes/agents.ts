@@ -37,7 +37,8 @@ agents.get('/', async (c) => {
       ).bind(payload.id).all<Agent>();
     }
     
-    return c.json({ success: true, agents: result.results || [] });
+    const agents = (result.results || []).map(({ token, ...rest }: any) => rest);
+    return c.json({ success: true, agents });
   } catch (error) {
     console.error('获取客户端列表错误:', error);
     return c.json({ 

@@ -23,6 +23,15 @@ const auth = new hono_1.Hono();
 auth.post('/register', async (c) => {
     try {
         const { username, password, email } = await c.req.json();
+        if (!username || !password || typeof username !== 'string' || typeof password !== 'string') {
+            return c.json({ success: false, message: '用户名和密码不能为空' }, 400);
+        }
+        if (username.length < 2 || username.length > 50) {
+            return c.json({ success: false, message: '用户名长度需在2-50个字符' }, 400);
+        }
+        if (password.length < 4 || password.length > 100) {
+            return c.json({ success: false, message: '密码长度需在4-100个字符' }, 400);
+        }
         // 检查用户名是否已存在
         const existingUser = await c.env.DB.prepare('SELECT * FROM users WHERE username = ?').bind(username).first();
         if (existingUser) {
@@ -52,6 +61,12 @@ auth.post('/register', async (c) => {
 auth.post('/login', async (c) => {
     try {
         const { username, password } = await c.req.json();
+        if (!username || !password || typeof username !== 'string' || typeof password !== 'string') {
+            return c.json({ success: false, message: '用户名和密码不能为空' }, 400);
+        }
+        if (username.length > 50 || password.length > 100) {
+            return c.json({ success: false, message: '输入长度超出限制' }, 400);
+        }
         // 查找用户
         const user = await c.env.DB.prepare('SELECT * FROM users WHERE username = ?').bind(username).first();
         if (!user) {

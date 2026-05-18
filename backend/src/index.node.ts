@@ -15,6 +15,10 @@ import statusRoutes from './routes/status';
 import initDbRoutes from './setup/database';
 import { monitorTask, runScheduledTasks, checkAgentsStatus } from './tasks';
 import { toD1Primitive } from './utils/jwt';
+import { rateLimit } from './utils/ratelimit';
+
+// GeoIP cache (module-level)
+const countryCache = new Map<string, string>();
 
 const app = new Hono<{ Bindings: Bindings }>();
 
@@ -38,10 +42,13 @@ checkAndInitializeDatabase(env).then(r => console.log('DB init:', r.message));
 
 app.use('*', logger());
 app.use('*', cors({
-  origin: '*',
+  origin: (origin) => {
+    const allowed = ['xugou-frontend.pages.dev', 'xugou.mdzz.uk', 'localhost', '127.0.0.1', 'qilan.sbs', 'serv00.net'];
+    if (!origin || allowed.some(d => origin.includes(d))) return origin;
+    return 'https://xugou-frontend.pages.dev';
+  },
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'Referer', 'User-Agent'],
-  exposeHeaders: ['Content-Length', 'Content-Type'],
+  allowHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin'],
   maxAge: 86400,
 }));
 app.use('*', prettyJSON());
@@ -111,18 +118,22 @@ app.post('/api/agents/status', async (c) => {
       connectedAt = now;
     }
 
-    // Detect country from request public IP via ip-api.com (free, no key needed)
     const forwarded = c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || '';
     const clientIp = forwarded.split(',')[0]?.trim();
     let country: string | null = null;
     if (clientIp && clientIp !== '127.0.0.1' && clientIp !== '::1') {
-      try {
-        const res = await fetch('http://ip-api.com/json/' + clientIp + '?fields=countryCode');
-        if (res.ok) {
-          const data = await res.json() as any;
-          country = data?.countryCode || null;
-        }
-      } catch (e) { /* ignore geoip failures */ }
+      if (countryCache.has(clientIp)) {
+        country = countryCache.get(clientIp)!;
+      } else {
+        try {
+          const res = await fetch('http://ip-api.com/json/' + clientIp + '?fields=countryCode');
+          if (res.ok) {
+            const data = await res.json() as any;
+            country = data?.countryCode || null;
+            if (country) countryCache.set(clientIp, country);
+          }
+        } catch (e) { /* ignore */ }
+      }
     }
 
     const result = env.DB.prepare(

@@ -27,7 +27,8 @@ agents.get('/', async (c) => {
         else {
             result = await c.env.DB.prepare('SELECT * FROM agents WHERE created_by = ? ORDER BY created_at DESC').bind(payload.id).all();
         }
-        return c.json({ success: true, agents: result.results || [] });
+        const agents = (result.results || []).map(({ token, ...rest }) => rest);
+        return c.json({ success: true, agents });
     }
     catch (error) {
         console.error('获取客户端列表错误:', error);

@@ -10,6 +10,7 @@ const pretty_json_1 = require("hono/pretty-json");
 const initCheck_1 = require("./setup/initCheck");
 const jwt_1 = require("./utils/jwt");
 // 导入路由
+const ratelimit_1 = require("./utils/ratelimit");
 const auth_1 = __importDefault(require("./routes/auth"));
 const monitors_1 = __importDefault(require("./routes/monitors"));
 const agents_1 = __importDefault(require("./routes/agents"));
@@ -22,12 +23,15 @@ const app = new hono_1.Hono();
 // 中间件，需要作为服务端接收所有来源客户端的请求
 app.use('*', (0, logger_1.logger)());
 app.use('*', (0, cors_1.cors)({
-    origin: (origin) => origin || '*',
+    origin: (origin) => {
+        const allowed = ['xugou-frontend.pages.dev', 'xugou.mdzz.uk', 'localhost', '127.0.0.1'];
+        if (!origin || allowed.some(d => origin.includes(d)))
+            return origin;
+        return 'https://xugou-frontend.pages.dev';
+    },
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowHeaders: ['Content-Type', 'Authorization'],
-    exposeHeaders: ['Content-Length', 'Content-Type'],
     maxAge: 86400,
-    credentials: true,
 }));
 app.use('*', (0, pretty_json_1.prettyJSON)());
 // 在 Workers 环境中，您可能需要设置这些响应头
@@ -109,6 +113,14 @@ app.post('/api/agents/status', async (c) => {
         console.error('DIRECT_STATUS err:', e.message);
         return c.json({ success: false, message: e.message }, 500);
     }
+});
+// 限流: 登录/注册 每分钟最多10次
+app.use('/api/auth/*', async (c, next) => {
+    const ip = c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || 'unknown';
+    if (!(0, ratelimit_1.rateLimit)('auth:' + ip, 10, 60000)) {
+        return c.json({ success: false, message: '请求过于频繁，请稍后再试' }, 429);
+    }
+    await next();
 });
 // 路由注册
 app.route('/api/auth', auth_1.default);

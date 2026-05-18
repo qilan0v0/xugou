@@ -41,6 +41,7 @@ interface D1Result<T = unknown> {
 }
 
 // 导入路由
+import { rateLimit } from './utils/ratelimit';
 import authRoutes from './routes/auth';
 import monitorRoutes from './routes/monitors';
 import agentRoutes from './routes/agents';
@@ -55,12 +56,14 @@ const app = new Hono<{ Bindings: Bindings }>();
 // 中间件，需要作为服务端接收所有来源客户端的请求
 app.use('*', logger());
 app.use('*', cors({
-  origin: (origin) => origin || '*',
+  origin: (origin) => {
+    const allowed = ['xugou-frontend.pages.dev', 'xugou.mdzz.uk', 'localhost', '127.0.0.1'];
+    if (!origin || allowed.some(d => origin.includes(d))) return origin;
+    return 'https://xugou-frontend.pages.dev';
+  },
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization'],
-  exposeHeaders: ['Content-Length', 'Content-Type'],
   maxAge: 86400,
-  credentials: true,
 }));
 app.use('*', prettyJSON());
 
@@ -162,6 +165,15 @@ app.post('/api/agents/status', async (c) => {
     console.error('DIRECT_STATUS err:', e.message);
     return c.json({ success: false, message: e.message }, 500);
   }
+});
+
+// 限流: 登录/注册 每分钟最多10次
+app.use('/api/auth/*', async (c, next) => {
+  const ip = c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || 'unknown';
+  if (!rateLimit('auth:' + ip, 10, 60000)) {
+    return c.json({ success: false, message: '请求过于频繁，请稍后再试' }, 429);
+  }
+  await next();
 });
 
 // 路由注册
