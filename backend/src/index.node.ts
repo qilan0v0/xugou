@@ -217,7 +217,11 @@ const server = createServer((req, res) => {
   // Manual WebSocket upgrade — required because Apache strips Connection header
   if (req.headers.upgrade?.toLowerCase() === 'websocket') {
     console.log('WS upgrade request:', req.url);
+    // Remove HTTP parser data listeners so it doesn't try to parse WebSocket frames
+    req.socket.removeAllListeners('data');
     wss.handleUpgrade(req, req.socket, Buffer.alloc(0), (ws) => {
+      ws.on('error', (err) => console.error('WS socket error:', err.message));
+      ws.on('close', (code, reason) => console.log('WS socket close:', code, reason.toString()));
       wss.emit('connection', ws, req);
     });
     return;
