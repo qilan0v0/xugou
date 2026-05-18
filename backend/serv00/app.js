@@ -1,6 +1,7 @@
 // Serv00 watchdog - keeps Xugou backend alive
 const { exec } = require("child_process");
 const http = require("http");
+const net = require("net");
 const path = require("path");
 const fs = require("fs");
 
@@ -43,13 +44,16 @@ async function keepAlive() {
 setInterval(keepAlive, 15000);
 
 // Health check HTTP server
-http.createServer(async (req, res) => {
+const server = http.createServer(async (req, res) => {
+  // Let WebSocket upgrades be handled by the 'upgrade' event
+  if ((req.headers.upgrade || '').toLowerCase() === 'websocket') return;
+
   // Try proxy to backend
   const options = {
     hostname: '127.0.0.1', port: PORT,
     path: req.url, method: req.method,
     headers: Object.fromEntries(
-      Object.entries(req.headers).filter(([k]) => k !== 'host' && k !== 'connection')
+      Object.entries(req.headers).filter(([k]) => k !== 'host')
     ),
   };
   const proxy = http.request(options, (backendRes) => {
@@ -63,7 +67,42 @@ http.createServer(async (req, res) => {
     res.end('Backend starting, retry...');
   });
   req.pipe(proxy);
-}).listen(PORT + 1, () => {
+});
+
+// WebSocket upgrade proxy — raw TCP bridging preserves all headers
+server.on('upgrade', (req, clientSocket, head) => {
+  log('WS upgrade: ' + req.url);
+
+  const backendSocket = net.connect(PORT, '127.0.0.1', () => {
+    // Forward the raw HTTP upgrade request
+    const headers = [`Host: 127.0.0.1:${PORT}`];
+    for (const [k, v] of Object.entries(req.headers)) {
+      if (k.toLowerCase() !== 'host') headers.push(`${k}: ${v}`);
+    }
+
+    backendSocket.write(
+      `${req.method} ${req.url} HTTP/1.1\r\n` +
+      headers.join('\r\n') + '\r\n\r\n'
+    );
+
+    if (head.length > 0) backendSocket.write(head);
+
+    // Bidirectional pipe
+    backendSocket.pipe(clientSocket);
+    clientSocket.pipe(backendSocket);
+  });
+
+  backendSocket.on('error', (err) => {
+    log('Backend WS error: ' + err.message);
+    clientSocket.end();
+  });
+  clientSocket.on('error', (err) => {
+    log('Client WS error: ' + err.message);
+    backendSocket.end();
+  });
+});
+
+server.listen(PORT + 1, () => {
   log(`Watchdog on :${PORT + 1}`);
   startBackend();
 });

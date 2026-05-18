@@ -60,6 +60,14 @@ app.use('*', async (c, next) => {
 
 app.get('/', (c) => c.json({ message: 'XUGOU API (Node.js)' }));
 
+app.get('/ws', (c) => {
+  const upgrade = c.req.header('upgrade');
+  if (upgrade?.toLowerCase() === 'websocket') {
+    return c.json({ error: 'WebSocket upgrade expected at transport level' }, 426);
+  }
+  return c.json({ error: 'Use WebSocket to connect. Missing Upgrade header.' }, 400);
+});
+
 app.post('/api/agents/status', async (c) => {
   try {
     const raw = await c.req.text();
@@ -199,7 +207,7 @@ const nodeServer = serve({ fetch: app.fetch, port, hostname: host }, (info) => {
   console.log(`Xugou Node.js backend on http://${host}:${info.port}`);
 
   // Attach WebSocket to the underlying Node server
-  const wss = new WebSocketServer({ server: nodeServer });
+  const wss = new WebSocketServer({ server: nodeServer, path: '/ws' });
   const clients = new Set<WebSocket>();
   wss.on('connection', (ws) => { clients.add(ws); ws.on('close', () => clients.delete(ws)); });
   broadcast = (type, data) => {
