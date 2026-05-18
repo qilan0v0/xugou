@@ -21,10 +21,17 @@ const MonitorCard = ({ monitor }: MonitorCardProps) => {
     },
     down: {
       bg: 'bg-red-500/10',
-      text: 'text-red-500',
+      text: 'text-red-500 dark:text-red-400',
       dot: 'bg-red-500',
       border: 'from-red-500 to-red-400',
       icon: '✕',
+    },
+    degraded: {
+      bg: 'bg-orange-500/10',
+      text: 'text-orange-600 dark:text-orange-400',
+      dot: 'bg-orange-500',
+      border: 'from-orange-500 to-orange-400',
+      icon: '!',
     },
     pending: {
       bg: 'bg-amber-500/10',
@@ -36,11 +43,7 @@ const MonitorCard = ({ monitor }: MonitorCardProps) => {
   };
 
   const config = statusConfig[currentStatus] || statusConfig.pending;
-  const statusLabel: Record<string, string> = {
-    up: t('monitorCard.status.up'),
-    down: t('monitorCard.status.down'),
-    pending: t('monitorCard.status.pending'),
-  };
+  const label = t(`monitorCard.status.${currentStatus}`, currentStatus);
 
   return (
     <div className="glass glass-hover relative overflow-hidden group">
@@ -53,7 +56,7 @@ const MonitorCard = ({ monitor }: MonitorCardProps) => {
           </div>
           <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
             <span className={`w-1.5 h-1.5 rounded-full ${config.dot}`} />
-            {statusLabel[currentStatus]}
+            {label}
           </span>
         </div>
 

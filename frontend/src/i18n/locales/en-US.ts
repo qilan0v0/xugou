@@ -486,6 +486,7 @@ const enUS = {
     // MonitorCard component
     'monitorCard.status.up': 'Up',
     'monitorCard.status.down': 'Down',
+    'monitorCard.status.degraded': 'Degraded',
     'monitorCard.status.pending': 'Pending',
     'monitorCard.responseTime': 'Response Time',
     'monitorCard.unknown': 'Unknown',

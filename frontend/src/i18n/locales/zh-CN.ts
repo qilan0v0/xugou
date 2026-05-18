@@ -500,6 +500,7 @@ const zhCN = {
     // MonitorCard 组件
     'monitorCard.status.up': '正常',
     'monitorCard.status.down': '故障',
+    'monitorCard.status.degraded': '降级',
     'monitorCard.status.pending': '等待检查',
     'monitorCard.responseTime': '响应时间',
     'monitorCard.unknown': '未知',
