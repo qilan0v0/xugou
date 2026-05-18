@@ -96,8 +96,20 @@ app.post('/api/agents/status', async (c) => {
 
     if (!token) return c.json({ success: false, message: 'no token' }, 400);
 
-    const agent = await env.DB.prepare('SELECT id FROM agents WHERE token = ?').bind(token).first<{id: number}>();
-    if (!agent) return c.json({ success: false, message: 'agent not found' }, 404);
+    let agent = await env.DB.prepare('SELECT id FROM agents WHERE token = ?').bind(token).first<{id: number}>();
+    if (!agent) {
+      // Auto-create agent if token not found
+      const adminUser = env.DB.prepare('SELECT id FROM users WHERE role = ?').bind('admin').first<{id: number}>();
+      if (!adminUser) return c.json({ success: false, message: 'no admin user' }, 500);
+      const autoName = (body.hostname || body.ip_address || ('agent-' + Date.now())).toString();
+      const now2 = new Date().toISOString();
+      env.DB.prepare(
+        `INSERT INTO agents (name, token, created_by, status, created_at, updated_at, connected_at)
+         VALUES (?, ?, ?, 'active', ?, ?, ?)`
+      ).bind(autoName, token, adminUser.id, now2, now2, now2).run();
+      agent = env.DB.prepare('SELECT id FROM agents WHERE token = ?').bind(token).first<{id: number}>();
+      if (!agent) return c.json({ success: false, message: 'auto-create failed' }, 500);
+    }
 
     // Recalc network rate from cumulative byte delta if agent reports 0
     if ((netRx == null || netRx === 0) && netRxTotal != null) {

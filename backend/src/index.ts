@@ -127,8 +127,19 @@ app.post('/api/agents/status', async (c) => {
 
     if (!token) return c.json({ success: false, message: 'no token' }, 400);
 
-    const agent = await c.env.DB.prepare('SELECT id FROM agents WHERE token = ?').bind(token).first<{id: number}>();
-    if (!agent) return c.json({ success: false, message: 'agent not found' }, 404);
+    let agent = await c.env.DB.prepare('SELECT id FROM agents WHERE token = ?').bind(token).first<{id: number}>();
+    if (!agent) {
+      const adminUser = await c.env.DB.prepare('SELECT id FROM users WHERE role = ?').bind('admin').first<{id: number}>();
+      if (!adminUser) return c.json({ success: false, message: 'no admin user' }, 500);
+      const autoName = (body.hostname || body.ip_address || ('agent-' + Date.now())).toString();
+      const now = new Date().toISOString();
+      await c.env.DB.prepare(
+        `INSERT INTO agents (name, token, created_by, status, created_at, updated_at, connected_at)
+         VALUES (?, ?, ?, 'active', ?, ?, ?)`
+      ).bind(autoName, token, adminUser.id, now, now, now).run();
+      agent = await c.env.DB.prepare('SELECT id FROM agents WHERE token = ?').bind(token).first<{id: number}>();
+      if (!agent) return c.json({ success: false, message: 'auto-create failed' }, 500);
+    }
 
     // 从 Cloudflare 请求元数据提取国家代码
     const country = (c.req.raw as any)?.cf?.country ?? null;
