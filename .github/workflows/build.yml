@@ -57,6 +57,7 @@ jobs:
         GITHUB_REF: ${{ github.ref }}
 
     - name: Build
+      shell: bash
       env:
         GOOS: ${{ steps.vars.outputs.goos }}
         GOARCH: ${{ steps.vars.outputs.goarch }}
