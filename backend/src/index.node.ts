@@ -158,10 +158,11 @@ app.get('/api/trigger-check', async (c) => {
 });
 
 const port = parseInt(process.env.PORT || '7860');
-console.log(`Xugou Node.js backend on http://localhost:${port}`);
+const host = process.env.HOSTNAME || '0.0.0.0';
+console.log(`Xugou Node.js backend on http://${host}:${port}`);
 
-serve({ fetch: app.fetch, port }, (info) => {
-  console.log(`Listening on http://localhost:${info.port}`);
+serve({ fetch: app.fetch, port, hostname: host }, (info) => {
+  console.log(`Listening on http://${host}:${info.port}`);
 });
 
 setInterval(async () => {
