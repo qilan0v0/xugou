@@ -25,7 +25,7 @@ const args = useNpx ? ['tsx', 'src/index.node.ts'] : ['src/index.node.ts'];
 
 const child = spawn(cmd, args, {
   cwd: BACKEND_DIR,
-  env: { ...process.env, PORT, HOSTNAME: '127.0.0.1' },
+  env: { ...process.env, PORT },
   stdio: 'inherit',
 });
 
