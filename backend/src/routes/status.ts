@@ -323,12 +323,14 @@ app.get('/data', async (c) => {
            WHERE monitor_id = ?
            ORDER BY timestamp DESC LIMIT 24`
         ).bind(monitor.id).all<{status: string; timestamp: string}>();
+        const { url, ...rest } = monitor;
         return {
-          ...monitor,
+          ...rest,
           history: (historyResult.results || []).reverse(),
         };
       } catch {
-        return { ...monitor, history: [] };
+        const { url, ...rest } = monitor;
+        return { ...rest, history: [] };
       }
     }));
 
