@@ -199,24 +199,33 @@ const listener = getRequestListener(app.fetch);
 
 const server = createServer((req, res) => {
   // Skip WebSocket upgrades — ws WebSocketServer handles them at transport level
-  if (req.headers.upgrade?.toLowerCase() === 'websocket') return;
+  if (req.headers.upgrade?.toLowerCase() === 'websocket') {
+    console.log('WS upgrade request:', req.url, 'upgrade:', req.headers.upgrade);
+    return;
+  }
   return listener(req, res);
 });
 
-const wss = new WebSocketServer({ server, path: '/ws' });
+// Debug: listen for upgrade event directly on server
+server.on('upgrade', (req, socket, head) => {
+  console.log('Server upgrade event fired:', req.url);
+});
+
+const wss = new WebSocketServer({ server });
+wss.on('error', (err) => console.error('WSS error:', err.message));
 const clients = new Set<WebSocket>();
-	wss.on("connection", (ws) => {
-	  clients.add(ws);
-	  console.log("WS client connected, total:", clients.size);
-	  ws.on("close", () => { clients.delete(ws); console.log("WS client disconnected, remaining:", clients.size); });
-	});
-	broadcast = (type, data) => {
-	  const msg = JSON.stringify({ type, data, time: new Date().toISOString() });
-	  console.log("WS broadcast", type, "to", clients.size, "clients");
-	  for (const ws of clients) {
-	    if (ws.readyState === WebSocket.OPEN) ws.send(msg);
-	  }
-	};
+wss.on('connection', (ws, req) => {
+  clients.add(ws);
+  console.log('WS client connected, total:', clients.size, 'url:', req.url);
+  ws.on('close', () => { clients.delete(ws); console.log('WS client disconnected, remaining:', clients.size); });
+});
+broadcast = (type, data) => {
+  const msg = JSON.stringify({ type, data, time: new Date().toISOString() });
+  console.log('WS broadcast', type, 'to', clients.size, 'clients');
+  for (const ws of clients) {
+    if (ws.readyState === WebSocket.OPEN) ws.send(msg);
+  }
+};
 
 server.listen(port, host, () => {
   console.log(`Xugou Node.js backend on http://${host}:${port}`);
