@@ -4,6 +4,12 @@ on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      version_name:
+        description: '版本名称 (留空则自动生成，如 v1.2.3 或日期)'
+        required: false
+        type: string
+        default: ''
 
 jobs:
   build:
@@ -96,7 +102,12 @@ jobs:
           echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
           echo "RELEASE_ID=${{ github.event.release.id }}" >> $GITHUB_OUTPUT
         else
-          echo "VERSION=$(date +%Y%m%d-%H%M%S)" >> $GITHUB_OUTPUT
+          INPUT_VER="${{ inputs.version_name }}"
+          if [[ -n "$INPUT_VER" ]]; then
+            echo "VERSION=$INPUT_VER" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION=$(date +%Y%m%d-%H%M%S)" >> $GITHUB_OUTPUT
+          fi
           echo "RELEASE_ID=" >> $GITHUB_OUTPUT
         fi
 
