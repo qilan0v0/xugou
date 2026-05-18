@@ -1,0 +1,7 @@
+{
+  "port": 5411,
+  "hostname": "127.0.0.1",
+  "jwt_secret": "8e2904a6-819f-44f1-9d81-179d7a6d626b",
+  "enable_db_init": true,
+  "db_path": "./data/xugou.db"
+}

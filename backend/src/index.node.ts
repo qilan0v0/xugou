@@ -1,4 +1,3 @@
-import 'dotenv/config';
 import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
 import { logger } from 'hono/logger';
@@ -19,12 +18,19 @@ import { toD1Primitive } from './utils/jwt';
 
 const app = new Hono<{ Bindings: Bindings }>();
 
-const db = await createDb();
+import { readFileSync, existsSync } from 'fs';
+const configPath = process.env.CONFIG_PATH || './config.json';
+let config: any = { port: 7860, hostname: '0.0.0.0', jwt_secret: 'change-me', enable_db_init: true, db_path: './data/xugou.db' };
+if (existsSync(configPath)) {
+  try { config = { ...config, ...JSON.parse(readFileSync(configPath, 'utf-8')) }; } catch(e) {}
+}
+
+const db = await createDb(config.db_path);
 
 const env: any = {
   DB: db,
-  JWT_SECRET: process.env.JWT_SECRET || 'your-secret-key-change-in-production',
-  ENABLE_DB_INIT: process.env.ENABLE_DB_INIT || 'true',
+  JWT_SECRET: config.jwt_secret || 'change-me',
+  ENABLE_DB_INIT: config.enable_db_init ? 'true' : 'false',
 };
 
 import { checkAndInitializeDatabase } from './setup/initCheck';
@@ -157,8 +163,8 @@ app.get('/api/trigger-check', async (c) => {
   return c.json({ success: true, message: 'checks triggered' });
 });
 
-const port = parseInt(process.env.PORT || '7860');
-const host = process.env.HOSTNAME || '0.0.0.0';
+const port = parseInt(process.env.PORT || config.port || '7860');
+const host = process.env.HOSTNAME || config.hostname || '0.0.0.0';
 console.log(`Xugou Node.js backend on http://${host}:${port}`);
 
 serve({ fetch: app.fetch, port, hostname: host }, (info) => {
