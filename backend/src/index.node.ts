@@ -105,8 +105,8 @@ app.post('/api/agents/status', async (c) => {
       if (prev && prev.network_rx_total != null) {
         const elapsed = (Date.now() - new Date(prev.updated_at).getTime()) / 1000;
         if (elapsed > 0 && elapsed < 3600) {
-          netRx = Math.max(0, Math.round((netRxTotal - (prev.network_rx_total || 0)) / elapsed / 1024));
-          netTx = Math.max(0, Math.round((netTxTotal - (prev.network_tx_total || 0)) / elapsed / 1024));
+          netRx = Math.max(0, (netRxTotal - (prev.network_rx_total || 0)) / elapsed / 1024);
+          netTx = Math.max(0, (netTxTotal - (prev.network_tx_total || 0)) / elapsed / 1024);
         }
       }
     }
