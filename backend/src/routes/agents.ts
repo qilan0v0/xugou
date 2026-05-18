@@ -511,13 +511,12 @@ agents.post('/register', async (c) => {
       });
     }
 
-    // token 未匹配，自动创建新客户端
+    // token 未匹配，使用客户端发来的 token 自动创建
     const autoName = hostname || ip_address || ('agent-' + Date.now());
-    const newToken = await generateToken();
     const insertResult = await c.env.DB.prepare(
       `INSERT INTO agents (name, token, created_by, status, hostname, ip_address, os, version, created_at, updated_at)
        VALUES (?, ?, ?, 'active', ?, ?, ?, ?, ?, ?)`
-    ).bind(autoName, newToken, adminUser.id, hostname || null, ip_address || null, os || null, version || null, now, now).run();
+    ).bind(autoName, token, adminUser.id, hostname || null, ip_address || null, os || null, version || null, now, now).run();
 
     if (!insertResult.success) {
       throw new Error('自动创建客户端失败');
@@ -528,7 +527,7 @@ agents.post('/register', async (c) => {
       success: true,
       message: '客户端自动注册成功',
       agent: created,
-      token: newToken
+      token: token
     }, 201);
   } catch (error) {
     console.error('客户端注册错误:', error);
