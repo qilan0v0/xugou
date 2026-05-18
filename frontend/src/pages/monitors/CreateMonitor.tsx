@@ -10,6 +10,7 @@ const CreateMonitor = () => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({ name: '', url: '', method: 'GET', interval: 1, timeout: 30, expectedStatus: 200, body: '' });
   const [headers, setHeaders] = useState<{ key: string; value: string }[]>([{ key: '', value: '' }]);
+  const [isPublic, setIsPublic] = useState(true);
   const { t } = useTranslation();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -38,7 +39,7 @@ const CreateMonitor = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await createMonitor({ name: formData.name, url: formData.url, method: formData.method, interval: formData.interval * 60, timeout: formData.timeout, expectedStatus: formData.expectedStatus, headers: headersToJson(), body: formData.body });
+      const response = await createMonitor({ name: formData.name, url: formData.url, method: formData.method, interval: formData.interval * 60, timeout: formData.timeout, expectedStatus: formData.expectedStatus, headers: headersToJson(), body: formData.body, public: isPublic });
       if (response.success) navigate('/monitors');
       else alert(`${t('monitor.form.createFailed')}: ${response.message || t('monitor.form.unknownError')}`);
     } catch (error) {
@@ -119,6 +120,16 @@ const CreateMonitor = () => {
               <textarea name="body" value={formData.body} onChange={handleChange} placeholder={t('monitor.form.bodyPlaceholder')} className={inputClass} rows={5} style={{ minHeight: '100px' }} />
             </div>
           )}
+          <div>
+            <label className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors cursor-pointer">
+              <span className="text-xs font-medium text-slate-500">公开显示</span>
+              <span className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${isPublic ? 'bg-blue-500 border-blue-500' : 'border-slate-400'}`}>
+                {isPublic && <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/></svg>}
+              </span>
+              <input type="checkbox" checked={isPublic} onChange={() => setIsPublic(!isPublic)} className="sr-only" />
+            </label>
+          </div>
+
           <div className="flex justify-end gap-3 pt-2 border-t border-white/[0.06]">
             <button type="button" onClick={() => navigate('/monitors')} className="px-4 py-2 rounded-lg text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors">{t('monitor.form.cancel')}</button>
             <button type="submit" disabled={loading} className="btn-gradient px-5 py-2 text-sm flex items-center gap-1.5 disabled:opacity-60">

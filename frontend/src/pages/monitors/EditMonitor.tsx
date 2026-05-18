@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 
 const EditMonitor = () => {
   const navigate = useNavigate();
+  const [isPublic, setIsPublic] = useState(true);
   const { id } = useParams<{ id: string }>();
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
@@ -22,6 +23,7 @@ const EditMonitor = () => {
         if (res.success && res.monitor) {
           const m = res.monitor;
           setFormData({ name: m.name, url: m.url, method: m.method, interval: Math.round((m.interval || 60) / 60), timeout: m.timeout || 30, expectedStatus: m.expected_status || 200, body: m.body || '', headers: m.headers, active: m.active !== false });
+          setIsPublic(m.public !== 0);
           let parsed: Record<string, string> = {};
           try { parsed = typeof m.headers === 'string' ? JSON.parse(m.headers) : (m.headers || {}); } catch {}
           const h = Object.entries(parsed).map(([k, v]) => ({ key: k, value: String(v) }));
@@ -57,7 +59,7 @@ const EditMonitor = () => {
     if (!id) return;
     setLoading(true);
     try {
-      const res = await updateMonitor(parseInt(id), { ...formData, interval: formData.interval * 60, headers: headersToJson() });
+      const res = await updateMonitor(parseInt(id), { ...formData, interval: formData.interval * 60, headers: headersToJson(), public: isPublic });
       if (res.success) navigate('/monitors');
       else alert(res.message || t('monitor.form.updateFailed'));
     } catch { alert(t('monitor.form.updateFailed')); }
@@ -104,6 +106,16 @@ const EditMonitor = () => {
           )}
           <div className="flex justify-end gap-3 pt-2 border-t border-white/[0.06]">
             <button type="button" onClick={() => navigate('/monitors')} className="px-4 py-2 rounded-lg text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors">{t('monitor.form.cancel')}</button>
+          <div className="pb-2">
+            <label className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors cursor-pointer">
+              <span className="text-xs font-medium text-slate-500">公开显示</span>
+              <span className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${isPublic ? 'bg-blue-500 border-blue-500' : 'border-slate-400'}`}>
+                {isPublic && <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/></svg>}
+              </span>
+              <input type="checkbox" checked={isPublic} onChange={() => setIsPublic(!isPublic)} className="sr-only" />
+            </label>
+          </div>
+          
             <button type="submit" disabled={loading} className="btn-gradient px-5 py-2 text-sm flex items-center gap-1.5 disabled:opacity-60"><UpdateIcon />{loading ? t('monitor.form.updating') : t('monitor.form.update')}</button>
           </div>
         </form>
