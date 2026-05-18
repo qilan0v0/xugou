@@ -197,21 +197,7 @@ let broadcast = (type: string, data: any) => {};
 
 const listener = getRequestListener(app.fetch);
 
-const server = createServer((req, res) => {
-  // Skip WebSocket upgrades — ws WebSocketServer handles them at transport level
-  if (req.headers.upgrade?.toLowerCase() === 'websocket') {
-    console.log('WS upgrade request:', req.url, 'upgrade:', req.headers.upgrade);
-    return;
-  }
-  return listener(req, res);
-});
-
-// Debug: listen for upgrade event directly on server
-server.on('upgrade', (req, socket, head) => {
-  console.log('Server upgrade event fired:', req.url);
-});
-
-const wss = new WebSocketServer({ server });
+const wss = new WebSocketServer({ noServer: true });
 wss.on('error', (err) => console.error('WSS error:', err.message));
 const clients = new Set<WebSocket>();
 wss.on('connection', (ws, req) => {
@@ -226,6 +212,18 @@ broadcast = (type, data) => {
     if (ws.readyState === WebSocket.OPEN) ws.send(msg);
   }
 };
+
+const server = createServer((req, res) => {
+  // Manual WebSocket upgrade — required because Apache strips Connection header
+  if (req.headers.upgrade?.toLowerCase() === 'websocket') {
+    console.log('WS upgrade request:', req.url);
+    wss.handleUpgrade(req, req.socket, Buffer.alloc(0), (ws) => {
+      wss.emit('connection', ws, req);
+    });
+    return;
+  }
+  return listener(req, res);
+});
 
 server.listen(port, host, () => {
   console.log(`Xugou Node.js backend on http://${host}:${port}`);
