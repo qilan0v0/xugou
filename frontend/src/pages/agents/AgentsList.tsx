@@ -46,11 +46,13 @@ const AgentsList = () => {
     let ws: WebSocket | null = null;
     try {
       ws = new WebSocket(wsUrl);
+      let wsDebounce: any = null;
       ws.onmessage = (e) => {
         try {
           const msg = JSON.parse(e.data);
           if (msg.type === 'agent-update' || msg.type === 'monitor-update') {
-            fetchAgents();
+            if (wsDebounce) clearTimeout(wsDebounce);
+            wsDebounce = setTimeout(() => fetchAgents(), 5000);
           }
         } catch {}
       };
