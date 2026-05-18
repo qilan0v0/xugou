@@ -192,24 +192,35 @@ import { serve } from '@hono/node-server';
 const port = parseInt(process.env.PORT || config.port || '7860');
 const host = process.env.HOSTNAME || config.hostname || '0.0.0.0';
 
-// WebSocket broadcast (set in serve callback)
+// WebSocket broadcast
 let broadcast = (type: string, data: any) => {};
 
-const nodeServer = serve({ fetch: app.fetch, port, hostname: host }, (info) => {
-  console.log(`Xugou Node.js backend on http://${host}:${info.port}`);
+// Create WebSocket server in noServer mode
+const wss = new WebSocketServer({ noServer: true });
+const clients = new Set<WebSocket>();
+wss.on('connection', (ws) => { clients.add(ws); ws.on('close', () => clients.delete(ws)); });
+broadcast = (type, data) => {
+  const msg = JSON.stringify({ type, data, time: new Date().toISOString() });
+  for (const ws of clients) {
+    if (ws.readyState === WebSocket.OPEN) ws.send(msg);
+  }
+};
 
-  // Attach WebSocket to the underlying Node server
-  const wss = new WebSocketServer({ server: nodeServer });
-  const clients = new Set<WebSocket>();
-  wss.on('connection', (ws) => { clients.add(ws); ws.on('close', () => clients.delete(ws)); });
-  broadcast = (type, data) => {
-    const msg = JSON.stringify({ type, data, time: new Date().toISOString() });
-    for (const ws of clients) {
-      if (ws.readyState === WebSocket.OPEN) ws.send(msg);
-    }
-  };
-  console.log('WebSocket ready');
+const nodeServer = serve({ fetch: app.fetch, port, hostname: host });
+
+// Handle WebSocket upgrade before Hono processes the request
+nodeServer.on('upgrade', (request, socket, head) => {
+  if (request.url === '/ws') {
+    wss.handleUpgrade(request, socket, head, (ws) => {
+      wss.emit('connection', ws, request);
+    });
+  } else {
+    socket.destroy();
+  }
 });
+
+console.log(`Xugou Node.js backend on http://${host}:${port}`);
+console.log('WebSocket ready');
 
 setInterval(async () => {
   try { await runScheduledTasks(null, env, {}); }
