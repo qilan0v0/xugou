@@ -37,7 +37,10 @@ agents.get('/', async (c) => {
       ).bind(payload.id).all<Agent>();
     }
     
-    const agents = (result.results || []).map(({ token, ...rest }: any) => rest);
+    const agents = (result.results || []).map((a: any) => {
+      if (payload.role !== 'admin') { const { token, ...rest } = a; return rest; }
+      return a;
+    });
     return c.json({ success: true, agents });
   } catch (error) {
     console.error('获取客户端列表错误:', error);

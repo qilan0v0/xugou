@@ -27,7 +27,13 @@ agents.get('/', async (c) => {
         else {
             result = await c.env.DB.prepare('SELECT * FROM agents WHERE created_by = ? ORDER BY created_at DESC').bind(payload.id).all();
         }
-        const agents = (result.results || []).map(({ token, ...rest }) => rest);
+        const agents = (result.results || []).map((a) => {
+            if (payload.role !== 'admin') {
+                const { token, ...rest } = a;
+                return rest;
+            }
+            return a;
+        });
         return c.json({ success: true, agents });
     }
     catch (error) {
