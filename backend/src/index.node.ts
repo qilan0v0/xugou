@@ -60,14 +60,6 @@ app.use('*', async (c, next) => {
 
 app.get('/', (c) => c.json({ message: 'XUGOU API (Node.js)' }));
 
-app.get('/ws', (c) => {
-  const upgrade = c.req.header('upgrade');
-  if (upgrade?.toLowerCase() === 'websocket') {
-    return c.json({ error: 'WebSocket upgrade expected at transport level' }, 426);
-  }
-  return c.json({ error: 'Use WebSocket to connect. Missing Upgrade header.' }, 400);
-});
-
 app.post('/api/agents/status', async (c) => {
   try {
     const raw = await c.req.text();
@@ -196,26 +188,33 @@ app.get('/api/trigger-check', async (c) => {
   return c.json({ success: true, message: 'checks triggered' });
 });
 
-import { serve } from '@hono/node-server';
+import { getRequestListener } from '@hono/node-server';
+import { createServer } from 'http';
 const port = parseInt(process.env.PORT || config.port || '7860');
 const host = process.env.HOSTNAME || config.hostname || '0.0.0.0';
 
-// WebSocket broadcast (set in serve callback)
 let broadcast = (type: string, data: any) => {};
 
-const nodeServer = serve({ fetch: app.fetch, port, hostname: host }, (info) => {
-  console.log(`Xugou Node.js backend on http://${host}:${info.port}`);
+const listener = getRequestListener(app.fetch);
 
-  // Attach WebSocket to the underlying Node server
-  const wss = new WebSocketServer({ server: nodeServer, path: '/ws' });
-  const clients = new Set<WebSocket>();
-  wss.on('connection', (ws) => { clients.add(ws); ws.on('close', () => clients.delete(ws)); });
-  broadcast = (type, data) => {
-    const msg = JSON.stringify({ type, data, time: new Date().toISOString() });
-    for (const ws of clients) {
-      if (ws.readyState === WebSocket.OPEN) ws.send(msg);
-    }
-  };
+const server = createServer((req, res) => {
+  // Skip WebSocket upgrades — ws WebSocketServer handles them at transport level
+  if (req.headers.upgrade?.toLowerCase() === 'websocket') return;
+  return listener(req, res);
+});
+
+const wss = new WebSocketServer({ server, path: '/ws' });
+const clients = new Set<WebSocket>();
+wss.on('connection', (ws) => { clients.add(ws); ws.on('close', () => clients.delete(ws)); });
+broadcast = (type, data) => {
+  const msg = JSON.stringify({ type, data, time: new Date().toISOString() });
+  for (const ws of clients) {
+    if (ws.readyState === WebSocket.OPEN) ws.send(msg);
+  }
+};
+
+server.listen(port, host, () => {
+  console.log(`Xugou Node.js backend on http://${host}:${port}`);
   console.log('WebSocket ready');
 });
 
