@@ -205,13 +205,18 @@ const server = createServer((req, res) => {
 
 const wss = new WebSocketServer({ server, path: '/ws' });
 const clients = new Set<WebSocket>();
-wss.on('connection', (ws) => { clients.add(ws); ws.on('close', () => clients.delete(ws)); });
-broadcast = (type, data) => {
-  const msg = JSON.stringify({ type, data, time: new Date().toISOString() });
-  for (const ws of clients) {
-    if (ws.readyState === WebSocket.OPEN) ws.send(msg);
-  }
-};
+	wss.on("connection", (ws) => {
+	  clients.add(ws);
+	  console.log("WS client connected, total:", clients.size);
+	  ws.on("close", () => { clients.delete(ws); console.log("WS client disconnected, remaining:", clients.size); });
+	});
+	broadcast = (type, data) => {
+	  const msg = JSON.stringify({ type, data, time: new Date().toISOString() });
+	  console.log("WS broadcast", type, "to", clients.size, "clients");
+	  for (const ws of clients) {
+	    if (ws.readyState === WebSocket.OPEN) ws.send(msg);
+	  }
+	};
 
 server.listen(port, host, () => {
   console.log(`Xugou Node.js backend on http://${host}:${port}`);
