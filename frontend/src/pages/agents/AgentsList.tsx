@@ -42,14 +42,12 @@ const AgentsList = () => {
 
     let sseDebounce: any = null;
     const es = new EventSource((ENV_API_BASE_URL || '') + '/api/events');
-    es.addEventListener('agent-update', () => {
+    const refresh = () => {
       if (sseDebounce) clearTimeout(sseDebounce);
-      sseDebounce = setTimeout(() => fetchAgents(), 5000);
-    });
-    es.addEventListener('monitor-update', () => {
-      if (sseDebounce) clearTimeout(sseDebounce);
-      sseDebounce = setTimeout(() => fetchAgents(), 5000);
-    });
+      sseDebounce = setTimeout(() => fetchAgents(), 300);
+    };
+    es.addEventListener('agent-update', refresh);
+    es.addEventListener('monitor-update', refresh);
 
     return () => { clearInterval(i); es.close(); };
   }, []);
