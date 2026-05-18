@@ -10,6 +10,11 @@ on:
         required: false
         type: string
         default: ''
+      binary_name:
+        description: '程序名称 (如 xugou-agent、测试-agent)'
+        required: false
+        type: string
+        default: 'xugou-agent'
 
 jobs:
   build:
@@ -19,31 +24,6 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         arch: [amd64, arm64]
-        include:
-          - os: ubuntu-latest
-            arch: amd64
-            artifact_name: xugou-agent-linux-amd64
-            asset_name: xugou-agent-linux-amd64
-          - os: ubuntu-latest
-            arch: arm64
-            artifact_name: xugou-agent-linux-arm64
-            asset_name: xugou-agent-linux-arm64
-          - os: macos-latest
-            arch: amd64
-            artifact_name: xugou-agent-darwin-amd64
-            asset_name: xugou-agent-darwin-amd64
-          - os: macos-latest
-            arch: arm64
-            artifact_name: xugou-agent-darwin-arm64
-            asset_name: xugou-agent-darwin-arm64
-          - os: windows-latest
-            arch: amd64
-            artifact_name: xugou-agent-windows-amd64.exe
-            asset_name: xugou-agent-windows-amd64
-          - os: windows-latest
-            arch: arm64
-            artifact_name: xugou-agent-windows-arm64.exe
-            asset_name: xugou-agent-windows-arm64
 
     steps:
     - name: Checkout code
@@ -54,10 +34,19 @@ jobs:
       with:
         go-version: '1.24'
 
-    - name: Set version
-      id: version
+    - name: Set version and binary name
+      id: vars
       shell: bash
       run: |
+        BIN="${{ inputs.binary_name }}"
+        GOOS="${{ matrix.os == 'ubuntu-latest' && 'linux' || matrix.os == 'macos-latest' && 'darwin' || 'windows' }}"
+        GOARCH="${{ matrix.arch }}"
+        EXT="${{ matrix.os == 'windows-latest' && '.exe' || '' }}"
+        ARTIFACT="${BIN}-${GOOS}-${GOARCH}${EXT}"
+        echo "artifact=${ARTIFACT}" >> $GITHUB_OUTPUT
+        echo "goos=${GOOS}" >> $GITHUB_OUTPUT
+        echo "goarch=${GOARCH}" >> $GITHUB_OUTPUT
+
         if [[ "${{ github.ref }}" == refs/tags/* ]]; then
           echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
         else
@@ -69,21 +58,20 @@ jobs:
 
     - name: Build
       env:
-        GOOS: ${{ matrix.os == 'ubuntu-latest' && 'linux' || matrix.os == 'macos-latest' && 'darwin' || 'windows' }}
-        GOARCH: ${{ matrix.arch }}
-        VERSION: ${{ steps.version.outputs.VERSION }}
-        BUILD_DATE: ${{ steps.version.outputs.BUILD_DATE }}
-        GIT_COMMIT: ${{ github.sha }}
+        GOOS: ${{ steps.vars.outputs.goos }}
+        GOARCH: ${{ steps.vars.outputs.goarch }}
+        VERSION: ${{ steps.vars.outputs.VERSION }}
+        BUILD_DATE: ${{ steps.vars.outputs.BUILD_DATE }}
         CGO_ENABLED: '0'
       run: |
         cd agent
-        go build -v -ldflags="-X github.com/xugou/agent/cmd/agent.Version=${VERSION} -X github.com/xugou/agent/cmd/agent.GitCommit=${GIT_COMMIT} -X github.com/xugou/agent/cmd/agent.BuildDate=${BUILD_DATE} -X github.com/xugou/agent/pkg/collector.Version=${VERSION}" -o ${{ matrix.artifact_name }} .
+        go build -v -ldflags="-X github.com/xugou/agent/cmd/agent.Version=${VERSION} -X github.com/xugou/agent/cmd/agent.GitCommit=${{ github.sha }} -X github.com/xugou/agent/cmd/agent.BuildDate=${BUILD_DATE} -X github.com/xugou/agent/pkg/collector.Version=${VERSION}" -o ${{ steps.vars.outputs.artifact }} .
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ matrix.asset_name }}
-        path: agent/${{ matrix.artifact_name }}
+        name: ${{ steps.vars.outputs.artifact }}
+        path: agent/${{ steps.vars.outputs.artifact }}
 
   create-release:
     name: Create GitHub Release
@@ -111,6 +99,9 @@ jobs:
           echo "RELEASE_ID=" >> $GITHUB_OUTPUT
         fi
 
+    - name: List artifacts
+      run: ls -R
+
     - name: Create Release (manual dispatch)
       if: github.event_name == 'workflow_dispatch'
       uses: softprops/action-gh-release@v2
@@ -120,12 +111,12 @@ jobs:
         draft: false
         prerelease: true
         files: |
-          xugou-agent-linux-amd64/xugou-agent-linux-amd64
-          xugou-agent-linux-arm64/xugou-agent-linux-arm64
-          xugou-agent-darwin-amd64/xugou-agent-darwin-amd64
-          xugou-agent-darwin-arm64/xugou-agent-darwin-arm64
-          xugou-agent-windows-amd64/xugou-agent-windows-amd64.exe
-          xugou-agent-windows-arm64/xugou-agent-windows-arm64.exe
+          ${{ inputs.binary_name }}-linux-amd64/${{ inputs.binary_name }}-linux-amd64
+          ${{ inputs.binary_name }}-linux-arm64/${{ inputs.binary_name }}-linux-arm64
+          ${{ inputs.binary_name }}-darwin-amd64/${{ inputs.binary_name }}-darwin-amd64
+          ${{ inputs.binary_name }}-darwin-arm64/${{ inputs.binary_name }}-darwin-arm64
+          ${{ inputs.binary_name }}-windows-amd64/${{ inputs.binary_name }}-windows-amd64.exe
+          ${{ inputs.binary_name }}-windows-arm64/${{ inputs.binary_name }}-windows-arm64.exe
 
     - name: Upload to existing Release (release event)
       if: github.event_name == 'release'
