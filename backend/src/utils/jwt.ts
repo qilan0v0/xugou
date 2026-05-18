@@ -35,9 +35,14 @@ export function toD1Primitive(v: any): string | number | null {
 }
 
 export async function generateToken(): Promise<string> {
-  const array = new Uint8Array(32);
+  // Generate a random UUID (version 4)
+  const array = new Uint8Array(16);
   crypto.getRandomValues(array);
-  return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+  // Set UUID v4 markers: version 4 (bits 48-51) and variant (bits 64-65)
+  array[6] = (array[6] & 0x0f) | 0x40;
+  array[8] = (array[8] & 0x3f) | 0x80;
+  const hex = Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
 export function generateAgentName(country?: string | null): string {
