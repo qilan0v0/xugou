@@ -9,6 +9,21 @@
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>XUGOU - 轻量化监控平台</title>
+    <script>
+      (function(){
+        try {
+          var cfg = JSON.parse(localStorage.getItem('xugou_page_config') || '{}');
+          if (cfg.title) document.title = cfg.title;
+          if (cfg.logoUrl) {
+            var link = document.createElement('link');
+            link.rel = 'icon';
+            link.setAttribute('data-custom', '1');
+            link.href = cfg.logoUrl;
+            document.head.appendChild(link);
+          }
+        } catch(e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

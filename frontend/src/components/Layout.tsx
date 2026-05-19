@@ -26,6 +26,7 @@ const Layout = ({ children }: LayoutProps) => {
           }
           link.href = res.data.logoUrl;
         }
+        localStorage.setItem('xugou_page_config', JSON.stringify({ title: res.data.title, logoUrl: res.data.logoUrl }));
       }
     }).catch(() => {});
   }, []);

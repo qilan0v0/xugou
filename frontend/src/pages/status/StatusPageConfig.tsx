@@ -81,7 +81,10 @@ const StatusPageConfig = () => {
         agents: config.agents.filter(a => a.selected).map(a => a.id)
       };
       const res = await saveStatusPageConfig(toSave);
-      if (res.success) { setToastMsg(t('statusPageConfig.configSaved')); setToastType('success'); }
+      if (res.success) {
+        setToastMsg(t('statusPageConfig.configSaved')); setToastType('success');
+        localStorage.setItem('xugou_page_config', JSON.stringify({ title: config.title, logoUrl: config.logoUrl }));
+      }
       else { setToastMsg(res.message || t('statusPageConfig.saveError')); setToastType('error'); }
     } catch { setToastMsg(t('statusPageConfig.saveError')); setToastType('error'); }
     finally { setSaving(false); setShowToast(true); setTimeout(() => setShowToast(false), 3000); }

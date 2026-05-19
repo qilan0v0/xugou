@@ -77,6 +77,7 @@ const StatusPage = () => {
       }
       link.href = data.logoUrl;
     }
+    localStorage.setItem('xugou_page_config', JSON.stringify({ title: data.title, logoUrl: data.logoUrl }));
   }, [data.title, data.logoUrl]);
 
   if (error) return <div className="flex justify-center items-center min-h-[50vh]"><span className="text-red-500">{error}</span></div>;
