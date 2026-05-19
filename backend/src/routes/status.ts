@@ -386,11 +386,27 @@ app.get('/data', async (c) => {
       };
     });
 
+    // Read saved status page config (use first available)
+    let pageConfig = { title: '系统状态', description: '实时监控系统运行状态', logoUrl: '', customCss: '' };
+    try {
+      const config = await c.env.DB.prepare('SELECT * FROM status_page_config LIMIT 1').first<any>();
+      if (config) {
+        pageConfig = {
+          title: config.title || pageConfig.title,
+          description: config.description || pageConfig.description,
+          logoUrl: config.logo_url || '',
+          customCss: config.custom_css || '',
+        };
+      }
+    } catch { /* use defaults */ }
+
     return c.json({
       success: true,
       data: {
-        title: '系统状态',
-        description: '实时监控系统运行状态',
+        title: pageConfig.title,
+        description: pageConfig.description,
+        logoUrl: pageConfig.logoUrl,
+        customCss: pageConfig.customCss,
         monitors: enrichedMonitors,
         agents: enrichedAgents,
       }

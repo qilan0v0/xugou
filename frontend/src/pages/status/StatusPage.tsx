@@ -18,7 +18,7 @@ const StatusPage = () => {
   const { t } = useTranslation();
   const { isAuthenticated } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const [data, setData] = useState<{ monitors: Monitor[], agents: StatusAgent[] }>({ monitors: [], agents: [] });
+  const [data, setData] = useState<{ title: string; description: string; logoUrl: string; customCss: string; monitors: Monitor[]; agents: StatusAgent[] }>({ title: '系统状态', description: '', logoUrl: '', customCss: '', monitors: [], agents: [] });
   const [error, setError] = useState<string | null>(null);
   const [fetched, setFetched] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState<StatusAgent | null>(null);
@@ -29,7 +29,14 @@ const StatusPage = () => {
       try {
         const res = await getStatusPageData();
         if (res.success && res.data) {
-          setData({ monitors: res.data.monitors || [], agents: res.data.agents || [] });
+          setData({
+            title: res.data.title || '系统状态',
+            description: res.data.description || '',
+            logoUrl: res.data.logoUrl || '',
+            customCss: res.data.customCss || '',
+            monitors: res.data.monitors || [],
+            agents: res.data.agents || [],
+          });
         } else {
           setError(res.message || t('statusPage.fetchError'));
         }
@@ -62,14 +69,19 @@ const StatusPage = () => {
 
   return (
     <div>
+      {data.customCss && <style dangerouslySetInnerHTML={{ __html: data.customCss }} />}
       {/* Top bar */}
       <nav className="sticky top-0 z-50 w-full bg-white/[0.85] dark:bg-[#0f0f1a]/[0.85] backdrop-blur-xl border-b border-white/[0.06]">
         <div className="max-w-[1400px] mx-auto px-4 h-[54px] flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-              <CubeIcon className="w-3.5 h-3.5 text-white" />
-            </div>
-            <span className="text-base font-bold text-slate-900 dark:text-white tracking-tight">XUGOU</span>
+            {data.logoUrl ? (
+              <img src={data.logoUrl} alt="" className="w-7 h-7 rounded-lg object-cover" />
+            ) : (
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                <CubeIcon className="w-3.5 h-3.5 text-white" />
+              </div>
+            )}
+            <span className="text-base font-bold text-slate-900 dark:text-white tracking-tight">{data.title}</span>
           </div>
           <div className="flex items-center gap-2">
             <LanguageSelector />
