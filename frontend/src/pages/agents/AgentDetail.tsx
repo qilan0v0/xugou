@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeftIcon, Pencil1Icon, Cross2Icon, ReloadIcon, CopyIcon, ClockIcon, DesktopIcon, GlobeIcon, LaptopIcon, CrumpledPaperIcon, Component1Icon, ActivityLogIcon, TimerIcon, CodeIcon } from '@radix-ui/react-icons';
+import { ArrowLeftIcon, Pencil1Icon, Cross2Icon, ReloadIcon, CopyIcon, ClockIcon, DesktopIcon, GlobeIcon, LaptopIcon, CrumpledPaperIcon, Component1Icon, StackIcon, ActivityLogIcon, TimerIcon, CodeIcon } from '@radix-ui/react-icons';
 import * as Toast from '@radix-ui/react-toast';
 import { getAgent, Agent, deleteAgent } from '../../api/agents';
 import CountryFlag from '../../components/CountryFlag';
@@ -108,7 +108,7 @@ const AgentDetail = () => {
           {agent.status === 'active' && agent.connectStr && <div className="flex items-center gap-2"><ActivityLogIcon className="text-slate-400" /><span className="text-slate-500">{t('agent.connectDuration')}:</span><span>{agent.connectStr}</span></div>}
           {agent.token && (
             <div className="flex items-center gap-2 col-span-full">
-              <span className="text-xs text-slate-500">Token:</span>
+              <span className="text-xs text-slate-500">UUID:</span>
               <code className="flex-1 px-2 py-1 rounded bg-slate-100 dark:bg-white/5 text-xs font-mono text-slate-600 dark:text-slate-400 truncate">{agent.token}</code>
               <button onClick={() => { navigator.clipboard.writeText(agent.token || ''); }} className="text-xs text-blue-500 hover:text-blue-400 transition-colors flex items-center gap-1 flex-shrink-0">
                 <CopyIcon className="w-3 h-3" />{t('common.copy')}
@@ -130,6 +130,7 @@ const AgentDetail = () => {
             {agent.cpu_arch && <div className="flex items-center gap-2"><Component1Icon className="text-slate-400" /><span className="text-slate-500">{t('agent.cpuArch')}:</span><span>{agent.cpu_arch}</span></div>}
             {agent.cpu_model_name && <div className="flex items-center gap-2"><CrumpledPaperIcon className="text-slate-400" /><span className="text-slate-500">{t('agent.cpuModel')}:</span><span className="truncate max-w-[200px]">{agent.cpu_model_name}</span></div>}
             {agent.cpu_cores != null && <div className="flex items-center gap-2"><Component1Icon className="text-slate-400" /><span className="text-slate-500">{t('agent.cpuCores')}:</span><span>{agent.cpu_cores}</span></div>}
+            {agent.memory_total != null && <div className="flex items-center gap-2"><StackIcon className="text-slate-400" /><span className="text-slate-500">{t('agent.memory')}:</span><span>{agent.memory_used != null ? `${(agent.memory_used / 1073741824).toFixed(1)} / ${(agent.memory_total / 1073741824).toFixed(1)} GiB` : `${(agent.memory_total / 1073741824).toFixed(1)} GiB`}</span></div>}
             {(agent.load1 != null || agent.load5 != null || agent.load15 != null) && <div className="flex items-center gap-2"><ActivityLogIcon className="text-slate-400" /><span className="text-slate-500">{t('agent.loadAverage')}:</span><span>{[agent.load1, agent.load5, agent.load15].map(v => v?.toFixed(2) ?? '-').join(' / ')}</span></div>}
             {agent.boot_time && <div className="flex items-center gap-2"><TimerIcon className="text-slate-400" /><span className="text-slate-500">{t('agent.bootTime')}:</span><span>{formatDateTime(agent.boot_time)}</span></div>}
             {agent.uptimeStr && <div className="flex items-center gap-2"><TimerIcon className="text-slate-400" /><span className="text-slate-500">{t('agent.uptime')}:</span><span>{agent.uptimeStr}</span></div>}
