@@ -25,6 +25,8 @@ const StatusPage = () => {
   const [fetched, setFetched] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState<StatusAgent | null>(null);
   const [selectedMonitor, setSelectedMonitor] = useState<Monitor | null>(null);
+  const [search, setSearch] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -162,16 +164,52 @@ const StatusPage = () => {
           </section>
         )}
 
-        {data.agents.length > 0 && (
-          <section>
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white section-heading mb-4">{t('statusPage.agentStatus')}</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {data.agents.map(agent => (
-                <AgentCard key={agent.id} agent={agent} onClick={() => setSelectedAgent(agent)} />
-              ))}
-            </div>
-          </section>
-        )}
+        {data.agents.length > 0 && (() => {
+          // Filter agents
+          const cats = [...new Set(data.agents.map(a => a.category).filter(Boolean))] as string[];
+          let filtered = data.agents;
+          if (categoryFilter) filtered = filtered.filter(a => a.category === categoryFilter);
+          if (search.trim()) {
+            const q = search.toLowerCase();
+            filtered = filtered.filter(a => {
+              const hay = [a.name, a.hostname, a.ip_address, a.os, a.tags].join(' ').toLowerCase();
+              return hay.includes(q);
+            });
+          }
+          return (
+            <section>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white section-heading mb-4">{t('statusPage.agentStatus')}</h2>
+              {/* Search */}
+              <div className="mb-3">
+                <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="搜索名称、主机名、IP、标签..." className="w-full px-4 py-2.5 rounded-lg border border-white/[0.08] bg-white/5 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 transition-all" />
+              </div>
+              {/* Category filter */}
+              {cats.length > 0 && (
+                <div className="flex gap-2 mb-4 flex-wrap">
+                  <button onClick={() => setCategoryFilter('')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${!categoryFilter ? 'bg-blue-500/10 text-blue-600' : 'text-slate-500 hover:text-slate-700 bg-slate-100 dark:bg-white/5'}`}>
+                    全部
+                  </button>
+                  {cats.map(cat => (
+                    <button key={cat} onClick={() => setCategoryFilter(cat)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${categoryFilter === cat ? 'bg-blue-500/10 text-blue-600' : 'text-slate-500 hover:text-slate-700 bg-slate-100 dark:bg-white/5'}`}>
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {filtered.length === 0 ? (
+                <div className="glass p-8 text-center"><p className="text-sm text-slate-500">没有匹配的客户端</p></div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filtered.map(agent => (
+                    <AgentCard key={agent.id} agent={agent} onClick={() => setSelectedAgent(agent)} />
+                  ))}
+                </div>
+              )}
+            </section>
+          );
+        })()}
       </div>
 
       {selectedAgent && (
