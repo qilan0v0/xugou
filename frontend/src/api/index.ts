@@ -4,7 +4,7 @@ import { ENV_API_BASE_URL, ENV_API_TIMEOUT } from '../config';
 const api = axios.create({
   baseURL: ENV_API_BASE_URL,
   timeout: ENV_API_TIMEOUT,
-  headers: { 'Content-Type': 'application/json' },
+  // Content-Type is auto-set by axios per-request (only for POST/PUT with body), avoids CORS preflight on GET
   withCredentials: false,
 });
 
