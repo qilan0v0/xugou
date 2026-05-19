@@ -194,6 +194,25 @@ const host = process.env.HOSTNAME || config.hostname || '0.0.0.0';
 
 let broadcast = (type: string, data: any) => {};
 
+// Throttled broadcast: collect pending agent IDs and flush at most once per second
+const pendingBroadcasts = new Set<number>();
+let flushTimer: ReturnType<typeof setTimeout> | null = null;
+const FLUSH_INTERVAL_MS = 1000;
+
+function flushBroadcasts() {
+  flushTimer = null;
+  if (pendingBroadcasts.size === 0) return;
+  const ids = Array.from(pendingBroadcasts);
+  pendingBroadcasts.clear();
+  const msg = `event: agent-update
+data: ${JSON.stringify({ ids, time: new Date().toISOString() })}
+
+`;
+  for (const res of sseClients) {
+    try { res.write(msg); } catch { sseClients.delete(res); }
+  }
+}
+
 const listener = getRequestListener(app.fetch);
 
 // SSE clients (ServerResponse objects kept open for streaming)
@@ -222,15 +241,13 @@ const server = createServer((req, res) => {
   return listener(req, res);
 });
 
-// Override broadcast — send SSE events instead of WebSocket messages
+// Override broadcast — queue agent IDs and flush throttled
 broadcast = (type, data) => {
-  const msg = `event: ${type}
-data: ${JSON.stringify({ ...data, time: new Date().toISOString() })}
-
-`;
-  console.log('SSE broadcast', type, 'to', sseClients.size, 'clients');
-  for (const res of sseClients) {
-    res.write(msg);
+  if (data?.id) {
+    pendingBroadcasts.add(data.id);
+    if (!flushTimer) {
+      flushTimer = setTimeout(flushBroadcasts, FLUSH_INTERVAL_MS);
+    }
   }
 };
 
