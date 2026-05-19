@@ -38,6 +38,7 @@ export interface Agent {
   duration_unit?: string;
   category?: string;
   tags?: string;
+  public?: number;
 }
 
 export const generateToken = async () => {
