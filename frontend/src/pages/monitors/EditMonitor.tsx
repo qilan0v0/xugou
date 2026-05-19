@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeftIcon, UpdateIcon, PlusIcon, TrashIcon } from '@radix-ui/react-icons';
 import { getMonitor, updateMonitor } from '../../api/monitors';
+import LoadingSpinner from '../../components/LoadingSpinner';
 import StatusCodeSelect from '../../components/StatusCodeSelect';
 import TagInput from '../../components/TagInput';
 import { useTranslation } from 'react-i18next';
@@ -72,7 +73,7 @@ const EditMonitor = () => {
   const inputClass = "w-full px-3 py-2 rounded-lg border border-white/[0.08] bg-white/5 text-sm text-slate-700 dark:text-slate-300 placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 transition-all";
   const labelClass = "block text-xs font-medium text-slate-500 mb-1.5";
 
-  if (loadingData) return <div className="flex justify-center items-center min-h-[50vh]"><span className="text-slate-500">{t('common.loading')}</span></div>;
+  if (loadingData) return <div className="flex justify-center items-center min-h-[50vh]"><LoadingSpinner /></div>;
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 animate-slide-up">

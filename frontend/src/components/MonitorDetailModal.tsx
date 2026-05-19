@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Cross2Icon, ClockIcon, CheckCircledIcon, CrossCircledIcon } from '@radix-ui/react-icons';
+import LoadingSpinner from './LoadingSpinner';
 import { ENV_API_BASE_URL } from '../config';
 
 interface MonitorCheck {
@@ -164,7 +165,7 @@ export default function MonitorDetailModal({ monitorId, monitorName, onClose }: 
 
           {/* Chart */}
           {loading ? (
-            <div className="flex items-center justify-center h-[220px] text-sm text-slate-400">加载中...</div>
+            <div className="flex items-center justify-center h-[220px]"><LoadingSpinner size="sm" /></div>
           ) : checks.length === 0 ? (
             <div className="flex items-center justify-center h-[220px] text-sm text-slate-400">暂无检查数据</div>
           ) : (

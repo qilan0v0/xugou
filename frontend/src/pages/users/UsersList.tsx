@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { TrashIcon } from '@radix-ui/react-icons';
 import { getAllUsers, deleteUser } from '../../api/users';
+import LoadingSpinner from '../../components/LoadingSpinner';
 import { User } from '../../api/auth';
 import { useTranslation } from 'react-i18next';
 
@@ -31,7 +32,7 @@ const UsersList = () => {
     } catch { setError(t('common.error.delete')); setDeleteId(null); }
   };
 
-  if (loading) return <div className="flex justify-center items-center min-h-[50vh]"><span className="text-slate-500">{t('common.loading')}</span></div>;
+  if (loading) return <div className="flex justify-center items-center min-h-[50vh]"><LoadingSpinner /></div>;
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 animate-slide-up">

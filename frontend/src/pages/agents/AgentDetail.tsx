@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeftIcon, Pencil1Icon, Cross2Icon, ReloadIcon, CopyIcon, ClockIcon, DesktopIcon, GlobeIcon, LaptopIcon, CrumpledPaperIcon, Component1Icon, StackIcon, ActivityLogIcon, TimerIcon, CodeIcon } from '@radix-ui/react-icons';
 import * as Toast from '@radix-ui/react-toast';
+import LoadingSpinner from '../../components/LoadingSpinner';
 import { getAgent, Agent, deleteAgent } from '../../api/agents';
 import CountryFlag from '../../components/CountryFlag';
 import ClientResourceSection from '../../components/ClientResourceSection';
@@ -68,7 +69,7 @@ const AgentDetail = () => {
 
   const formatDateTime = (s: string) => s ? new Date(s).toLocaleString() : t('common.notFound');
 
-  if (loading) return <div className="flex justify-center items-center min-h-[50vh]"><span className="text-slate-500">{t('agents.loadingDetail')}</span></div>;
+  if (loading) return <div className="flex justify-center items-center min-h-[50vh]"><LoadingSpinner /></div>;
   if (error || !agent) return <div className="flex justify-center items-center min-h-[50vh]"><div className="glass p-6 text-center"><h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{t('common.loadingError')}</h2><p className="text-slate-500 mb-4">{error || t('agents.notFound')}</p><button onClick={() => navigate('/agents')} className="btn-gradient px-4 py-2 text-sm">{t('common.backToList')}</button></div></div>;
 
   return (

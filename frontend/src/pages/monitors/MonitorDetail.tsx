@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { CheckCircledIcon, CrossCircledIcon, ArrowLeftIcon, Pencil1Icon, TrashIcon, ReloadIcon, QuestionMarkCircledIcon, Cross2Icon } from '@radix-ui/react-icons';
 import * as Toast from '@radix-ui/react-toast';
+import LoadingSpinner from '../../components/LoadingSpinner';
 import { getMonitor, deleteMonitor, checkMonitor, Monitor } from '../../api/monitors';
 import { useTranslation } from 'react-i18next';
 
@@ -54,7 +55,7 @@ const MonitorDetail = () => {
     switch (status) { case 'up': return <CheckCircledIcon className="text-emerald-500" />; case 'down': return <CrossCircledIcon className="text-red-500" />; default: return <QuestionMarkCircledIcon className="text-slate-400" />; }
   };
 
-  if (loading && !monitor) return <div className="flex justify-center items-center min-h-[50vh]"><div className="flex flex-col items-center gap-3"><div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" /><span className="text-sm text-slate-500">{t('common.loading')}</span></div></div>;
+  if (loading && !monitor) return <div className="flex justify-center items-center min-h-[50vh]"><LoadingSpinner /></div>;
   if (error || !monitor) return <div className="max-w-6xl mx-auto px-4 py-8"><div className="glass border-l-4 border-red-500 p-4 mb-4"><span className="text-red-500">{error || t('monitor.notExist')}</span></div><button onClick={() => navigate('/monitors')} className="btn-gradient px-4 py-2 text-sm">{t('monitor.returnToList')}</button></div>;
 
   const tabs = [

@@ -1,8 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { LanguageProvider } from './contexts/LanguageContext';
-import { useTranslation } from 'react-i18next';
-
 import Layout from './components/Layout';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
@@ -15,6 +13,7 @@ import AgentsList from './pages/agents/AgentsList';
 import AgentDetail from './pages/agents/AgentDetail';
 import UsersList from './pages/users/UsersList';
 import UserProfile from './pages/users/UserProfile';
+import LoadingSpinner from './components/LoadingSpinner';
 import NotFound from './pages/NotFound';
 import StatusPage from './pages/status/StatusPage';
 import StatusPageConfig from './pages/status/StatusPageConfig';
@@ -23,16 +22,14 @@ import EditAgent from './pages/agents/EditAgent';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuth();
-  const { t } = useTranslation();
-  if (isLoading) return <div className="flex justify-center items-center min-h-[50vh]"><span className="text-slate-500">{t('common.loading')}</span></div>;
+  if (isLoading) return <div className="flex justify-center items-center min-h-[50vh]"><LoadingSpinner /></div>;
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   return <>{children}</>;
 };
 
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading, user } = useAuth();
-  const { t } = useTranslation();
-  if (isLoading) return <div className="flex justify-center items-center min-h-[50vh]"><span className="text-slate-500">{t('common.loading')}</span></div>;
+  if (isLoading) return <div className="flex justify-center items-center min-h-[50vh]"><LoadingSpinner /></div>;
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (user?.role !== 'admin') return <Navigate to="/dashboard" replace />;
   return <>{children}</>;

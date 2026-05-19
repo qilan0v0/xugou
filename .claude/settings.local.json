@@ -3,7 +3,10 @@
     "allow": [
       "Bash(python3)",
       "Bash(xxd)",
-      "Bash(yarn add *)"
+      "Bash(yarn add *)",
+      "Bash(npx tsc *)",
+      "Bash(npx vite *)",
+      "Bash(wrangler pages *)"
     ]
   }
 }

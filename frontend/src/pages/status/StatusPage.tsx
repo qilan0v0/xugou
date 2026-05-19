@@ -6,6 +6,7 @@ import AgentCard from '../../components/AgentCard';
 import AgentDetailModal from '../../components/AgentDetailModal';
 import MonitorCard from '../../components/MonitorCard';
 import MonitorDetailModal from '../../components/MonitorDetailModal';
+import LoadingSpinner from '../../components/LoadingSpinner';
 import CustomInjector from '../../components/CustomInjector';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -82,7 +83,7 @@ const StatusPage = () => {
   }, [data.title, data.logoUrl]);
 
   if (error) return <div className="flex justify-center items-center min-h-[50vh]"><span className="text-red-500">{error}</span></div>;
-  if (!fetched) return <div className="flex justify-center items-center min-h-[50vh]"><span className="text-slate-500">{t('common.loading')}</span></div>;
+  if (!fetched) return <div className="flex justify-center items-center min-h-[50vh]"><LoadingSpinner /></div>;
 
   return (
     <div>

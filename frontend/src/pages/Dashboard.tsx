@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getAllMonitors, Monitor } from '../api/monitors';
 import { getAllAgents, Agent } from '../api/agents';
+import LoadingSpinner from '../components/LoadingSpinner';
 import StatusSummaryCard from '../components/StatusSummaryCard';
 import MonitorCard from '../components/MonitorCard';
 import AgentCard from '../components/AgentCard';
@@ -38,7 +39,7 @@ const Dashboard = () => {
       <div className="flex justify-center items-center min-h-[50vh]">
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-          <span className="text-sm text-slate-500">{t('common.loading')}</span>
+          <LoadingSpinner />
         </div>
       </div>
     );

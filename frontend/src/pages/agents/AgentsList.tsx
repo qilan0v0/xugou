@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PlusIcon, Cross2Icon, Pencil1Icon, InfoCircledIcon, ReloadIcon, CubeIcon, CheckCircledIcon, CrossCircledIcon as CrossCircled, GlobeIcon, ArrowUpIcon, UpdateIcon } from '@radix-ui/react-icons';
 import { getAllAgents, deleteAgent, updateAgent, Agent } from '../../api/agents';
+import LoadingSpinner from '../../components/LoadingSpinner';
 import AgentDetailModal from '../../components/AgentDetailModal';
 import TagInput from '../../components/TagInput';
 import CountryFlag from '../../components/CountryFlag';
@@ -196,7 +197,7 @@ const AgentsList = () => {
     catch { alert('删除失败'); }
   };
 
-  if (!fetched) return <div className="flex justify-center items-center min-h-[50vh]"><span className="text-slate-500">{t('common.loading')}</span></div>;
+  if (!fetched) return <div className="flex justify-center items-center min-h-[50vh]"><LoadingSpinner /></div>;
   if (error) return <div className="max-w-[1400px] mx-auto px-4 py-8"><div className="glass p-4 mb-4 border-l-4 border-red-500"><span className="text-red-500">{error}</span></div><button onClick={() => window.location.reload()} className="btn-gradient px-4 py-2 text-sm">{t('common.retry')}</button></div>;
 
   const filtered = agents.filter(matchFilter);

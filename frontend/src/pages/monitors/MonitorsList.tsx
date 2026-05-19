@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PlusIcon, Pencil1Icon, TrashIcon, Cross2Icon, ReloadIcon, InfoCircledIcon, ClockIcon, GlobeIcon, ActivityLogIcon, UpdateIcon } from '@radix-ui/react-icons';
 import { getAllMonitors, deleteMonitor, updateMonitor, Monitor } from '../../api/monitors';
+import LoadingSpinner from '../../components/LoadingSpinner';
 import StatusCodeSelect from '../../components/StatusCodeSelect';
 import TagInput from '../../components/TagInput';
 import { useTranslation } from 'react-i18next';
@@ -150,7 +151,7 @@ const MonitorsList = () => {
     } catch { alert(t('monitors.delete.failed')); }
   };
 
-  if (loading) return <div className="flex justify-center items-center min-h-[50vh]"><span className="text-slate-500">{t('common.loading')}</span></div>;
+  if (loading) return <div className="flex justify-center items-center min-h-[50vh]"><LoadingSpinner /></div>;
   if (error) return <div className="max-w-[1400px] mx-auto px-4 py-8"><div className="glass p-4 mb-4 border-l-4 border-red-500"><span className="text-red-500">{error}</span></div><button onClick={() => window.location.reload()} className="btn-gradient px-4 py-2 text-sm">{t('monitors.retry')}</button></div>;
 
   return (
