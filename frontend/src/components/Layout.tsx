@@ -1,6 +1,7 @@
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 import Navbar from './Navbar';
 import { useTranslation } from 'react-i18next';
+import { ENV_API_BASE_URL } from '../config';
 
 interface LayoutProps {
   children: ReactNode;
@@ -9,6 +10,25 @@ interface LayoutProps {
 const Layout = ({ children }: LayoutProps) => {
   const currentYear = new Date().getFullYear();
   const { t } = useTranslation();
+
+  // Dynamically set browser title + favicon from status page config
+  useEffect(() => {
+    fetch(`${ENV_API_BASE_URL}/api/status/data`).then(r => r.json()).then(res => {
+      if (res.success && res.data) {
+        document.title = res.data.title || '系统状态';
+        if (res.data.logoUrl) {
+          let link = document.querySelector('link[rel="icon"][data-custom]') as HTMLLinkElement;
+          if (!link) {
+            link = document.createElement('link');
+            link.rel = 'icon';
+            link.setAttribute('data-custom', '1');
+            document.head.appendChild(link);
+          }
+          link.href = res.data.logoUrl;
+        }
+      }
+    }).catch(() => {});
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen">
