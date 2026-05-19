@@ -23,8 +23,8 @@ export default function LoadingSpinner({ text = '加载中...', size = 'md' }: L
           strokeDasharray={`${circ * 0.25} ${circ * 0.75}`} />
         <defs>
           <linearGradient id={id} x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#3b82f6" />
-            <stop offset="100%" stopColor="#8b5cf6" />
+            <stop offset="0%" stopColor="#2563eb" />
+            <stop offset="100%" stopColor="#0891b2" />
           </linearGradient>
         </defs>
       </svg>

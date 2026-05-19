@@ -97,7 +97,7 @@ const StatusPage = () => {
             {data.logoUrl ? (
               <img src={data.logoUrl} alt="" className="w-7 h-7 rounded-lg object-cover" />
             ) : (
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center">
                 <CubeIcon className="w-3.5 h-3.5 text-white" />
               </div>
             )}

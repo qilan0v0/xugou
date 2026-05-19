@@ -58,7 +58,7 @@ const Navbar = () => {
                 {cfg.logoUrl ? (
                   <img src={cfg.logoUrl} alt="" className="w-8 h-8 rounded-lg object-cover group-hover:scale-105 group-hover:rotate-[-5deg] transition-all duration-300" />
                 ) : (
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center
                     group-hover:scale-105 group-hover:rotate-[-5deg] transition-all duration-300">
                     <PieChartIcon className="w-4 h-4 text-white" />
                   </div>
@@ -102,7 +102,7 @@ const Navbar = () => {
                 <button onClick={() => setMenuOpen(!menuOpen)}
                   className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 transition-all"
                 >
-                  <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">
+                  <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center text-white text-xs font-bold">
                     {user?.username?.charAt(0).toUpperCase() || 'U'}
                   </div>
                   <span className="hidden sm:block text-sm">{user?.username}</span>

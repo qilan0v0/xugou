@@ -95,7 +95,7 @@ const AgentDetail = () => {
       {/* Info Card */}
       <div className="glass p-5 mb-6">
         <div className="flex items-center gap-4 mb-4">
-          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-lg font-bold">{agent.name.charAt(0)}</div>
+          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center text-white text-lg font-bold">{agent.name.charAt(0)}</div>
           <div>
             <h2 className="text-xl font-bold text-slate-900 dark:text-white">{agent.name}</h2>
             <p className="text-sm text-slate-500">

@@ -41,7 +41,7 @@ export default function AgentDetailModal({ agent, onClose, showToken }: AgentDet
         <div className="p-6">
           {/* Header */}
           <div className="flex items-center gap-3 mb-5">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-base font-bold flex-shrink-0">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center text-white text-base font-bold flex-shrink-0">
               {agent.name.charAt(0)}
             </div>
             <div className="min-w-0 flex-1">
