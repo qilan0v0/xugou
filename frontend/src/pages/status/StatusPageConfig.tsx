@@ -70,13 +70,6 @@ const StatusPageConfig = () => {
     setConfig(prev => ({ ...prev, [name]: value }));
   };
 
-  const toggleMonitor = (id: number) => setConfig(prev => ({
-    ...prev, monitors: prev.monitors.map(m => m.id === id ? { ...m, selected: !m.selected } : m)
-  }));
-  const toggleAgent = (id: number) => setConfig(prev => ({
-    ...prev, agents: prev.agents.map(a => a.id === id ? { ...a, selected: !a.selected } : a)
-  }));
-
   const handleCopyUrl = () => { navigator.clipboard.writeText(config.publicUrl); setCopied(true); setTimeout(() => setCopied(false), 2000); };
 
   const handleSave = async () => {
@@ -101,8 +94,6 @@ const StatusPageConfig = () => {
 
   const tabs = [
     { key: 'general', label: t('statusPageConfig.general') },
-    { key: 'services', label: t('statusPageConfig.services') },
-    { key: 'agents', label: t('statusPageConfig.agents') },
     { key: 'notifications', label: t('statusPageConfig.notifications') },
     { key: 'appearance', label: t('statusPageConfig.appearance') },
   ];
@@ -159,52 +150,6 @@ const StatusPageConfig = () => {
                 </div>
                 <p className="text-xs text-slate-500 mt-1">{t('statusPageConfig.publicUrlHelp')}</p>
               </div>
-            </div>
-          )}
-
-          {tab === 'services' && (
-            <div>
-              <p className="text-sm text-slate-500 mb-4">{t('statusPageConfig.selectServicesPrompt')}</p>
-              {config.monitors.length === 0 ? (
-                <p className="text-slate-500">{t('monitors.noMonitors')}</p>
-              ) : (
-                <div className="flex flex-col gap-1">
-                  {config.monitors.map(m => (
-                    <label key={m.id} className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors cursor-pointer">
-                      <span className="text-sm text-slate-700 dark:text-slate-300">{m.name}</span>
-                      <span className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${
-                        m.selected ? 'bg-blue-500 border-blue-500' : 'border-slate-400'
-                      }`}>
-                        {m.selected && <CheckIcon className="w-3.5 h-3.5 text-white" />}
-                      </span>
-                      <input type="checkbox" checked={m.selected} onChange={() => toggleMonitor(m.id)} className="sr-only" />
-                    </label>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {tab === 'agents' && (
-            <div>
-              <p className="text-sm text-slate-500 mb-4">{t('statusPageConfig.selectAgentsPrompt')}</p>
-              {config.agents.length === 0 ? (
-                <p className="text-slate-500">{t('agents.noAgents')}</p>
-              ) : (
-                <div className="flex flex-col gap-1">
-                  {config.agents.map(a => (
-                    <label key={a.id} className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors cursor-pointer">
-                      <span className="text-sm text-slate-700 dark:text-slate-300">{a.name}</span>
-                      <span className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${
-                        a.selected ? 'bg-blue-500 border-blue-500' : 'border-slate-400'
-                      }`}>
-                        {a.selected && <CheckIcon className="w-3.5 h-3.5 text-white" />}
-                      </span>
-                      <input type="checkbox" checked={a.selected} onChange={() => toggleAgent(a.id)} className="sr-only" />
-                    </label>
-                  ))}
-                </div>
-              )}
             </div>
           )}
 
