@@ -14,7 +14,6 @@ import UsersList from './pages/users/UsersList';
 import UserProfile from './pages/users/UserProfile';
 import NotFound from './pages/NotFound';
 import StatusPage from './pages/status/StatusPage';
-import StatusPageConfig from './pages/status/StatusPageConfig';
 import CreateAgent from './pages/agents/CreateAgent';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -42,7 +41,6 @@ function App() {
         <Route path="/login" element={<Layout><Login /></Layout>} />
         <Route path="/register" element={<Layout><Register /></Layout>} />
         <Route path="/status" element={<StatusPage />} />
-        <Route path="/status/config" element={<ProtectedRoute><Layout><StatusPageConfig /></Layout></ProtectedRoute>} />
                 <Route path="/dashboard" element={<ProtectedRoute><Layout><Dashboard /></Layout></ProtectedRoute>} />
         <Route path="/monitors" element={<ProtectedRoute><Layout><MonitorsList /></Layout></ProtectedRoute>} />
         <Route path="/monitors/create" element={<ProtectedRoute><Layout><CreateMonitor /></Layout></ProtectedRoute>} />
