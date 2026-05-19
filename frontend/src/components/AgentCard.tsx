@@ -3,7 +3,7 @@ import ResourceBar from './ResourceBar';
 import CountryFlag from './CountryFlag';
 import { useTranslation } from 'react-i18next';
 import {
-  CrumpledPaperIcon, MixerHorizontalIcon, StackIcon, TimerIcon, CalendarIcon,
+  CrumpledPaperIcon, Component1Icon, StackIcon, TimerIcon, CalendarIcon,
   DownloadIcon, UploadIcon, ArrowDownIcon, ArrowUpIcon, ActivityLogIcon,
 } from '@radix-ui/react-icons';
 
@@ -137,7 +137,7 @@ const AgentCard = ({ agent }: AgentCardProps) => {
       {/* Two-column metrics - paired rows for alignment */}
       <div className="flex flex-col gap-1.5">
         {[
-          [<MetricItem key="cpu" icon={<MixerHorizontalIcon />} iconColor="bg-emerald-500/10 text-emerald-600" label="CPU" value={`${cpu.toFixed(1)}%`} barValue={cpu} barColor="green" />,
+          [<MetricItem key="cpu" icon={<Component1Icon />} iconColor="bg-emerald-500/10 text-emerald-600" label="CPU" value={`${cpu.toFixed(1)}%`} barValue={cpu} barColor="green" />,
            <MetricItem key="mem" icon={<StackIcon />} iconColor="bg-blue-500/10 text-blue-600" label={t('agent.memory')} value={`${memPct.toFixed(1)}%`} sub={`${memUsedStr} / ${memTotalStr}`} barValue={memPct} barColor="blue" />],
           [<MetricItem key="disk" icon={<CrumpledPaperIcon />} iconColor="bg-amber-500/10 text-amber-600" label={t('agent.disk')} value={`${diskPct.toFixed(1)}%`} sub={`${diskUsedStr} / ${diskTotalStr}`} barValue={diskPct} barColor="amber" />,
            <MetricItem key="traf" icon={<ActivityLogIcon />} iconColor="bg-violet-500/10 text-violet-600" label={t('agent.traffic')} value={trafficLimit > 0 ? `${totalTrafficStr} / ${trafficLimitStr}` : '--'} barValue={trafficLimit > 0 ? trafficPct : 0} barColor="purple" />],
