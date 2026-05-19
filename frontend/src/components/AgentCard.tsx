@@ -87,7 +87,9 @@ const AgentCard = ({ agent, onClick }: AgentCardProps) => {
         </span>
         <span className="text-[11px] font-medium text-slate-700 dark:text-slate-300">{value || ''}</span>
       </div>
-      {hasSub && <div className="text-[10px] leading-[14px]"><span className="text-slate-400">{sub}</span></div>}
+      <div className="text-[10px] leading-[14px] h-[14px]">
+        {hasSub && <span className="text-slate-400">{sub}</span>}
+      </div>
       {hasBar && <ResourceBar value={Math.min(barValue!, 100)} color={barColor!} height={5} />}
     </div>
   );};
