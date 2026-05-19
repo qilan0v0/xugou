@@ -319,7 +319,7 @@ const AgentsList = () => {
       )}
 
       {editing && <EditModal agent={editing} onClose={() => setEditing(null)} onSaved={fetchAgents} />}
-      {detailAgent && <AgentDetailModal agent={detailAgent} onClose={() => setDetailAgent(null)} />}
+      {detailAgent && <AgentDetailModal agent={detailAgent} onClose={() => setDetailAgent(null)} showToken />}
     </div>
   );
 };

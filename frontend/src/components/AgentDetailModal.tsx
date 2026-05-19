@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Cross2Icon, ClockIcon, DesktopIcon, GlobeIcon, LaptopIcon, Component1Icon, StackIcon, ActivityLogIcon, TimerIcon, CodeIcon, CrumpledPaperIcon } from '@radix-ui/react-icons';
+import { Cross2Icon, CopyIcon, ClockIcon, DesktopIcon, GlobeIcon, LaptopIcon, Component1Icon, StackIcon, ActivityLogIcon, TimerIcon, CodeIcon, CrumpledPaperIcon } from '@radix-ui/react-icons';
 import { Agent } from '../api/agents';
 import CountryFlag from './CountryFlag';
 import ClientResourceSection from './ClientResourceSection';
@@ -7,9 +7,10 @@ import ClientResourceSection from './ClientResourceSection';
 interface AgentDetailModalProps {
   agent: Agent;
   onClose: () => void;
+  showToken?: boolean;
 }
 
-export default function AgentDetailModal({ agent, onClose }: AgentDetailModalProps) {
+export default function AgentDetailModal({ agent, onClose, showToken }: AgentDetailModalProps) {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -63,6 +64,17 @@ export default function AgentDetailModal({ agent, onClose }: AgentDetailModalPro
             <div className="flex items-center gap-2"><ClockIcon className="text-slate-400 w-3.5 h-3.5" /><span className="text-slate-500">最后更新:</span><span className="text-slate-700 dark:text-slate-300">{formatDateTime(agent.updated_at)}</span></div>
             <div className="flex items-center gap-2"><GlobeIcon className="text-slate-400 w-3.5 h-3.5" /><span className="text-slate-500">IP:</span><span className="text-slate-700 dark:text-slate-300">{agent.ip_address || '--'}</span></div>
           </div>
+
+          {/* UUID — admin only */}
+          {showToken && agent.token && (
+            <div className="flex items-center gap-2 mb-5 p-2 rounded-lg bg-slate-50 dark:bg-white/[0.02] text-xs">
+              <span className="text-slate-500 flex-shrink-0">UUID:</span>
+              <code className="flex-1 font-mono text-slate-600 dark:text-slate-400 truncate">{agent.token}</code>
+              <button onClick={() => navigator.clipboard.writeText(agent.token || '')} className="text-blue-500 hover:text-blue-400 flex-shrink-0 flex items-center gap-1">
+                <CopyIcon className="w-3 h-3" />复制
+              </button>
+            </div>
+          )}
 
           {/* System Info + Resources */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
