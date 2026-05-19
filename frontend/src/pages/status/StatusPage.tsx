@@ -20,7 +20,7 @@ const StatusPage = () => {
   const [data, setData] = useState<{ monitors: Monitor[], agents: StatusAgent[] }>({ monitors: [], agents: [] });
   const [error, setError] = useState<string | null>(null);
   const [fetched, setFetched] = useState(false);
-  const [selectedAgentId, setSelectedAgentId] = useState<number | null>(null);
+  const [selectedAgent, setSelectedAgent] = useState<StatusAgent | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -135,15 +135,15 @@ const StatusPage = () => {
             <h2 className="text-lg font-bold text-slate-900 dark:text-white section-heading mb-4">{t('statusPage.agentStatus')}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {data.agents.map(agent => (
-                <AgentCard key={agent.id} agent={agent} onClick={() => setSelectedAgentId(agent.id)} />
+                <AgentCard key={agent.id} agent={agent} onClick={() => setSelectedAgent(agent)} />
               ))}
             </div>
           </section>
         )}
       </div>
 
-      {selectedAgentId && (
-        <AgentDetailModal agentId={selectedAgentId} onClose={() => setSelectedAgentId(null)} />
+      {selectedAgent && (
+        <AgentDetailModal agent={selectedAgent} onClose={() => setSelectedAgent(null)} />
       )}
     </div>
   );
