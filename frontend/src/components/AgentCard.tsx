@@ -9,6 +9,7 @@ import {
 
 interface AgentCardProps {
   agent: Agent;
+  onClick?: () => void;
 }
 
 const formatBytes = (bytes: number): string => {
@@ -29,7 +30,7 @@ const formatDuration = (ms: number): string => {
   return `${m}分`;
 };
 
-const AgentCard = ({ agent }: AgentCardProps) => {
+const AgentCard = ({ agent, onClick }: AgentCardProps) => {
   const { t } = useTranslation();
 
   let cpu = 0, memPct = 0, diskPct = 0;
@@ -100,7 +101,10 @@ const AgentCard = ({ agent }: AgentCardProps) => {
   );};
 
   return (
-    <div className="glass rounded-xl p-4 hover:shadow-lg transition-shadow duration-200">
+    <div
+      onClick={onClick}
+      className={`glass rounded-xl p-4 hover:shadow-lg transition-shadow duration-200 ${onClick ? 'cursor-pointer' : ''}`}
+    >
       {/* Header: flag + name + OS + status */}
       <div className="flex items-center gap-2 mb-3">
         <CountryFlag code={agent.country} />
