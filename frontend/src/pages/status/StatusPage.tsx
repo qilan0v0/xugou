@@ -64,6 +64,21 @@ const StatusPage = () => {
     };
   }, []);
 
+  // Dynamically set browser title and favicon from config
+  useEffect(() => {
+    document.title = data.title || '系统状态';
+    if (data.logoUrl) {
+      let link = document.querySelector('link[rel="icon"][data-custom]') as HTMLLinkElement;
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        link.setAttribute('data-custom', '1');
+        document.head.appendChild(link);
+      }
+      link.href = data.logoUrl;
+    }
+  }, [data.title, data.logoUrl]);
+
   if (error) return <div className="flex justify-center items-center min-h-[50vh]"><span className="text-red-500">{error}</span></div>;
   if (!fetched) return <div className="flex justify-center items-center min-h-[50vh]"><span className="text-slate-500">{t('common.loading')}</span></div>;
 
