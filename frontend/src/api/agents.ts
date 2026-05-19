@@ -117,6 +117,11 @@ export const updateAgent = async (id: number, data: {
   os?: string;
   version?: string;
   status?: string;
+  traffic_limit?: number | null;
+  expiry_time?: string | null;
+  category?: string | null;
+  tags?: string | null;
+  public?: boolean;
 }) => {
   try {
     const response = await api.put(`/api/agents/${id}`, data);

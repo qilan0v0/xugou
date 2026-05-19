@@ -287,6 +287,8 @@ const zhCN = {
     'agent.days': '天',
     'agent.trafficLimit': '总流量上限',
     'agent.expiryTime': '到期时间',
+    'agent.updateSuccess': '客户端更新成功',
+    'agent.updateFailed': '客户端更新失败',
     'agent.name': '备注',
     'agent.networkTotalTx': '总上传量',
     'agent.connectDuration': '连接时长',

@@ -49,7 +49,9 @@ const AgentCard = ({ agent }: AgentCardProps) => {
   const trafficLimit = agent.traffic_limit || 0;
   const trafficLimitStr = trafficLimit > 0 ? formatBytes(trafficLimit) : '';
   const trafficPct = trafficLimit > 0 ? Math.round((totalTraffic / trafficLimit) * 1000) / 10 : 0;
-  const expiryDays = agent.expiry_time ? Math.ceil((new Date(agent.expiry_time).getTime() - Date.now()) / 86400000) : -1;
+  const hasExpiry = !!agent.expiry_time;
+  const expiryDays = hasExpiry ? Math.ceil((new Date(agent.expiry_time!).getTime() - Date.now()) / 86400000) : -1;
+  const isExpired = hasExpiry && expiryDays < 0;
 
   const rxTotalStr = formatBytes(agent.network_rx_total || 0);
   const txTotalStr = formatBytes(agent.network_tx_total || 0);
@@ -160,7 +162,7 @@ const AgentCard = ({ agent }: AgentCardProps) => {
           <MetricItem
             icon={<CalendarIcon />} iconColor="bg-orange-500/10 text-orange-600"
             label={t('agent.expiry')}
-            value={expiryDays >= 0 ? `${expiryDays}${t('agent.days')}` : '--'}
+            value={isExpired ? t('agent.expired') : hasExpiry ? `${expiryDays}${t('agent.days')}` : '--'}
           />
         </div>
         <div className="flex-1">

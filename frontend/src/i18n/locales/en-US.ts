@@ -293,7 +293,15 @@ const enUS = {
     'agent.deleting': 'Deleting agent...',
     'agent.deleteSuccess': 'Agent has been deleted successfully',
     'agent.deleteError': 'Failed to delete agent',
-    
+    'agent.expiry': 'Expiry',
+    'agent.expired': 'Expired',
+    'agent.days': 'd',
+    'agent.expiryTime': 'Expiry Time',
+    'agent.traffic': 'Traffic',
+    'agent.trafficLimit': 'Traffic Limit',
+    'agent.updateSuccess': 'Agent updated successfully',
+    'agent.updateFailed': 'Failed to update agent',
+
     // Create/Edit agent
     'agent.form.title.create': 'Add Agent',
     'agent.form.title.edit': 'Edit Agent',

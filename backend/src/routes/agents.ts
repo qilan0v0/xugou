@@ -55,24 +55,27 @@ agents.get('/', async (c) => {
 // 创建新客户端
 agents.post('/', async (c) => {
   try {
-    const { name, token: reqToken, category, tags, public: isPublic } = await c.req.json();
+    const { name, token: reqToken, category, tags, public: isPublic, expiry_time, traffic_limit } = await c.req.json();
     const payload = c.get('jwtPayload');
-    
+
     const token = reqToken || await generateToken();
     const now = new Date().toISOString();
-    
+
     // 插入新客户端
     const result = await c.env.DB.prepare(
       `INSERT INTO agents
-       (name, token, created_by, status, category, public, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+       (name, token, created_by, status, category, tags, public, expiry_time, traffic_limit, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).bind(
       name,
       token,
       payload.id,
       'inactive',
       category || null,
+      tags || null,
       isPublic !== undefined ? (isPublic ? 1 : 0) : 1,
+      expiry_time || null,
+      traffic_limit || null,
       now,
       now
     ).run();
