@@ -4,9 +4,10 @@ import { useTranslation } from 'react-i18next';
 
 interface MonitorCardProps {
   monitor: Monitor;
+  onClick?: () => void;
 }
 
-const MonitorCard = ({ monitor }: MonitorCardProps) => {
+const MonitorCard = ({ monitor, onClick }: MonitorCardProps) => {
   const { t } = useTranslation();
 
   const currentStatus = monitor.status || 'pending';
@@ -46,7 +47,10 @@ const MonitorCard = ({ monitor }: MonitorCardProps) => {
   const label = t(`monitorCard.status.${currentStatus}`, currentStatus);
 
   return (
-    <div className="glass glass-hover relative overflow-hidden group">
+    <div
+      onClick={onClick}
+      className={`glass glass-hover relative overflow-hidden group ${onClick ? 'cursor-pointer' : ''}`}
+    >
       <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r ${config.border}`} />
       <div className="p-4">
         <div className="flex justify-between items-start mb-3">

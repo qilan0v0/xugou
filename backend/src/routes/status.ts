@@ -290,6 +290,43 @@ adminRoutes.post('/config', async (c) => {
   }
 });
 
+// 公共路由 - 获取单个监控的检查记录（可选认证）
+app.get('/monitor/:id/checks', async (c) => {
+  try {
+    const monitorId = parseInt(c.req.param('id'));
+    const limit = Math.min(parseInt(c.req.query('limit') || '10') || 10, 50);
+
+    let isAuthenticated = false;
+    const authHeader = c.req.header('Authorization');
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      try {
+        const token = authHeader.slice(7);
+        const secret = getJwtSecret(c);
+        await verify(token, secret);
+        isAuthenticated = true;
+      } catch { /* ignore */ }
+    }
+
+    // Verify monitor exists and is accessible
+    const monitor = await c.env.DB.prepare(
+      'SELECT id, public FROM monitors WHERE id = ?'
+    ).bind(monitorId).first<{id: number; public: number}>();
+    if (!monitor) return c.json({ success: false, message: '监控不存在' }, 404);
+    if (!isAuthenticated && !monitor.public) return c.json({ success: false, message: '无权访问' }, 403);
+
+    const checks = await c.env.DB.prepare(
+      `SELECT status, response_time, status_code, checked_at
+       FROM monitor_checks WHERE monitor_id = ?
+       ORDER BY checked_at DESC LIMIT ?`
+    ).bind(monitorId, limit).all();
+
+    return c.json({ success: true, checks: (checks.results || []).reverse() });
+  } catch (error) {
+    console.error('获取监控检查记录失败:', error);
+    return c.json({ success: false, message: '获取检查记录失败' }, 500);
+  }
+});
+
 // 公共路由 - 获取状态页数据（登录用户看全部，游客只看公开）
 app.get('/data', async (c) => {
   try {

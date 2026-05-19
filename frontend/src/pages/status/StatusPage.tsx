@@ -5,6 +5,7 @@ import { Monitor } from '../../api/monitors';
 import AgentCard from '../../components/AgentCard';
 import AgentDetailModal from '../../components/AgentDetailModal';
 import MonitorCard from '../../components/MonitorCard';
+import MonitorDetailModal from '../../components/MonitorDetailModal';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import LanguageSelector from "../../components/LanguageSelector";
@@ -21,6 +22,7 @@ const StatusPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [fetched, setFetched] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState<StatusAgent | null>(null);
+  const [selectedMonitor, setSelectedMonitor] = useState<Monitor | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -125,7 +127,7 @@ const StatusPage = () => {
           <section className="mb-8">
             <h2 className="text-lg font-bold text-slate-900 dark:text-white section-heading mb-4">{t('statusPage.apiServices')}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {data.monitors.map(m => <MonitorCard key={m.id} monitor={m} />)}
+              {data.monitors.map(m => <MonitorCard key={m.id} monitor={m} onClick={() => setSelectedMonitor(m)} />)}
             </div>
           </section>
         )}
@@ -144,6 +146,9 @@ const StatusPage = () => {
 
       {selectedAgent && (
         <AgentDetailModal agent={selectedAgent} onClose={() => setSelectedAgent(null)} />
+      )}
+      {selectedMonitor && (
+        <MonitorDetailModal monitorId={selectedMonitor.id} monitorName={selectedMonitor.name} onClose={() => setSelectedMonitor(null)} />
       )}
     </div>
   );
