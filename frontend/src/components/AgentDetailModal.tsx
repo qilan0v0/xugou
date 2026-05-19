@@ -24,6 +24,8 @@ export default function AgentDetailModal({ agent, onClose, showToken }: AgentDet
   const disk = agent.disk_total && agent.disk_used ? Math.round((agent.disk_used / agent.disk_total) * 100) : 0;
   const uptime = agent.boot_time ? Math.max(0, Date.now() - new Date(agent.boot_time).getTime()) : 0;
   const uptimeStr = uptime ? `${Math.floor(uptime / 86400000)}d ${Math.floor((uptime % 86400000) / 3600000)}h ${Math.floor((uptime % 3600000) / 60000)}m` : '';
+  const connectedMs = agent.connected_at ? Math.max(0, Date.now() - new Date(agent.connected_at).getTime()) : 0;
+  const connectStr = connectedMs > 0 ? `${Math.floor(connectedMs / 86400000)}d ${Math.floor((connectedMs % 86400000) / 3600000)}h ${Math.floor((connectedMs % 3600000) / 60000)}m` : '';
   const formatDateTime = (s: string) => s ? new Date(s).toLocaleString() : '--';
 
   return (
@@ -89,6 +91,7 @@ export default function AgentDetailModal({ agent, onClose, showToken }: AgentDet
                 {agent.memory_total != null && <div className="flex items-center gap-2"><StackIcon className="text-slate-400 w-3.5 h-3.5" /><span className="text-slate-500">内存:</span><span className="text-slate-700 dark:text-slate-300">{`${(agent.memory_total / 1073741824).toFixed(1)} GiB`}</span></div>}
                 {(agent.load1 != null) && <div className="flex items-center gap-2"><ActivityLogIcon className="text-slate-400 w-3.5 h-3.5" /><span className="text-slate-500">负载:</span><span className="text-slate-700 dark:text-slate-300">{[agent.load1, agent.load5, agent.load15].map(v => v?.toFixed(2) ?? '-').join(' / ')}</span></div>}
                 {agent.boot_time && <div className="flex items-center gap-2"><TimerIcon className="text-slate-400 w-3.5 h-3.5" /><span className="text-slate-500">启动时间:</span><span className="text-slate-700 dark:text-slate-300">{formatDateTime(agent.boot_time)}</span></div>}
+                {connectStr && <div className="flex items-center gap-2"><ActivityLogIcon className="text-slate-400 w-3.5 h-3.5" /><span className="text-slate-500">连接时长:</span><span className="text-slate-700 dark:text-slate-300">{connectStr}</span></div>}
                 {uptimeStr && <div className="flex items-center gap-2"><TimerIcon className="text-slate-400 w-3.5 h-3.5" /><span className="text-slate-500">运行时长:</span><span className="text-slate-700 dark:text-slate-300">{uptimeStr}</span></div>}
                 {agent.agent_version && <div className="flex items-center gap-2"><CodeIcon className="text-slate-400 w-3.5 h-3.5" /><span className="text-slate-500">Agent版本:</span><span className="text-slate-700 dark:text-slate-300">{agent.agent_version}</span></div>}
               </div>
