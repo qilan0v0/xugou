@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeftIcon, CopyIcon, CheckIcon, InfoCircledIcon, PlusIcon } from '@radix-ui/react-icons';
 import api from '../../api/index';
+import TagInput from '../../components/TagInput';
 import { useTranslation } from 'react-i18next';
 
 const CreateAgent = () => {
@@ -14,7 +15,7 @@ const CreateAgent = () => {
   const [selectedArch, setSelectedArch] = useState<string | null>(null);
   const [agentName, setAgentName] = useState('');
   const [category, setCategory] = useState('');
-  const [tags, setTags] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
   const [trafficVal, setTrafficVal] = useState('');
   const [trafficUnit, setTrafficUnit] = useState('TB');
   const [startTime, setStartTime] = useState('');
@@ -32,7 +33,7 @@ const CreateAgent = () => {
     try {
       const data: any = { name: agentName.trim() };
       if (category) data.category = category;
-      if (tags) data.tags = tags;
+      if (tags.length > 0) data.tags = tags.join(',');
       if (trafficVal) {
         const multipliers: Record<string, number> = { GB: 1073741824, TB: 1099511627776 };
         data.traffic_limit = Math.round(parseFloat(trafficVal) * (multipliers[trafficUnit] || 1073741824));
@@ -103,7 +104,7 @@ const CreateAgent = () => {
         </div>
         <div>
           <label className="block text-xs font-semibold text-slate-500 mb-1.5">标签</label>
-          <input value={tags} onChange={e => setTags(e.target.value)} placeholder="多个用逗号分隔，如: web,nginx" className={inputClass} />
+          <TagInput value={tags} onChange={setTags} placeholder="输入标签，回车添加" />
         </div>
         <div>
           <label className="block text-xs font-semibold text-slate-500 mb-1.5">总流量上限</label>

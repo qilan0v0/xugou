@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeftIcon, Cross2Icon } from '@radix-ui/react-icons';
 import * as Toast from '@radix-ui/react-toast';
 import { getAgent, updateAgent } from '../../api/agents';
+import TagInput from '../../components/TagInput';
 import { useTranslation } from 'react-i18next';
 
 const EditAgent = () => {
@@ -15,7 +16,7 @@ const EditAgent = () => {
   const [trafficUnit, setTrafficUnit] = useState('TB');
   const units = ['GB', 'TB'] as const;
   const [category, setCategory] = useState('');
-  const [tags, setTags] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
   const [isPublic, setIsPublic] = useState(true);
   const [startTime, setStartTime] = useState('');
   const [durationVal, setDurationVal] = useState('1');
@@ -31,7 +32,7 @@ const EditAgent = () => {
       if (res.success && res.agent) {
         setName(res.agent.name || '');
         setCategory(res.agent.category || '');
-        setTags(res.agent.tags || '');
+        setTags(res.agent.tags ? res.agent.tags.split(',').filter(Boolean) : []);
         setIsPublic(res.agent.public !== 0);
         const tl = res.agent.traffic_limit;
         if (tl && tl > 0) {
@@ -68,7 +69,7 @@ const EditAgent = () => {
         data.expiry_time = null;
       }
       if (category) data.category = category; else data.category = null;
-      if (tags) data.tags = tags; else data.tags = null;
+      if (tags.length > 0) data.tags = tags.join(','); else data.tags = null;
       data.public = isPublic;
       const res = await updateAgent(parseInt(id), data);
       if (res.success) { setToastMsg(t('agent.updateSuccess')); setToastType('success'); setToastOpen(true); setTimeout(() => navigate('/agents'), 1500); }
@@ -100,7 +101,7 @@ const EditAgent = () => {
           </div>
           <div>
             <label className="block text-xs font-medium text-slate-500 mb-1.5">标签</label>
-            <input value={tags} onChange={e => setTags(e.target.value)} placeholder="多个用逗号分隔，如: web,nginx,db" className={inputClass} />
+            <TagInput value={tags} onChange={setTags} placeholder="输入标签，回车添加" />
           </div>
           <div>
             <label className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors cursor-pointer">

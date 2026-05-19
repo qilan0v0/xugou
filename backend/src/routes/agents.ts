@@ -109,6 +109,34 @@ agents.post('/', async (c) => {
   }
 });
 
+// 获取所有标签（标签池）
+agents.get('/tags/pool', async (c) => {
+  try {
+    const payload = c.get('jwtPayload');
+
+    let result;
+    if (payload.role === 'admin') {
+      result = await c.env.DB.prepare(
+        "SELECT tags FROM agents WHERE tags IS NOT NULL AND tags != ''"
+      ).all<{ tags: string }>();
+    } else {
+      result = await c.env.DB.prepare(
+        "SELECT tags FROM agents WHERE created_by = ? AND tags IS NOT NULL AND tags != ''"
+      ).bind(payload.id).all<{ tags: string }>();
+    }
+
+    const tagSet = new Set<string>();
+    for (const row of result.results || []) {
+      row.tags.split(',').map(t => t.trim()).filter(Boolean).forEach(t => tagSet.add(t));
+    }
+
+    return c.json({ success: true, tags: Array.from(tagSet).sort() });
+  } catch (error) {
+    console.error('获取标签池错误:', error);
+    return c.json({ success: false, message: '获取标签池失败' }, 500);
+  }
+});
+
 // 获取单个客户端
 agents.get('/:id', async (c) => {
   try {
