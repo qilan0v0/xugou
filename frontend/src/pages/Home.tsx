@@ -39,7 +39,7 @@ const Home = () => {
 
           <div className="flex gap-4 mt-4">
             {isAuthenticated ? (
-              <Link to="/dashboard" className="btn-gradient px-8 py-3 text-base inline-flex items-center gap-2 animate-glow">
+              <Link to="/agents" className="btn-gradient px-8 py-3 text-base inline-flex items-center gap-2 animate-glow">
                 {t('home.getStarted')}
               </Link>
             ) : (

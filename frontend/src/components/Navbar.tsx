@@ -5,7 +5,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import LanguageSelector from './LanguageSelector';
 import {
-  DashboardIcon, ActivityLogIcon, CubeIcon, PieChartIcon,
+  ActivityLogIcon, CubeIcon, PieChartIcon,
   ExitIcon, PersonIcon, ChevronDownIcon,
   SunIcon, MoonIcon,
 } from '@radix-ui/react-icons';
@@ -34,9 +34,8 @@ const Navbar = () => {
     location.pathname === path || location.pathname.startsWith(`${path}/`);
 
   const navLinks = isAuthenticated ? [
-    { to: '/dashboard', icon: <DashboardIcon />, label: t('navbar.dashboard') },
-    { to: '/monitors', icon: <ActivityLogIcon />, label: t('navbar.apiMonitors') },
     { to: '/agents', icon: <CubeIcon />, label: t('navbar.agentMonitors') },
+    { to: '/monitors', icon: <ActivityLogIcon />, label: t('navbar.apiMonitors') },
     { to: '/status/config', icon: <PieChartIcon />, label: '首页配置' },
       ] : [];
 

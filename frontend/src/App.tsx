@@ -4,7 +4,6 @@ import { LanguageProvider } from './contexts/LanguageContext';
 import Layout from './components/Layout';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
-import Dashboard from './pages/Dashboard';
 import MonitorsList from './pages/monitors/MonitorsList';
 import MonitorDetail from './pages/monitors/MonitorDetail';
 import CreateMonitor from './pages/monitors/CreateMonitor';
@@ -31,7 +30,7 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading, user } = useAuth();
   if (isLoading) return <div className="flex justify-center items-center min-h-[50vh]"><LoadingSpinner /></div>;
   if (!isAuthenticated) return <Navigate to="/login" replace />;
-  if (user?.role !== 'admin') return <Navigate to="/dashboard" replace />;
+  if (user?.role !== 'admin') return <Navigate to="/agents" replace />;
   return <>{children}</>;
 };
 
@@ -44,7 +43,6 @@ function App() {
         <Route path="/register" element={<Layout><Register /></Layout>} />
         <Route path="/status" element={<StatusPage />} />
         <Route path="/status/config" element={<ProtectedRoute><Layout><StatusPageConfig /></Layout></ProtectedRoute>} />
-                <Route path="/dashboard" element={<ProtectedRoute><Layout><Dashboard /></Layout></ProtectedRoute>} />
         <Route path="/monitors" element={<ProtectedRoute><Layout><MonitorsList /></Layout></ProtectedRoute>} />
         <Route path="/monitors/create" element={<ProtectedRoute><Layout><CreateMonitor /></Layout></ProtectedRoute>} />
         <Route path="/monitors/edit/:id" element={<ProtectedRoute><Layout><EditMonitor /></Layout></ProtectedRoute>} />

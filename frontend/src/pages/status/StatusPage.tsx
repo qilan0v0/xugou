@@ -107,7 +107,7 @@ const StatusPage = () => {
               className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-all">
               {theme === 'dark' ? <SunIcon className="w-4 h-4" /> : <MoonIcon className="w-4 h-4" />}
             </button>
-            <button onClick={() => navigate(isAuthenticated ? '/dashboard' : '/login')}
+            <button onClick={() => navigate(isAuthenticated ? '/agents' : '/login')}
               className="btn-gradient text-sm px-4 py-2">
               {isAuthenticated ? t('navbar.dashboard') : t('navbar.login')}
             </button>
