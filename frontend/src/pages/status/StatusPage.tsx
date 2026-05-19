@@ -6,6 +6,7 @@ import AgentCard from '../../components/AgentCard';
 import AgentDetailModal from '../../components/AgentDetailModal';
 import MonitorCard from '../../components/MonitorCard';
 import MonitorDetailModal from '../../components/MonitorDetailModal';
+import CustomInjector from '../../components/CustomInjector';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import LanguageSelector from "../../components/LanguageSelector";
@@ -85,7 +86,7 @@ const StatusPage = () => {
 
   return (
     <div>
-      {data.customCss && <style dangerouslySetInnerHTML={{ __html: data.customCss }} />}
+      {data.customCss && <CustomInjector code={data.customCss} />}
       {/* Top bar */}
       <nav className="sticky top-0 z-50 w-full bg-white/[0.85] dark:bg-[#0f0f1a]/[0.85] backdrop-blur-xl border-b border-white/[0.06]">
         <div className="max-w-[1400px] mx-auto px-4 h-[54px] flex items-center justify-between">
