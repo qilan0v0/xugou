@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { PlusIcon, Cross2Icon, Pencil1Icon, InfoCircledIcon, ReloadIcon, CubeIcon, CheckCircledIcon, CrossCircledIcon as CrossCircled, GlobeIcon, ArrowUpIcon, UpdateIcon } from '@radix-ui/react-icons';
 import { getAllAgents, deleteAgent, updateAgent, Agent } from '../../api/agents';
 import TagInput from '../../components/TagInput';
+import CountryFlag from '../../components/CountryFlag';
 import { ENV_API_BASE_URL } from '../../config';
 import { useTranslation } from 'react-i18next';
 
@@ -295,7 +296,7 @@ const AgentsList = () => {
                       <td className="px-4 py-2.5 text-sm text-slate-600 dark:text-slate-400 font-mono text-xs">{a.ip_address || '--'}</td>
                       <td className="px-4 py-2.5"><span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[11px] font-medium ${cfg.bg} ${cfg.text}`}><span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />{label}</span></td>
                       <td className="px-4 py-2.5">{a.os ? <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${osColor(a.os)}`}>{a.os.split(' ')[0]}</span> : <span className="text-sm text-slate-400">--</span>}</td>
-                      <td className="px-4 py-2.5 text-sm text-slate-600 dark:text-slate-400">{a.country || '--'}</td>
+                      <td className="px-4 py-2.5">{a.country ? <span className="inline-flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400"><CountryFlag code={a.country} className="w-4 h-3 rounded-sm" />{a.country}</span> : <span className="text-slate-400">--</span>}</td>
                       <td className="px-4 py-2.5"><span className="text-sm font-mono text-slate-600 dark:text-slate-400">{a.cpu_usage != null ? `${Math.round(a.cpu_usage)}%` : '--'}</span></td>
                       <td className="px-4 py-2.5 text-xs text-slate-500">{fmt((a.network_rx_total || 0) + (a.network_tx_total || 0))}</td>
                       <td className="px-4 py-2.5"><div className="flex gap-1 flex-wrap">{tags.length === 0 ? <span className="text-[11px] text-slate-400">--</span> : tags.map(t => <span key={t} className={`text-[10px] px-1.5 py-0.5 rounded font-medium whitespace-nowrap ${tagColor(t)}`}>{t}</span>)}</div></td>
