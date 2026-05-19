@@ -114,8 +114,15 @@ export default function TagInput({ value, onChange, placeholder }: TagInputProps
         onClick={() => inputRef.current?.focus()}
       >
         {value.map(tag => (
-          <span key={tag} className={`text-xs px-2 py-0.5 rounded-full font-medium select-none ${hashColor(tag)}`}>
+          <span key={tag} className={`text-xs pl-2 pr-1 py-0.5 rounded-full font-medium select-none inline-flex items-center gap-0.5 ${hashColor(tag)}`}>
             {tag}
+            <button
+              type="button"
+              onClick={e => { e.stopPropagation(); onChange(value.filter(t => t !== tag)); }}
+              className="w-4 h-4 rounded-full inline-flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/10 transition-colors leading-none"
+            >
+              <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" d="M6 6l12 12M18 6L6 18" /></svg>
+            </button>
           </span>
         ))}
         <input
