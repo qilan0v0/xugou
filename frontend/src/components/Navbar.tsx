@@ -50,14 +50,25 @@ const Navbar = () => {
         <div className={`flex items-center justify-between transition-all duration-300 ${
           isScrolled ? 'h-[54px]' : 'h-[60px]'
         }`}>
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 group no-underline">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center
-              group-hover:scale-105 group-hover:rotate-[-5deg] transition-all duration-300">
-              <PieChartIcon className="w-4 h-4 text-white" />
-            </div>
-            <span className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">XUGOU</span>
-          </Link>
+          {/* Logo — reads custom config */}
+          {(() => {
+            let cfg: any = {};
+            try { cfg = JSON.parse(localStorage.getItem('xugou_page_config') || '{}'); } catch {}
+            return (
+              <Link to="/" className="flex items-center gap-2 group no-underline">
+                {cfg.logoUrl ? (
+                  <img src={cfg.logoUrl} alt="" className="w-8 h-8 rounded-lg object-cover group-hover:scale-105 group-hover:rotate-[-5deg] transition-all duration-300" />
+                ) : (
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center
+                    group-hover:scale-105 group-hover:rotate-[-5deg] transition-all duration-300">
+                    <PieChartIcon className="w-4 h-4 text-white" />
+                  </div>
+                )}
+                <span className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">{cfg.title || 'XUGOU'}</span>
+              </Link>
+            );
+          })()}
+
 
           {/* Nav Links */}
           {isAuthenticated && (

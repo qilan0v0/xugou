@@ -28,6 +28,7 @@ const StatusPageConfig = () => {
   const [notifyDown, setNotifyDown] = useState(true);
   const [notifyUp, setNotifyUp] = useState(true);
   const [notifyTemplate, setNotifyTemplate] = useState('{name} 状态变为 {status}，时间 {time}');
+  const [adminCss, setAdminCss] = useState('');
   const hasInit = useRef(false);
   const { t } = useTranslation();
 
@@ -38,6 +39,11 @@ const StatusPageConfig = () => {
 
   useEffect(() => {
     if (hasInit.current) return; hasInit.current = true;
+    // Restore admin CSS from localStorage
+    try {
+      const c = JSON.parse(localStorage.getItem('xugou_page_config') || '{}');
+      if (c.adminCss) setAdminCss(c.adminCss);
+    } catch {}
     setLoading(true);
     (async () => {
       try {
@@ -83,7 +89,7 @@ const StatusPageConfig = () => {
       const res = await saveStatusPageConfig(toSave);
       if (res.success) {
         setToastMsg(t('statusPageConfig.configSaved')); setToastType('success');
-        localStorage.setItem('xugou_page_config', JSON.stringify({ title: config.title, logoUrl: config.logoUrl }));
+        localStorage.setItem('xugou_page_config', JSON.stringify({ title: config.title, logoUrl: config.logoUrl, adminCss }));
       }
       else { setToastMsg(res.message || t('statusPageConfig.saveError')); setToastType('error'); }
     } catch { setToastMsg(t('statusPageConfig.saveError')); setToastType('error'); }
@@ -212,9 +218,14 @@ const StatusPageConfig = () => {
                 <input name="logoUrl" value={config.logoUrl} onChange={handleChange} placeholder={t('statusPageConfig.logoUrlPlaceholder')} className={inputClass} />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1.5">{t('statusPageConfig.customCss')}</label>
+                <label className="block text-xs font-medium text-slate-500 mb-1.5">首页 CSS（公开状态页生效）</label>
                 <textarea name="customCss" value={config.customCss} onChange={handleChange} placeholder={t('statusPageConfig.customCssPlaceholder')} className={`${inputClass} font-mono`} rows={6} style={{ minHeight: '150px' }} />
-                <p className="text-xs text-slate-500 mt-1">{t('statusPageConfig.customCssHelp')}</p>
+                <p className="text-xs text-slate-500 mt-1">支持 CSS + &lt;script&gt; 标签</p>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-500 mb-1.5">后台 CSS（管理页面生效）</label>
+                <textarea value={adminCss} onChange={e => setAdminCss(e.target.value)} placeholder="输入仅用于后台管理页面的自定义样式..." className={`${inputClass} font-mono`} rows={6} style={{ minHeight: '150px' }} />
+                <p className="text-xs text-slate-500 mt-1">仪表盘、API监控、客户端监控等管理页面生效，同样支持 &lt;script&gt;</p>
               </div>
             </div>
           )}

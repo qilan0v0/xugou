@@ -1,5 +1,6 @@
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import Navbar from './Navbar';
+import CustomInjector from './CustomInjector';
 import { useTranslation } from 'react-i18next';
 import { ENV_API_BASE_URL } from '../config';
 
@@ -10,9 +11,16 @@ interface LayoutProps {
 const Layout = ({ children }: LayoutProps) => {
   const currentYear = new Date().getFullYear();
   const { t } = useTranslation();
+  const [adminCss, setAdminCss] = useState('');
 
   // Dynamically set browser title + favicon from status page config
   useEffect(() => {
+    // Apply admin CSS from localStorage immediately
+    try {
+      const c = JSON.parse(localStorage.getItem('xugou_page_config') || '{}');
+      if (c.adminCss) setAdminCss(c.adminCss);
+    } catch {}
+    // Then fetch fresh config from API
     fetch(`${ENV_API_BASE_URL}/api/status/data`).then(r => r.json()).then(res => {
       if (res.success && res.data) {
         document.title = res.data.title || '系统状态';
@@ -26,13 +34,19 @@ const Layout = ({ children }: LayoutProps) => {
           }
           link.href = res.data.logoUrl;
         }
-        localStorage.setItem('xugou_page_config', JSON.stringify({ title: res.data.title, logoUrl: res.data.logoUrl }));
+        // Merge: preserve adminCss from localStorage, update title/logo from API
+        let existing: any = {};
+        try { existing = JSON.parse(localStorage.getItem('xugou_page_config') || '{}'); } catch {}
+        localStorage.setItem('xugou_page_config', JSON.stringify({
+          title: res.data.title, logoUrl: res.data.logoUrl, adminCss: existing.adminCss || '',
+        }));
       }
     }).catch(() => {});
   }, []);
 
   return (
     <div className="flex flex-col min-h-screen">
+      {adminCss && <CustomInjector code={adminCss} />}
       <Navbar />
       <main className="flex-1 w-full animate-fade-in">
         {children}
