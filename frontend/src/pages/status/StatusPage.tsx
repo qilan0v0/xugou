@@ -115,7 +115,7 @@ const StatusPage = () => {
         </div>
       </nav>
 
-      <div className="max-w-[1400px] mx-auto px-4 pb-16">
+      <div className="max-w-[1400px] mx-auto px-4 pt-6 pb-16">
         {/* Summary cards */}
         {(() => {
           const agents = data.agents || [];
