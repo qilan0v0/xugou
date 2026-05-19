@@ -17,7 +17,9 @@ const CreateAgent = () => {
   const [tags, setTags] = useState('');
   const [trafficVal, setTrafficVal] = useState('');
   const [trafficUnit, setTrafficUnit] = useState('TB');
-  const [expiryTime, setExpiryTime] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [durationVal, setDurationVal] = useState('1');
+  const [durationUnit, setDurationUnit] = useState('month');
   const [isPublic, setIsPublic] = useState(true);
   const [created, setCreated] = useState(false);
   const [error, setError] = useState('');
@@ -35,7 +37,11 @@ const CreateAgent = () => {
         const multipliers: Record<string, number> = { GB: 1073741824, TB: 1099511627776 };
         data.traffic_limit = Math.round(parseFloat(trafficVal) * (multipliers[trafficUnit] || 1073741824));
       }
-      if (expiryTime) data.expiry_time = new Date(expiryTime).toISOString();
+      if (startTime) {
+        data.start_time = new Date(startTime).toISOString();
+        data.duration_value = parseInt(durationVal) || 1;
+        data.duration_unit = durationUnit;
+      }
       data.public = isPublic;
       const res = await api.post('/api/agents', data);
       if (res.data.success && res.data.agent) {
@@ -109,8 +115,31 @@ const CreateAgent = () => {
           </div>
         </div>
         <div>
-          <label className="block text-xs font-semibold text-slate-500 mb-1.5">到期时间</label>
-          <input type="date" value={expiryTime} onChange={e => setExpiryTime(e.target.value)} className={inputClass} />
+          <label className="block text-xs font-semibold text-slate-500 mb-1.5">开始时间</label>
+          <input type="date" value={startTime} onChange={e => setStartTime(e.target.value)} className={inputClass} />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-slate-500 mb-1.5">使用时长</label>
+          <div className="flex gap-2">
+            <input type="number" min="1" step="1" value={durationVal} onChange={e => setDurationVal(e.target.value)} placeholder="1" className={`${inputClass} flex-1`} />
+            <select value={durationUnit} onChange={e => setDurationUnit(e.target.value)} className="px-3 py-2 rounded-lg border border-white/[0.08] bg-white/5 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-500 transition-all w-24 flex-shrink-0">
+              {(['day','month','year'] as const).map(u => <option key={u} value={u}>{u === 'day' ? '天' : u === 'month' ? '月' : '年'}</option>)}
+            </select>
+          </div>
+          {startTime && durationVal && (
+            <p className="text-[11px] text-slate-400 mt-1">
+              到期时间: {(() => {
+                const d = new Date(startTime);
+                const v = parseInt(durationVal) || 1;
+                switch (durationUnit) {
+                  case 'day': d.setDate(d.getDate() + v); break;
+                  case 'month': d.setMonth(d.getMonth() + v); break;
+                  case 'year': d.setFullYear(d.getFullYear() + v); break;
+                }
+                return d.toLocaleDateString('zh-CN');
+              })()}
+            </p>
+          )}
         </div>
         <div>
           <label className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors cursor-pointer">

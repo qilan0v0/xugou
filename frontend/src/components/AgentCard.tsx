@@ -52,6 +52,11 @@ const AgentCard = ({ agent }: AgentCardProps) => {
   const hasExpiry = !!agent.expiry_time;
   const expiryDays = hasExpiry ? Math.ceil((new Date(agent.expiry_time!).getTime() - Date.now()) / 86400000) : -1;
   const isExpired = hasExpiry && expiryDays < 0;
+  const hasDuration = !!(agent.duration_value && agent.duration_unit);
+  const durationLabel = hasDuration
+    ? `${agent.duration_value}${agent.duration_unit === 'day' ? '天' : agent.duration_unit === 'month' ? '月' : '年'}`
+    : '';
+  const startLabel = agent.start_time ? new Date(agent.start_time).toLocaleDateString('zh-CN') : '';
 
   const rxTotalStr = formatBytes(agent.network_rx_total || 0);
   const txTotalStr = formatBytes(agent.network_tx_total || 0);
@@ -162,7 +167,8 @@ const AgentCard = ({ agent }: AgentCardProps) => {
           <MetricItem
             icon={<CalendarIcon />} iconColor="bg-orange-500/10 text-orange-600"
             label={t('agent.expiry')}
-            value={isExpired ? t('agent.expired') : hasExpiry ? `${expiryDays}${t('agent.days')}` : '--'}
+            value={isExpired ? (hasDuration ? '已过期·自动续' : t('agent.expired')) : hasExpiry ? `${expiryDays}天` : '--'}
+            sub={hasDuration ? `${startLabel} / ${durationLabel}` : undefined}
           />
         </div>
         <div className="flex-1">

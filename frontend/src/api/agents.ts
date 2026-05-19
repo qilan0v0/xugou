@@ -33,6 +33,9 @@ export interface Agent {
   connected_at?: string;
   traffic_limit?: number;
   expiry_time?: string;
+  start_time?: string;
+  duration_value?: number;
+  duration_unit?: string;
   category?: string;
   tags?: string;
 }
@@ -119,6 +122,9 @@ export const updateAgent = async (id: number, data: {
   status?: string;
   traffic_limit?: number | null;
   expiry_time?: string | null;
+  start_time?: string | null;
+  duration_value?: number | null;
+  duration_unit?: string | null;
   category?: string | null;
   tags?: string | null;
   public?: boolean;

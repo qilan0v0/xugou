@@ -3,7 +3,7 @@ import { jwt } from 'hono/jwt';
 import { Context, Next } from 'hono';
 import { Bindings } from '../models/db';
 import { Agent } from '../models/agent';
-import { getJwtSecret, generateToken, generateAgentName, toD1Primitive } from '../utils/jwt';
+import { getJwtSecret, generateToken, generateAgentName, toD1Primitive, addDuration } from '../utils/jwt';
 
 const agents = new Hono<{ Bindings: Bindings; Variables: { agent: Agent; jwtPayload: any } }>();
 
@@ -55,17 +55,23 @@ agents.get('/', async (c) => {
 // 创建新客户端
 agents.post('/', async (c) => {
   try {
-    const { name, token: reqToken, category, tags, public: isPublic, expiry_time, traffic_limit } = await c.req.json();
+    const { name, token: reqToken, category, tags, public: isPublic, expiry_time, traffic_limit, start_time, duration_value, duration_unit } = await c.req.json();
     const payload = c.get('jwtPayload');
 
     const token = reqToken || await generateToken();
     const now = new Date().toISOString();
 
+    // 计算 expiry_time: 优先使用直接传入的，否则根据 start_time + duration 计算
+    let computedExpiry = expiry_time || null;
+    if (!computedExpiry && start_time && duration_value && duration_unit) {
+      computedExpiry = addDuration(new Date(start_time), duration_value, duration_unit).toISOString();
+    }
+
     // 插入新客户端
     const result = await c.env.DB.prepare(
       `INSERT INTO agents
-       (name, token, created_by, status, category, tags, public, expiry_time, traffic_limit, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+       (name, token, created_by, status, category, tags, public, expiry_time, start_time, duration_value, duration_unit, traffic_limit, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).bind(
       name,
       token,
@@ -74,7 +80,10 @@ agents.post('/', async (c) => {
       category || null,
       tags || null,
       isPublic !== undefined ? (isPublic ? 1 : 0) : 1,
-      expiry_time || null,
+      computedExpiry,
+      start_time || null,
+      duration_value || null,
+      duration_unit || null,
       traffic_limit || null,
       now,
       now
@@ -145,6 +154,9 @@ agents.get('/:id', async (c) => {
         connected_at: agent.connected_at || null,
         traffic_limit: agent.traffic_limit || null,
         expiry_time: agent.expiry_time || null,
+        start_time: agent.start_time || null,
+        duration_value: agent.duration_value || null,
+        duration_unit: agent.duration_unit || null,
         category: agent.category || null,
         tags: agent.tags || null,
         public: agent.public ?? 1
@@ -178,7 +190,7 @@ agents.put('/:id', async (c) => {
     
     // 获取更新数据
     const updateData = await c.req.json();
-    const { name, hostname, ip_address, os, version, status, traffic_limit, expiry_time, category, tags, public: isPublic } = updateData;
+    const { name, hostname, ip_address, os, version, status, traffic_limit, expiry_time, start_time, duration_value, duration_unit, category, tags, public: isPublic } = updateData;
     
     // 准备更新的字段和值
     const fieldsToUpdate = [];
@@ -222,6 +234,36 @@ agents.put('/:id', async (c) => {
     if (expiry_time !== undefined) {
       fieldsToUpdate.push('expiry_time = ?');
       values.push(expiry_time);
+    }
+
+    if (start_time !== undefined) {
+      fieldsToUpdate.push('start_time = ?');
+      values.push(start_time);
+    }
+
+    if (duration_value !== undefined) {
+      fieldsToUpdate.push('duration_value = ?');
+      values.push(duration_value);
+    }
+
+    if (duration_unit !== undefined) {
+      fieldsToUpdate.push('duration_unit = ?');
+      values.push(duration_unit);
+    }
+
+    // 如果提供了 start_time + duration，重新计算 expiry_time
+    if (start_time !== undefined || duration_value !== undefined || duration_unit !== undefined) {
+      const st = start_time !== undefined ? start_time : agent.start_time;
+      const dv = duration_value !== undefined ? duration_value : agent.duration_value;
+      const du = duration_unit !== undefined ? duration_unit : agent.duration_unit;
+      if (st && dv && du) {
+        const recomputedExpiry = addDuration(new Date(st), dv, du).toISOString();
+        // 如果 expiry_time 没有被显式传入，则用计算值覆盖
+        if (expiry_time === undefined) {
+          fieldsToUpdate.push('expiry_time = ?');
+          values.push(recomputedExpiry);
+        }
+      }
     }
 
     if (category !== undefined) {
@@ -337,9 +379,23 @@ agents.post('/:id/status', async (c) => {
     if (!result.success) {
       throw new Error('更新客户端状态失败');
     }
-    
-    return c.json({ 
-      success: true, 
+
+    // 自动续期：如果 agent 在线且已过期，自动延长有效期
+    const agentForRenew = await c.env.DB.prepare(
+      'SELECT expiry_time, duration_value, duration_unit FROM agents WHERE id = ?'
+    ).bind(agentId).first<{expiry_time: string | null; duration_value: number | null; duration_unit: string | null}>();
+    if (agentForRenew?.expiry_time && agentForRenew?.duration_value && agentForRenew?.duration_unit) {
+      const now = new Date();
+      if (now > new Date(agentForRenew.expiry_time)) {
+        const newExpiry = addDuration(now, agentForRenew.duration_value, agentForRenew.duration_unit);
+        await c.env.DB.prepare(
+          'UPDATE agents SET start_time = ?, expiry_time = ? WHERE id = ?'
+        ).bind(now.toISOString(), newExpiry.toISOString(), agentId).run();
+      }
+    }
+
+    return c.json({
+      success: true,
       message: '客户端状态已更新'
     });
   } catch (error) {
@@ -608,6 +664,20 @@ agents.post('/status', async (c) => {
 
     if (!result.success) {
       throw new Error('更新客户端状态失败');
+    }
+
+    // 自动续期：如果 agent 在线且已过期，自动延长有效期
+    const agentForRenew = await c.env.DB.prepare(
+      'SELECT expiry_time, duration_value, duration_unit FROM agents WHERE id = ?'
+    ).bind(agent.id).first<{expiry_time: string | null; duration_value: number | null; duration_unit: string | null}>();
+    if (agentForRenew?.expiry_time && agentForRenew?.duration_value && agentForRenew?.duration_unit) {
+      const now = new Date();
+      if (now > new Date(agentForRenew.expiry_time)) {
+        const newExpiry = addDuration(now, agentForRenew.duration_value, agentForRenew.duration_unit);
+        await c.env.DB.prepare(
+          'UPDATE agents SET start_time = ?, expiry_time = ? WHERE id = ?'
+        ).bind(now.toISOString(), newExpiry.toISOString(), agent.id).run();
+      }
     }
 
     return c.json({

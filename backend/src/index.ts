@@ -4,7 +4,7 @@ import { cors } from 'hono/cors';
 import { Bindings } from './models/db';
 import { prettyJSON } from 'hono/pretty-json';
 import { checkAndInitializeDatabase } from './setup/initCheck';
-import { toD1Primitive, generateAgentName } from './utils/jwt';
+import { toD1Primitive, generateAgentName, addDuration } from './utils/jwt';
 
 // 声明环境变量类型
 declare global {
@@ -167,6 +167,19 @@ app.post('/api/agents/status', async (c) => {
     if (!result.success) {
       console.error('DIRECT_STATUS update failed:', result.error);
       return c.json({ success: false, message: 'update failed: ' + (result.error || 'unknown') }, 500);
+    }
+
+    // 自动续期
+    const agentForRenew = await c.env.DB.prepare(
+      'SELECT expiry_time, duration_value, duration_unit FROM agents WHERE id = ?'
+    ).bind(agent.id).first<{expiry_time: string | null; duration_value: number | null; duration_unit: string | null}>();
+    if (agentForRenew?.expiry_time && agentForRenew?.duration_value && agentForRenew?.duration_unit) {
+      if (new Date() > new Date(agentForRenew.expiry_time)) {
+        const newExpiry = addDuration(new Date(), agentForRenew.duration_value, agentForRenew.duration_unit);
+        await c.env.DB.prepare(
+          'UPDATE agents SET start_time = ?, expiry_time = ? WHERE id = ?'
+        ).bind(new Date().toISOString(), newExpiry.toISOString(), agent.id).run();
+      }
     }
 
     return c.json({ success: true, message: 'ok' });

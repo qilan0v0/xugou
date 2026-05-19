@@ -45,6 +45,16 @@ export async function generateToken(): Promise<string> {
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
+export function addDuration(date: Date, value: number, unit: string): Date {
+  const d = new Date(date);
+  switch (unit) {
+    case 'day': return new Date(d.getTime() + value * 86400000);
+    case 'month': d.setMonth(d.getMonth() + value); return d;
+    case 'year': d.setFullYear(d.getFullYear() + value); return d;
+    default: return d;
+  }
+}
+
 export function generateAgentName(country?: string | null): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let rand = '';

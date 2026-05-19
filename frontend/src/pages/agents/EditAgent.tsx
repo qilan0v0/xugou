@@ -17,7 +17,9 @@ const EditAgent = () => {
   const [category, setCategory] = useState('');
   const [tags, setTags] = useState('');
   const [isPublic, setIsPublic] = useState(true);
-  const [expiryTime, setExpiryTime] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [durationVal, setDurationVal] = useState('1');
+  const [durationUnit, setDurationUnit] = useState('month');
   const [toastOpen, setToastOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
   const [toastType, setToastType] = useState<'success'|'error'>('success');
@@ -36,7 +38,9 @@ const EditAgent = () => {
           if (tl >= 1099511627776) { setTrafficVal(String(Math.round(tl / 1099511627776 * 10) / 10)); setTrafficUnit('TB'); }
           else { setTrafficVal(String(Math.round(tl / 1073741824 * 10) / 10)); setTrafficUnit('GB'); }
         }
-        setExpiryTime(res.agent.expiry_time ? res.agent.expiry_time.slice(0, 10) : '');
+        setStartTime(res.agent.start_time ? res.agent.start_time.slice(0, 10) : '');
+        setDurationVal(res.agent.duration_value ? String(res.agent.duration_value) : '1');
+        setDurationUnit(res.agent.duration_unit || 'month');
       }
       setFetching(false);
     }).catch(() => setFetching(false));
@@ -53,8 +57,16 @@ const EditAgent = () => {
         const multipliers: Record<string, number> = { MB: 1048576, GB: 1073741824, TB: 1099511627776, PB: 1125899906842624 };
         data.traffic_limit = Math.round(v * (multipliers[trafficUnit] || 1073741824));
       } else data.traffic_limit = null;
-      if (expiryTime) data.expiry_time = new Date(expiryTime).toISOString();
-      else data.expiry_time = null;
+      if (startTime) {
+        data.start_time = new Date(startTime).toISOString();
+        data.duration_value = parseInt(durationVal) || 1;
+        data.duration_unit = durationUnit;
+      } else {
+        data.start_time = null;
+        data.duration_value = null;
+        data.duration_unit = null;
+        data.expiry_time = null;
+      }
       if (category) data.category = category; else data.category = null;
       if (tags) data.tags = tags; else data.tags = null;
       data.public = isPublic;
@@ -109,8 +121,31 @@ const EditAgent = () => {
             </div>
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1.5">{t('agent.expiryTime')}</label>
-            <input type="date" value={expiryTime} onChange={e => setExpiryTime(e.target.value)} className={inputClass} />
+            <label className="block text-xs font-medium text-slate-500 mb-1.5">开始时间</label>
+            <input type="date" value={startTime} onChange={e => setStartTime(e.target.value)} className={inputClass} />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-500 mb-1.5">使用时长</label>
+            <div className="flex gap-2">
+              <input type="number" min="1" step="1" value={durationVal} onChange={e => setDurationVal(e.target.value)} placeholder="1" className={`${inputClass} flex-1`} />
+              <select value={durationUnit} onChange={e => setDurationUnit(e.target.value)} className={`${selectClass} w-24 flex-shrink-0`}>
+                {(['day','month','year'] as const).map(u => <option key={u} value={u}>{u === 'day' ? '天' : u === 'month' ? '月' : '年'}</option>)}
+              </select>
+            </div>
+            {startTime && durationVal && (
+              <p className="text-[11px] text-slate-400 mt-1">
+                到期时间: {(() => {
+                  const d = new Date(startTime);
+                  const v = parseInt(durationVal) || 1;
+                  switch (durationUnit) {
+                    case 'day': d.setDate(d.getDate() + v); break;
+                    case 'month': d.setMonth(d.getMonth() + v); break;
+                    case 'year': d.setFullYear(d.getFullYear() + v); break;
+                  }
+                  return d.toLocaleDateString('zh-CN');
+                })()}
+              </p>
+            )}
           </div>
           <div className="flex justify-end gap-3 pt-2 border-t border-white/[0.06]">
             <button type="button" onClick={() => navigate('/agents')} className="px-4 py-2 rounded-lg text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors">{t('common.cancel')}</button>
