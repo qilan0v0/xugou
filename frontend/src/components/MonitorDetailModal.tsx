@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Cross2Icon, ClockIcon, ActivityLogIcon, CheckCircledIcon, CrossCircledIcon } from '@radix-ui/react-icons';
+import { Cross2Icon, ClockIcon, CheckCircledIcon, CrossCircledIcon } from '@radix-ui/react-icons';
 import { ENV_API_BASE_URL } from '../config';
 
 interface MonitorCheck {
@@ -16,33 +16,67 @@ interface MonitorDetailModalProps {
 }
 
 const LIMITS = [10, 25, 50] as const;
+const RING_R = 16;
+const RING_CIRC = 2 * Math.PI * RING_R;
+
+function RingGauge({ pct, upCount, downCount }: { pct: number; upCount: number; downCount: number }) {
+  const offset = RING_CIRC * (1 - pct / 100);
+  const isGreen = pct >= 99;
+  const isAmber = pct >= 95 && pct < 99;
+  const strokeColor = isGreen ? '#22c55e' : isAmber ? '#f59e0b' : '#ef4444';
+
+  return (
+    <div className="relative w-10 h-10 flex-shrink-0" title={`${upCount}上 / ${downCount}下 · 24次检查`}>
+      <svg viewBox="0 0 40 40" className="w-full h-full -rotate-90">
+        {/* bg ring */}
+        <circle cx="20" cy="20" r={RING_R} fill="none"
+          stroke="currentColor" className="text-slate-200 dark:text-white/10" strokeWidth="3" />
+        {/* progress ring */}
+        <circle cx="20" cy="20" r={RING_R} fill="none"
+          stroke={strokeColor} strokeWidth="3" strokeLinecap="round"
+          strokeDasharray={RING_CIRC} strokeDashoffset={offset}
+          className="transition-[stroke-dashoffset] duration-700 ease-out" />
+      </svg>
+      <span className={`absolute inset-0 flex items-center justify-center text-[9px] font-bold ${isGreen ? 'text-emerald-600' : isAmber ? 'text-amber-600' : 'text-red-500'}`}>
+        {Math.round(pct)}%
+      </span>
+    </div>
+  );
+}
 
 export default function MonitorDetailModal({ monitorId, monitorName, onClose }: MonitorDetailModalProps) {
-  const [checks, setChecks] = useState<MonitorCheck[]>([]);
+  const [allChecks, setAllChecks] = useState<MonitorCheck[]>([]);
   const [limit, setLimit] = useState<number>(10);
   const [loading, setLoading] = useState(true);
   const [tooltip, setTooltip] = useState<{ x: number; y: number; check: MonitorCheck; idx: number } | null>(null);
   const chartRef = useRef<HTMLDivElement>(null);
 
-  const fetchChecks = async (n: number) => {
+  const fetchChecks = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${ENV_API_BASE_URL}/api/status/monitor/${monitorId}/checks?limit=${n}`);
+      const res = await fetch(`${ENV_API_BASE_URL}/api/status/monitor/${monitorId}/checks?limit=50`);
       const data = await res.json();
-      if (data.success) setChecks(data.checks || []);
+      if (data.success) setAllChecks(data.checks || []);
     } catch { /* ignore */ }
     finally { setLoading(false); }
   };
 
-  useEffect(() => {
-    fetchChecks(limit);
-  }, [monitorId, limit]);
+  useEffect(() => { fetchChecks(); }, [monitorId]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
   }, [onClose]);
+
+  // Chart data: slice from allChecks based on selected limit
+  const checks = allChecks.slice(-limit);
+
+  // Ring data: last 24 checks
+  const ringChecks = allChecks.slice(-24);
+  const ringUp = ringChecks.filter(c => c.status === 'up').length;
+  const ringDown = ringChecks.length - ringUp;
+  const ringPct = ringChecks.length ? Math.round((ringUp / ringChecks.length) * 100) : 100;
 
   // Chart constants
   const padLeft = 44;
@@ -83,9 +117,7 @@ export default function MonitorDetailModal({ monitorId, monitorName, onClose }: 
 
         <div className="p-6">
           <div className="flex items-center gap-3 mb-5">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white text-base font-bold flex-shrink-0">
-              <ActivityLogIcon className="w-5 h-5" />
-            </div>
+            <RingGauge pct={ringPct} upCount={ringUp} downCount={ringDown} />
             <div className="min-w-0 flex-1">
               <h2 className="text-lg font-bold text-slate-900 dark:text-white truncate">{monitorName}</h2>
               <p className="text-xs text-slate-500">延迟监控详情</p>
@@ -181,20 +213,20 @@ export default function MonitorDetailModal({ monitorId, monitorName, onClose }: 
                 {checks.length > 1 && (
                   <polygon
                     points={`${getX(0)},${padTop + plotH} ${points} ${getX(checks.length - 1)},${padTop + plotH}`}
-                    className="fill-blue-500/10"
+                    className="fill-emerald-500/10"
                   />
                 )}
 
                 {/* Line */}
                 {checks.length > 1 && (
                   <polyline points={points} fill="none" stroke="currentColor"
-                    className="text-blue-500" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                    className="text-emerald-500" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                 )}
 
                 {/* Dots */}
                 {checks.map((c, i) => (
                   <circle key={i} cx={getX(i)} cy={getY(c.response_time || 0)} r={3}
-                    className={`fill-white dark:fill-slate-800 stroke-[2] ${c.status === 'up' ? 'stroke-blue-500' : 'stroke-red-500'}`}
+                    className={`fill-white dark:fill-slate-800 stroke-[2] ${c.status === 'up' ? 'stroke-emerald-500' : 'stroke-red-500'}`}
                   />
                 ))}
 
@@ -230,7 +262,7 @@ export default function MonitorDetailModal({ monitorId, monitorName, onClose }: 
 
           {/* Refresh */}
           <div className="flex justify-end mt-4 pt-3 border-t border-white/[0.06]">
-            <button onClick={() => fetchChecks(limit)} className="px-3 py-1.5 rounded-lg text-xs text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors">
+            <button onClick={fetchChecks} className="px-3 py-1.5 rounded-lg text-xs text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors">
               <ClockIcon className="w-3 h-3 inline mr-1" />刷新
             </button>
           </div>
