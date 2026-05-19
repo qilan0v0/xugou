@@ -1,11 +1,11 @@
 import { useEffect } from 'react';
 import { Cross2Icon, ClockIcon, DesktopIcon, GlobeIcon, LaptopIcon, Component1Icon, StackIcon, ActivityLogIcon, TimerIcon, CodeIcon, CrumpledPaperIcon } from '@radix-ui/react-icons';
-import { StatusAgent } from '../api/status';
+import { Agent } from '../api/agents';
 import CountryFlag from './CountryFlag';
 import ClientResourceSection from './ClientResourceSection';
 
 interface AgentDetailModalProps {
-  agent: StatusAgent;
+  agent: Agent;
   onClose: () => void;
 }
 
