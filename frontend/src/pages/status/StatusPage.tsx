@@ -124,7 +124,7 @@ const StatusPage = () => {
         {data.monitors.length > 0 && (
           <section className="mb-8">
             <h2 className="text-lg font-bold text-slate-900 dark:text-white section-heading mb-4">{t('statusPage.apiServices')}</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {data.monitors.map(m => <MonitorCard key={m.id} monitor={m} />)}
             </div>
           </section>
