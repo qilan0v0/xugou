@@ -56,6 +56,34 @@ monitors.get('/', async (c) => {
   }
 });
 
+// 获取所有标签（标签池）
+monitors.get('/tags/pool', async (c) => {
+  try {
+    const payload = c.get('jwtPayload');
+
+    let result;
+    if (payload.role === 'admin') {
+      result = await c.env.DB.prepare(
+        "SELECT tags FROM monitors WHERE tags IS NOT NULL AND tags != ''"
+      ).all<{ tags: string }>();
+    } else {
+      result = await c.env.DB.prepare(
+        "SELECT tags FROM monitors WHERE created_by = ? AND tags IS NOT NULL AND tags != ''"
+      ).bind(payload.id).all<{ tags: string }>();
+    }
+
+    const tagSet = new Set<string>();
+    for (const row of result.results || []) {
+      row.tags.split(',').map(t => t.trim()).filter(Boolean).forEach(t => tagSet.add(t));
+    }
+
+    return c.json({ success: true, tags: Array.from(tagSet).sort() });
+  } catch (error) {
+    console.error('获取监控标签池错误:', error);
+    return c.json({ success: false, message: '获取监控标签池失败' }, 500);
+  }
+});
+
 // 获取单个监控
 monitors.get('/:id', async (c) => {
   try {
@@ -122,9 +150,9 @@ monitors.post('/', async (c) => {
     
     // 插入新监控
     const result = await c.env.DB.prepare(
-      `INSERT INTO monitors 
-       (name, url, method, interval, timeout, expected_status, headers, body, created_by, active, status, uptime, response_time, last_checked, created_at, updated_at) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO monitors
+       (name, url, method, interval, timeout, expected_status, headers, body, created_by, active, status, tags, uptime, response_time, last_checked, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).bind(
       data.name,
       data.url,
@@ -137,6 +165,7 @@ monitors.post('/', async (c) => {
       payload.id,
       true,
       'pending',
+      data.tags || null,
       100.0,
       0,
       null,
@@ -249,7 +278,17 @@ monitors.put('/:id', async (c) => {
       updates.push('last_checked = ?');
       values.push(data.lastChecked);
     }
-    
+
+    if (data.tags !== undefined) {
+      updates.push('tags = ?');
+      values.push(data.tags);
+    }
+
+    if (data.public !== undefined) {
+      updates.push('public = ?');
+      values.push(data.public ? 1 : 0);
+    }
+
     updates.push('updated_at = ?');
     values.push(new Date().toISOString());
     

@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeftIcon, UpdateIcon, PlusIcon, TrashIcon } from '@radix-ui/react-icons';
 import { getMonitor, updateMonitor } from '../../api/monitors';
 import StatusCodeSelect from '../../components/StatusCodeSelect';
+import TagInput from '../../components/TagInput';
 import { useTranslation } from 'react-i18next';
 
 const EditMonitor = () => {
@@ -13,6 +14,7 @@ const EditMonitor = () => {
   const [loadingData, setLoadingData] = useState(true);
   const [formData, setFormData] = useState({ name: '', url: '', method: 'GET', interval: 60, timeout: 30, expectedStatus: 200, body: '', headers: '{}' as string | Record<string, string>, active: true });
   const [headers, setHeaders] = useState<{ key: string; value: string }[]>([{ key: '', value: '' }]);
+  const [tags, setTags] = useState<string[]>([]);
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -24,6 +26,7 @@ const EditMonitor = () => {
           const m = res.monitor;
           setFormData({ name: m.name, url: m.url, method: m.method, interval: Math.round((m.interval || 60) / 60), timeout: m.timeout || 30, expectedStatus: m.expected_status || 200, body: m.body || '', headers: m.headers, active: m.active !== false });
           setIsPublic(m.public !== 0);
+          setTags(m.tags ? m.tags.split(',').filter(Boolean) : []);
           let parsed: Record<string, string> = {};
           try { parsed = typeof m.headers === 'string' ? JSON.parse(m.headers) : (m.headers || {}); } catch {}
           const h = Object.entries(parsed).map(([k, v]) => ({ key: k, value: String(v) }));
@@ -59,7 +62,7 @@ const EditMonitor = () => {
     if (!id) return;
     setLoading(true);
     try {
-      const res = await updateMonitor(parseInt(id), { ...formData, interval: formData.interval * 60, headers: headersToJson(), public: isPublic });
+      const res = await updateMonitor(parseInt(id), { ...formData, interval: formData.interval * 60, headers: headersToJson(), public: isPublic, tags: tags.length > 0 ? tags.join(',') : null });
       if (res.success) navigate('/monitors');
       else alert(res.message || t('monitor.form.updateFailed'));
     } catch { alert(t('monitor.form.updateFailed')); }
@@ -88,6 +91,10 @@ const EditMonitor = () => {
             <div><label className={labelClass}>{t('monitor.form.timeout')} *</label><input name="timeout" type="number" value={formData.timeout} onChange={handleChange} min="1" className={inputClass} /></div>
           </div>
           <div><label className={labelClass}>{t('monitor.form.expectedStatus')} *</label><StatusCodeSelect value={formData.expectedStatus} onChange={v => setFormData(prev => ({ ...prev, expectedStatus: v }))} /></div>
+          <div>
+            <label className={labelClass}>标签</label>
+            <TagInput value={tags} onChange={setTags} placeholder="输入标签，回车添加" poolUrl="/api/monitors/tags/pool" />
+          </div>
           <div>
             <label className={labelClass}>{t('monitor.form.headers')}</label>
             <div className="border border-white/[0.08] rounded-lg p-3">

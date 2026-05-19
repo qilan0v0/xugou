@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeftIcon, PlusIcon, TrashIcon } from '@radix-ui/react-icons';
 import { createMonitor } from '../../api/monitors';
 import StatusCodeSelect from '../../components/StatusCodeSelect';
+import TagInput from '../../components/TagInput';
 import { useTranslation } from 'react-i18next';
 
 const CreateMonitor = () => {
@@ -10,6 +11,7 @@ const CreateMonitor = () => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({ name: '', url: '', method: 'GET', interval: 1, timeout: 30, expectedStatus: 200, body: '' });
   const [headers, setHeaders] = useState<{ key: string; value: string }[]>([{ key: '', value: '' }]);
+  const [tags, setTags] = useState<string[]>([]);
   const [isPublic, setIsPublic] = useState(true);
   const { t } = useTranslation();
 
@@ -39,7 +41,7 @@ const CreateMonitor = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await createMonitor({ name: formData.name, url: formData.url, method: formData.method, interval: formData.interval * 60, timeout: formData.timeout, expectedStatus: formData.expectedStatus, headers: headersToJson(), body: formData.body, public: isPublic });
+      const response = await createMonitor({ name: formData.name, url: formData.url, method: formData.method, interval: formData.interval * 60, timeout: formData.timeout, expectedStatus: formData.expectedStatus, headers: headersToJson(), body: formData.body, public: isPublic, tags: tags.length > 0 ? tags.join(',') : null });
       if (response.success) navigate('/monitors');
       else alert(`${t('monitor.form.createFailed')}: ${response.message || t('monitor.form.unknownError')}`);
     } catch (error) {
@@ -120,6 +122,10 @@ const CreateMonitor = () => {
               <textarea name="body" value={formData.body} onChange={handleChange} placeholder={t('monitor.form.bodyPlaceholder')} className={inputClass} rows={5} style={{ minHeight: '100px' }} />
             </div>
           )}
+          <div>
+            <label className={labelClass}>标签</label>
+            <TagInput value={tags} onChange={setTags} placeholder="输入标签，回车添加" poolUrl="/api/monitors/tags/pool" />
+          </div>
           <div>
             <label className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors cursor-pointer">
               <span className="text-xs font-medium text-slate-500">公开显示</span>

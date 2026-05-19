@@ -64,6 +64,23 @@ const MonitorCard = ({ monitor }: MonitorCardProps) => {
           {t('monitorCard.responseTime')}: {monitor.response_time || t('monitorCard.unknown')}ms
         </div>
 
+        {monitor.tags && (
+          <div className="flex items-center gap-1 mb-2 flex-wrap">
+            {monitor.tags.split(',').filter(Boolean).map((tag: string, i: number) => {
+              const colors = ['bg-blue-500/10 text-blue-600', 'bg-emerald-500/10 text-emerald-600', 'bg-amber-500/10 text-amber-600', 'bg-purple-500/10 text-purple-600', 'bg-rose-500/10 text-rose-600', 'bg-cyan-500/10 text-cyan-600', 'bg-orange-500/10 text-orange-600', 'bg-indigo-500/10 text-indigo-600', 'bg-teal-500/10 text-teal-600', 'bg-pink-500/10 text-pink-600', 'bg-lime-500/10 text-lime-600', 'bg-violet-500/10 text-violet-600'];
+              let hash = 0;
+              const t = tag.trim();
+              for (let j = 0; j < t.length; j++) hash = ((hash << 5) - hash) + t.charCodeAt(j);
+              const c = colors[Math.abs(hash) % colors.length];
+              return (
+                <span key={i} className={`text-[9px] px-1.5 py-0.5 rounded font-medium ${c}`}>
+                  {t}
+                </span>
+              );
+            })}
+          </div>
+        )}
+
         <HeartbeatGrid uptime={monitor.uptime} history={monitor.history} />
       </div>
     </div>

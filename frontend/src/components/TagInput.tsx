@@ -24,12 +24,13 @@ function hashColor(tag: string) {
 }
 
 interface TagInputProps {
-  value: string[];              // current tags as array
+  value: string[];
   onChange: (tags: string[]) => void;
   placeholder?: string;
+  poolUrl?: string;             // API endpoint for tag pool
 }
 
-export default function TagInput({ value, onChange, placeholder }: TagInputProps) {
+export default function TagInput({ value, onChange, placeholder, poolUrl = '/api/agents/tags/pool' }: TagInputProps) {
   const [pool, setPool] = useState<string[]>([]);
   const [input, setInput] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
@@ -39,10 +40,10 @@ export default function TagInput({ value, onChange, placeholder }: TagInputProps
 
   // load tag pool
   useEffect(() => {
-    api.get('/api/agents/tags/pool').then(res => {
+    api.get(poolUrl).then(res => {
       if (res.data?.success) setPool(res.data.tags || []);
     }).catch(() => {});
-  }, []);
+  }, [poolUrl]);
 
   const candidates = pool
     .filter(t => {

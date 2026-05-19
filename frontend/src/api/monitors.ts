@@ -19,6 +19,7 @@ export interface Monitor {
   created_at: string;
   updated_at: string;
   public?: number;
+  tags?: string;
   history?: MonitorStatusHistory[];
   checks?: MonitorCheck[];
 }
@@ -69,6 +70,7 @@ export interface CreateMonitorRequest {
   headers?: Record<string, string>;
   body?: string;
   public?: boolean;
+  tags?: string | null;
 }
 
 export interface UpdateMonitorRequest {
@@ -86,6 +88,7 @@ export interface UpdateMonitorRequest {
   responseTime?: number;
   lastChecked?: string;
   public?: boolean;
+  tags?: string | null;
 }
 
 // 获取所有监控

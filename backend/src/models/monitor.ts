@@ -17,6 +17,8 @@ export interface Monitor {
   last_checked: string;
   created_at: string;
   updated_at: string;
+  tags?: string;
+  public?: number;
 }
 
 // 监控历史记录类型
