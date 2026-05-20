@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { CheckIcon, Cross2Icon } from '@radix-ui/react-icons';
+import { CheckIcon } from '@radix-ui/react-icons';
 import * as Toast from '@radix-ui/react-toast';
 import { getAllMonitors, Monitor } from '../../api/monitors';
 import { getAllAgents, Agent } from '../../api/agents';
@@ -26,7 +26,9 @@ const StatusPageConfig = () => {
   const [webhookMethod, setWebhookMethod] = useState('POST');
   const [webhookContentType, setWebhookContentType] = useState('json');
   const [webhookBody, setWebhookBody] = useState('{"name":"{name}","status":"{status}","time":"{time}"}');
-  const [webhookHeaders, setWebhookHeaders] = useState<{key:string;value:string}[]>([{key:'',value:''}]);
+  const [webhookHeaders, setWebhookHeaders] = useState('');
+  const [webhookTesting, setWebhookTesting] = useState(false);
+  const [webhookTestResult, setWebhookTestResult] = useState('');
   const [webhookTls, setWebhookTls] = useState(true);
   const [notifyDown, setNotifyDown] = useState(true);
   const [notifyUp, setNotifyUp] = useState(true);
@@ -216,32 +218,59 @@ const StatusPageConfig = () => {
               )}
 
               <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1.5">请求头</label>
-                <div className="border border-white/[0.08] rounded-lg p-3 flex flex-col gap-2">
-                  {webhookHeaders.map((h, i) => (
-                    <div key={i} className="flex gap-2">
-                      <input placeholder="Header名" value={h.key} onChange={e => {
-                        const n = [...webhookHeaders]; n[i] = {...n[i], key: e.target.value};
-                        if (i === n.length - 1 && (n[i].key || n[i].value)) n.push({key:'',value:''});
-                        setWebhookHeaders(n);
-                      }} className={`${inputClass} flex-1`} />
-                      <input placeholder="值" value={h.value} onChange={e => {
-                        const n = [...webhookHeaders]; n[i] = {...n[i], value: e.target.value};
-                        setWebhookHeaders(n);
-                      }} className={`${inputClass} flex-1`} />
-                      {webhookHeaders.length > 1 && (
-                        <button type="button" onClick={() => { const n = [...webhookHeaders]; n.splice(i,1); setWebhookHeaders(n); }}
-                          className="p-2 text-slate-400 hover:text-red-500"><Cross2Icon className="w-3 h-3" /></button>
-                      )}
-                    </div>
-                  ))}
-                </div>
+                <label className="block text-xs font-medium text-slate-500 mb-1.5">请求头（每行一个，格式: Name: Value）</label>
+                <textarea value={webhookHeaders} onChange={e => setWebhookHeaders(e.target.value)}
+                  placeholder={"Content-Type: application/json\nAuthorization: Bearer xxx"}
+                  className={`${inputClass} font-mono`} rows={3} style={{ minHeight: '60px' }} />
               </div>
 
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={webhookTls} onChange={e => setWebhookTls(e.target.checked)} className="chk-box" />
-                <span className="text-sm text-slate-700 dark:text-slate-300">验证 TLS 证书</span>
-              </label>
+              <div className="flex items-center gap-4">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={webhookTls} onChange={e => setWebhookTls(e.target.checked)} className="chk-box" />
+                  <span className="text-sm text-slate-700 dark:text-slate-300">验证 TLS 证书</span>
+                </label>
+                <button type="button" disabled={webhookTesting || !webhookUrl}
+                  onClick={async () => {
+                    if (!webhookUrl) return;
+                    setWebhookTesting(true);
+                    setWebhookTestResult('');
+                    try {
+                      const headers: Record<string,string> = {};
+                      webhookHeaders.split('\n').forEach(line => {
+                        const idx = line.indexOf(':');
+                        if (idx > 0) headers[line.slice(0,idx).trim()] = line.slice(idx+1).trim();
+                      });
+                      const body = webhookBody
+                        .replace(/\{name\}/g, 'TEST-监控项')
+                        .replace(/\{status\}/g, 'up')
+                        .replace(/\{time\}/g, new Date().toISOString())
+                        .replace(/\{hostname\}/g, 'test.example.com')
+                        .replace(/\{message\}/g, '这是一条测试消息');
+                      const fetchOptions: RequestInit = {
+                        method: webhookMethod,
+                        headers: { ...headers },
+                      };
+                      if (webhookMethod === 'POST') {
+                        headers['Content-Type'] = webhookContentType === 'json' ? 'application/json' : 'text/plain';
+                        fetchOptions.headers = headers;
+                        fetchOptions.body = webhookContentType === 'json' ? body : body;
+                      }
+                      // Use fetch without TLS verification (can't disable in browser, just for testing)
+                      const res = await fetch(webhookUrl, fetchOptions);
+                      setWebhookTestResult(`${res.status} ${res.statusText}`);
+                    } catch (e: any) {
+                      setWebhookTestResult(`错误: ${e.message}`);
+                    } finally { setWebhookTesting(false); }
+                  }}
+                  className="px-4 py-2 rounded-lg text-sm font-medium border border-blue-500/30 text-blue-500 hover:bg-blue-500/10 transition-colors disabled:opacity-40">
+                  {webhookTesting ? '发送中...' : '模拟测试'}
+                </button>
+                {webhookTestResult && (
+                  <span className={`text-xs ${webhookTestResult.startsWith('2') ? 'text-emerald-500' : 'text-red-500'}`}>
+                    {webhookTestResult}
+                  </span>
+                )}
+              </div>
             </div>
           )}
         </div>
