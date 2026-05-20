@@ -25,7 +25,8 @@ const StatusPageConfig = () => {
   const [webhookUrl, setWebhookUrl] = useState('');
   const [webhookMethod, setWebhookMethod] = useState('POST');
   const [webhookContentType, setWebhookContentType] = useState('json');
-  const [webhookBody, setWebhookBody] = useState('{"name":"{name}","status":"{status}","time":"{time}"}');
+  const [webhookBodyDown, setWebhookBodyDown] = useState('{"name":"{name}","status":"故障","time":"{time}","message":"{name} 出现故障"}');
+  const [webhookBodyUp, setWebhookBodyUp] = useState('{"name":"{name}","status":"已恢复","time":"{time}","message":"{name} 已恢复正常"}');
   const [webhookHeaders, setWebhookHeaders] = useState('');
   const [webhookTesting, setWebhookTesting] = useState(false);
   const [webhookTestResult, setWebhookTestResult] = useState('');
@@ -53,7 +54,8 @@ const StatusPageConfig = () => {
       if (c.webhookUrl) setWebhookUrl(c.webhookUrl);
       if (c.webhookMethod) setWebhookMethod(c.webhookMethod);
       if (c.webhookContentType) setWebhookContentType(c.webhookContentType);
-      if (c.webhookBody) setWebhookBody(c.webhookBody);
+      if (c.webhookBodyDown) setWebhookBodyDown(c.webhookBodyDown);
+      if (c.webhookBodyUp) setWebhookBodyUp(c.webhookBodyUp);
       if (c.webhookHeaders) setWebhookHeaders(c.webhookHeaders);
       if (c.webhookTls !== undefined) setWebhookTls(c.webhookTls);
     } catch {}
@@ -101,7 +103,7 @@ const StatusPageConfig = () => {
         setToastMsg(t('statusPageConfig.configSaved')); setToastType('success');
         localStorage.setItem('xugou_page_config', JSON.stringify({
           title: config.title, logoUrl: config.logoUrl, adminCss,
-          webhookUrl, webhookMethod, webhookContentType, webhookBody, webhookHeaders, webhookTls,
+          webhookUrl, webhookMethod, webhookContentType, webhookBodyDown, webhookBodyUp, webhookHeaders, webhookTls,
         }));
       }
       else { setToastMsg(res.message || t('statusPageConfig.saveError')); setToastType('error'); }
@@ -209,14 +211,24 @@ const StatusPageConfig = () => {
               </div>
 
               {webhookMethod === 'POST' && (
-                <div>
-                  <label className="block text-xs font-medium text-slate-500 mb-1.5">
-                    提交内容 {webhookContentType === 'json' ? '(JSON格式)' : '(纯文本)'}
-                  </label>
-                  <textarea value={webhookBody} onChange={e => setWebhookBody(e.target.value)}
-                    placeholder={webhookContentType === 'json' ? '{"name":"{name}","status":"{status}"}' : '{name} {status} 于 {time}'}
-                    className={`${inputClass} font-mono`} rows={4} style={{ minHeight: '80px' }} />
-                  <div className="mt-2">
+                <>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-500 mb-1.5">
+                      故障通知模板 {webhookContentType === 'json' ? '(JSON)' : '(文本)'}
+                    </label>
+                    <textarea value={webhookBodyDown} onChange={e => setWebhookBodyDown(e.target.value)}
+                      placeholder={webhookContentType === 'json' ? '{"name":"{name}","status":"故障"}' : '{name} 出现故障'}
+                      className={`${inputClass} font-mono`} rows={3} style={{ minHeight: '60px' }} />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-500 mb-1.5">
+                      恢复通知模板 {webhookContentType === 'json' ? '(JSON)' : '(文本)'}
+                    </label>
+                    <textarea value={webhookBodyUp} onChange={e => setWebhookBodyUp(e.target.value)}
+                      placeholder={webhookContentType === 'json' ? '{"name":"{name}","status":"已恢复"}' : '{name} 已恢复正常'}
+                      className={`${inputClass} font-mono`} rows={3} style={{ minHeight: '60px' }} />
+                  </div>
+                  <div>
                     <button type="button" onClick={() => setVarsExpanded(!varsExpanded)}
                       className="text-xs text-blue-500 hover:text-blue-400 transition-colors flex items-center gap-1">
                       <span>{varsExpanded ? '▼' : '▶'}</span> 可用变量说明
@@ -247,7 +259,7 @@ const StatusPageConfig = () => {
                       </div>
                     )}
                   </div>
-                </div>
+                </>
               )}
 
               <div>
@@ -308,7 +320,7 @@ const StatusPageConfig = () => {
                           url: 'https://example.com',
                           response_time: '120',
                         };
-                        let body = webhookBody;
+                        let body = webhookBodyDown;  // use down template for testing
                         for (const [k, v] of Object.entries(vars)) {
                           body = body.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
                         }
