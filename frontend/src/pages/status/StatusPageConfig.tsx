@@ -29,6 +29,9 @@ const StatusPageConfig = () => {
   const [webhookHeaders, setWebhookHeaders] = useState('');
   const [webhookTesting, setWebhookTesting] = useState(false);
   const [webhookTestResult, setWebhookTestResult] = useState('');
+  const [varsExpanded, setVarsExpanded] = useState(false);
+  const [testAgentId, setTestAgentId] = useState<number | null>(null);
+  const [agentsBrief, setAgentsBrief] = useState<{id:number;name:string;hostname:string;os:string;ip_address:string;cpu_usage:number;country:string;boot_time:string;memory_total:number;memory_used:number;disk_total:number;disk_used:number}[]>([]);
   const [webhookTls, setWebhookTls] = useState(true);
   const [notifyDown, setNotifyDown] = useState(true);
   const [notifyUp, setNotifyUp] = useState(true);
@@ -213,7 +216,37 @@ const StatusPageConfig = () => {
                   <textarea value={webhookBody} onChange={e => setWebhookBody(e.target.value)}
                     placeholder={webhookContentType === 'json' ? '{"name":"{name}","status":"{status}"}' : '{name} {status} 于 {time}'}
                     className={`${inputClass} font-mono`} rows={4} style={{ minHeight: '80px' }} />
-                  <p className="text-xs text-slate-500 mt-1">变量: {'{name} {status} {time} {hostname} {message}'}</p>
+                  <div className="mt-2">
+                    <button type="button" onClick={() => setVarsExpanded(!varsExpanded)}
+                      className="text-xs text-blue-500 hover:text-blue-400 transition-colors flex items-center gap-1">
+                      <span>{varsExpanded ? '▼' : '▶'}</span> 可用变量说明
+                    </button>
+                    {varsExpanded && (
+                      <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] bg-slate-50 dark:bg-white/[0.03] rounded-lg p-3 border border-white/[0.06]">
+                        {[
+                          ['{name}', '客户端名称'],
+                          ['{status}', '状态: up/down/pending'],
+                          ['{time}', '当前时间 (ISO格式)'],
+                          ['{hostname}', '主机名'],
+                          ['{ip}', 'IP 地址'],
+                          ['{os}', '操作系统'],
+                          ['{cpu}', 'CPU 使用率 (%)'],
+                          ['{memory}', '内存使用率 (%)'],
+                          ['{disk}', '磁盘使用率 (%)'],
+                          ['{uptime}', '运行时长'],
+                          ['{country}', '所在地区'],
+                          ['{message}', '故障/恢复 描述'],
+                          ['{url}', '监控URL (仅API监控)'],
+                          ['{response_time}', '响应时间ms (仅API监控)'],
+                        ].map(([v, d]) => (
+                          <div key={v} className="flex items-baseline gap-1.5">
+                            <code className="text-blue-600 dark:text-blue-400 font-mono whitespace-nowrap">{v}</code>
+                            <span className="text-slate-500">{d}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -224,52 +257,82 @@ const StatusPageConfig = () => {
                   className={`${inputClass} font-mono`} rows={3} style={{ minHeight: '60px' }} />
               </div>
 
-              <div className="flex items-center gap-4">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" checked={webhookTls} onChange={e => setWebhookTls(e.target.checked)} className="chk-box" />
-                  <span className="text-sm text-slate-700 dark:text-slate-300">验证 TLS 证书</span>
-                </label>
-                <button type="button" disabled={webhookTesting || !webhookUrl}
-                  onClick={async () => {
-                    if (!webhookUrl) return;
-                    setWebhookTesting(true);
-                    setWebhookTestResult('');
-                    try {
-                      const headers: Record<string,string> = {};
-                      webhookHeaders.split('\n').forEach(line => {
-                        const idx = line.indexOf(':');
-                        if (idx > 0) headers[line.slice(0,idx).trim()] = line.slice(idx+1).trim();
-                      });
-                      const body = webhookBody
-                        .replace(/\{name\}/g, 'TEST-监控项')
-                        .replace(/\{status\}/g, 'up')
-                        .replace(/\{time\}/g, new Date().toISOString())
-                        .replace(/\{hostname\}/g, 'test.example.com')
-                        .replace(/\{message\}/g, '这是一条测试消息');
-                      const fetchOptions: RequestInit = {
-                        method: webhookMethod,
-                        headers: { ...headers },
-                      };
-                      if (webhookMethod === 'POST') {
-                        headers['Content-Type'] = webhookContentType === 'json' ? 'application/json' : 'text/plain';
-                        fetchOptions.headers = headers;
-                        fetchOptions.body = webhookContentType === 'json' ? body : body;
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-4 flex-wrap">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" checked={webhookTls} onChange={e => setWebhookTls(e.target.checked)} className="chk-box" />
+                    <span className="text-sm text-slate-700 dark:text-slate-300">验证 TLS 证书</span>
+                  </label>
+
+                  <select value={testAgentId ?? ''} onChange={e => { const v = e.target.value; setTestAgentId(v ? Number(v) : null); }}
+                    onFocus={() => {
+                      if (agentsBrief.length === 0) {
+                        getAllAgents().then(res => {
+                          if (res.agents) setAgentsBrief(res.agents);
+                        });
                       }
-                      // Use fetch without TLS verification (can't disable in browser, just for testing)
-                      const res = await fetch(webhookUrl, fetchOptions);
-                      setWebhookTestResult(`${res.status} ${res.statusText}`);
-                    } catch (e: any) {
-                      setWebhookTestResult(`错误: ${e.message}`);
-                    } finally { setWebhookTesting(false); }
-                  }}
-                  className="px-4 py-2 rounded-lg text-sm font-medium border border-blue-500/30 text-blue-500 hover:bg-blue-500/10 transition-colors disabled:opacity-40">
-                  {webhookTesting ? '发送中...' : '模拟测试'}
-                </button>
-                {webhookTestResult && (
-                  <span className={`text-xs ${webhookTestResult.startsWith('2') ? 'text-emerald-500' : 'text-red-500'}`}>
-                    {webhookTestResult}
-                  </span>
-                )}
+                    }}
+                    className={`${inputClass} w-48`}>
+                    <option value="">选客户端测试(可选)</option>
+                    {agentsBrief.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                  </select>
+
+                  <button type="button" disabled={webhookTesting || !webhookUrl}
+                    onClick={async () => {
+                      if (!webhookUrl) return;
+                      setWebhookTesting(true);
+                      setWebhookTestResult('');
+                      try {
+                        const headers: Record<string,string> = {};
+                        webhookHeaders.split('\n').forEach(line => {
+                          const idx = line.indexOf(':');
+                          if (idx > 0) headers[line.slice(0,idx).trim()] = line.slice(idx+1).trim();
+                        });
+                        // Build variable values
+                        const agent = testAgentId ? agentsBrief.find(a => a.id === testAgentId) : null;
+                        const now = new Date().toISOString();
+                        const upMs = agent?.boot_time ? Math.max(0, Date.now() - new Date(agent.boot_time).getTime()) : 0;
+                        const vars: Record<string,string> = {
+                          name: agent?.name || 'TEST-监控项',
+                          status: 'up',
+                          time: now,
+                          hostname: agent?.hostname || 'test.example.com',
+                          ip: agent?.ip_address || '127.0.0.1',
+                          os: agent?.os || 'Linux',
+                          cpu: agent ? `${Math.round(agent.cpu_usage || 0)}` : '25',
+                          memory: agent?.memory_total ? `${Math.round(((agent.memory_used||0)/(agent.memory_total||1))*100)}` : '50',
+                          disk: agent?.disk_total ? `${Math.round(((agent.disk_used||0)/(agent.disk_total||1))*100)}` : '30',
+                          uptime: upMs ? `${Math.floor(upMs/86400000)}d${Math.floor((upMs%86400000)/3600000)}h` : '1d2h',
+                          country: agent?.country || 'CN',
+                          message: '这是一条测试消息',
+                          url: 'https://example.com',
+                          response_time: '120',
+                        };
+                        let body = webhookBody;
+                        for (const [k, v] of Object.entries(vars)) {
+                          body = body.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
+                        }
+                        const fetchOptions: RequestInit = { method: webhookMethod, headers: { ...headers } };
+                        if (webhookMethod === 'POST') {
+                          headers['Content-Type'] = webhookContentType === 'json' ? 'application/json' : 'text/plain';
+                          fetchOptions.headers = headers;
+                          fetchOptions.body = body;
+                        }
+                        const res = await fetch(webhookUrl, fetchOptions);
+                        setWebhookTestResult(`${res.status} ${res.statusText}`);
+                      } catch (e: any) {
+                        setWebhookTestResult(`错误: ${e.message}`);
+                      } finally { setWebhookTesting(false); }
+                    }}
+                    className="px-4 py-2 rounded-lg text-sm font-medium border border-blue-500/30 text-blue-500 hover:bg-blue-500/10 transition-colors disabled:opacity-40">
+                    {webhookTesting ? '发送中...' : '模拟测试'}
+                  </button>
+                  {webhookTestResult && (
+                    <span className={`text-xs ${webhookTestResult.startsWith('2') ? 'text-emerald-500' : 'text-red-500'}`}>
+                      {webhookTestResult}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           )}
