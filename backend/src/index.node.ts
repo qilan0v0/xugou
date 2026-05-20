@@ -37,7 +37,6 @@ const env: any = {
 };
 
 import { checkAndInitializeDatabase } from './setup/initCheck';
-checkAndInitializeDatabase(env).then(r => console.log('DB init:', r.message));
 
 app.use('*', logger());
 app.use('*', cors({
@@ -251,10 +250,14 @@ broadcast = (type, data) => {
   }
 };
 
-server.listen(port, host, () => {
-  console.log(`Xugou Node.js backend on http://${host}:${port}`);
-  console.log('WebSocket ready');
-});
+(async () => {
+  const initResult = await checkAndInitializeDatabase(env);
+  console.log('DB init:', initResult.message);
+
+  server.listen(port, host, () => {
+    console.log(`Xugou Node.js backend on http://${host}:${port}`);
+  });
+})();
 
 setInterval(async () => {
   try { await runScheduledTasks(null, env, {}); }
