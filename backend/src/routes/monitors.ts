@@ -23,11 +23,11 @@ monitors.get('/', async (c) => {
     let result;
     if (payload.role === 'admin') {
       result = await c.env.DB.prepare(
-        'SELECT * FROM monitors ORDER BY created_at DESC'
+        'SELECT * FROM monitors ORDER BY sort_order ASC, created_at DESC'
       ).all<Monitor>();
     } else {
       result = await c.env.DB.prepare(
-        'SELECT * FROM monitors WHERE created_by = ? ORDER BY created_at DESC'
+        'SELECT * FROM monitors WHERE created_by = ? ORDER BY sort_order ASC, created_at DESC'
       ).bind(payload.id).all<Monitor>();
     }
     
@@ -81,6 +81,32 @@ monitors.get('/tags/pool', async (c) => {
   } catch (error) {
     console.error('获取监控标签池错误:', error);
     return c.json({ success: false, message: '获取监控标签池失败' }, 500);
+  }
+});
+
+// 排序：上移/下移
+monitors.post('/reorder', async (c) => {
+  try {
+    const { id, direction } = await c.req.json();
+    if (!id || !direction) return c.json({ success: false, message: '缺少参数' }, 400);
+
+    const current = await c.env.DB.prepare('SELECT id, sort_order FROM monitors WHERE id = ?').bind(id).first<{id: number; sort_order: number}>();
+    if (!current) return c.json({ success: false, message: '监控不存在' }, 404);
+
+    const currentSort = current.sort_order ?? 0;
+    const targetSort = direction === 'up' ? currentSort - 1 : currentSort + 1;
+
+    const target = await c.env.DB.prepare('SELECT id, sort_order FROM monitors WHERE sort_order = ? AND id != ? LIMIT 1').bind(targetSort, id).first<{id: number; sort_order: number}>();
+    if (target) {
+      await c.env.DB.prepare('UPDATE monitors SET sort_order = ? WHERE id = ?').bind(targetSort, id).run();
+      await c.env.DB.prepare('UPDATE monitors SET sort_order = ? WHERE id = ?').bind(currentSort, target.id).run();
+    } else {
+      await c.env.DB.prepare('UPDATE monitors SET sort_order = ? WHERE id = ?').bind(targetSort, id).run();
+    }
+
+    return c.json({ success: true, message: '排序已更新' });
+  } catch (e: any) {
+    return c.json({ success: false, message: '排序失败' }, 500);
   }
 });
 

@@ -23,6 +23,8 @@ export async function runMigrations(env: Bindings): Promise<void> {
   try { await env.DB.exec('ALTER TABLE monitors ADD COLUMN public INTEGER DEFAULT 1'); } catch (e) { /* skip */ }
   try { await env.DB.exec('ALTER TABLE monitors ADD COLUMN tags TEXT'); } catch (e) { /* skip */ }
   try { await env.DB.exec('CREATE TABLE IF NOT EXISTS agent_groups (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE, created_at TEXT NOT NULL)'); } catch (e) { /* skip */ }
+  try { await env.DB.exec('ALTER TABLE agents ADD COLUMN sort_order INTEGER DEFAULT 0'); } catch (e) { /* skip */ }
+  try { await env.DB.exec('ALTER TABLE monitors ADD COLUMN sort_order INTEGER DEFAULT 0'); } catch (e) { /* skip */ }
 
   const newColumns = [
     'cpu_arch TEXT',

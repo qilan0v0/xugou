@@ -355,11 +355,11 @@ app.get('/data', async (c) => {
     }
 
     const monitorQuery = isAuthenticated
-      ? "SELECT * FROM monitors WHERE active = 1 ORDER BY created_at DESC"
-      : "SELECT * FROM monitors WHERE active = 1 AND public = 1 ORDER BY created_at DESC";
+      ? "SELECT * FROM monitors WHERE active = 1 ORDER BY sort_order ASC, created_at DESC"
+      : "SELECT * FROM monitors WHERE active = 1 AND public = 1 ORDER BY sort_order ASC, created_at DESC";
     const agentQuery = isAuthenticated
-      ? "SELECT * FROM agents ORDER BY created_at DESC"
-      : "SELECT * FROM agents WHERE public = 1 ORDER BY created_at DESC";
+      ? "SELECT * FROM agents ORDER BY sort_order ASC, created_at DESC"
+      : "SELECT * FROM agents WHERE public = 1 ORDER BY sort_order ASC, created_at DESC";
 
     const monitors = await c.env.DB.prepare(monitorQuery).all<any>();
     const agents = await c.env.DB.prepare(agentQuery).all<any>();

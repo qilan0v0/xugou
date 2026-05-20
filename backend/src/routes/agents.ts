@@ -29,11 +29,11 @@ agents.get('/', async (c) => {
     let result;
     if (payload.role === 'admin') {
       result = await c.env.DB.prepare(
-        'SELECT * FROM agents ORDER BY created_at DESC'
+        'SELECT * FROM agents ORDER BY sort_order ASC, created_at DESC'
       ).all<Agent>();
     } else {
       result = await c.env.DB.prepare(
-        'SELECT * FROM agents WHERE created_by = ? ORDER BY created_at DESC'
+        'SELECT * FROM agents WHERE created_by = ? ORDER BY sort_order ASC, created_at DESC'
       ).bind(payload.id).all<Agent>();
     }
     
@@ -220,6 +220,35 @@ agents.get('/groups/pool', async (c) => {
     return c.json({ success: true, groups: names });
   } catch {
     return c.json({ success: false, message: '获取分组池失败' }, 500);
+  }
+});
+
+// 排序：上移/下移
+agents.post('/reorder', async (c) => {
+  try {
+    const { id, direction } = await c.req.json(); // direction: 'up' | 'down'
+    if (!id || !direction) return c.json({ success: false, message: '缺少参数' }, 400);
+
+    const current = await c.env.DB.prepare('SELECT id, sort_order FROM agents WHERE id = ?').bind(id).first<{id: number; sort_order: number}>();
+    if (!current) return c.json({ success: false, message: '客户端不存在' }, 404);
+
+    const currentSort = current.sort_order ?? 0;
+    const targetSort = direction === 'up' ? currentSort - 1 : currentSort + 1;
+
+    // Find the agent at the target position
+    const target = await c.env.DB.prepare('SELECT id, sort_order FROM agents WHERE sort_order = ? AND id != ? LIMIT 1').bind(targetSort, id).first<{id: number; sort_order: number}>();
+    if (target) {
+      // Swap
+      await c.env.DB.prepare('UPDATE agents SET sort_order = ? WHERE id = ?').bind(targetSort, id).run();
+      await c.env.DB.prepare('UPDATE agents SET sort_order = ? WHERE id = ?').bind(currentSort, target.id).run();
+    } else {
+      // No adjacent item — just move by 1
+      await c.env.DB.prepare('UPDATE agents SET sort_order = ? WHERE id = ?').bind(targetSort, id).run();
+    }
+
+    return c.json({ success: true, message: '排序已更新' });
+  } catch (e: any) {
+    return c.json({ success: false, message: '排序失败' }, 500);
   }
 });
 

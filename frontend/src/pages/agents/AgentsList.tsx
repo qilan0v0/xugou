@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PlusIcon, Cross2Icon, Pencil1Icon, InfoCircledIcon, ReloadIcon, CubeIcon, CheckCircledIcon, CrossCircledIcon as CrossCircled, GlobeIcon, ArrowUpIcon, UpdateIcon } from '@radix-ui/react-icons';
+import { PlusIcon, Cross2Icon, Pencil1Icon, InfoCircledIcon, ReloadIcon, CubeIcon, CheckCircledIcon, CrossCircledIcon as CrossCircled, GlobeIcon, ArrowUpIcon, UpdateIcon, ChevronUpIcon, ChevronDownIcon } from '@radix-ui/react-icons';
+import api from '../../api/index';
 import { getAllAgents, deleteAgent, updateAgent, Agent } from '../../api/agents';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import AgentDetailModal from '../../components/AgentDetailModal';
@@ -192,6 +193,13 @@ const AgentsList = () => {
     alert(`已删除 ${ok} / ${selected.size} 个`);
   };
 
+  const handleReorder = async (id: number, direction: 'up' | 'down') => {
+    try {
+      await api.post('/api/agents/reorder', { id, direction });
+      fetchAgents();
+    } catch {}
+  };
+
   const handleDeleteOne = async (id: number) => {
     if (!window.confirm(t('agent.deleteConfirm'))) return;
     try { const r = await deleteAgent(id); if (r.success) fetchAgents(); else alert(r.message || '删除失败'); }
@@ -306,6 +314,8 @@ const AgentsList = () => {
                       <td className="px-4 py-2.5"><div className="flex gap-1 flex-wrap">{tags.length === 0 ? <span className="text-[11px] text-slate-400">--</span> : tags.map(t => <span key={t} className={`text-[10px] px-1.5 py-0.5 rounded font-medium whitespace-nowrap ${tagColor(t)}`}>{t}</span>)}</div></td>
                       <td className="px-4 py-2.5 text-right">
                         <div className="flex justify-end gap-0.5">
+                          <button onClick={() => handleReorder(a.id, 'up')} className="p-0.5 rounded text-slate-300 hover:text-slate-600 dark:hover:text-slate-300 transition-colors" title="上移"><ChevronUpIcon className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => handleReorder(a.id, 'down')} className="p-0.5 rounded text-slate-300 hover:text-slate-600 dark:hover:text-slate-300 transition-colors" title="下移"><ChevronDownIcon className="w-3.5 h-3.5" /></button>
                           <button onClick={() => setDetailAgent(a)} className="p-1.5 rounded-md text-slate-400 hover:text-blue-500 hover:bg-blue-500/10 transition-colors" title="详情"><InfoCircledIcon className="w-3.5 h-3.5" /></button>
                           <button onClick={() => setEditing(a)} className="p-1.5 rounded-md text-slate-400 hover:text-amber-500 hover:bg-amber-500/10 transition-colors" title="编辑"><Pencil1Icon className="w-3.5 h-3.5" /></button>
                           <button onClick={() => handleDeleteOne(a.id)} className="p-1.5 rounded-md text-slate-400 hover:text-red-500 hover:bg-red-500/10 transition-colors" title="删除"><Cross2Icon className="w-3.5 h-3.5" /></button>

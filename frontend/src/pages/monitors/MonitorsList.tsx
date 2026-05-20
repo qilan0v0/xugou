@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PlusIcon, Pencil1Icon, TrashIcon, Cross2Icon, ReloadIcon, InfoCircledIcon, ClockIcon, GlobeIcon, ActivityLogIcon, UpdateIcon } from '@radix-ui/react-icons';
+import { PlusIcon, Pencil1Icon, TrashIcon, Cross2Icon, ReloadIcon, InfoCircledIcon, ClockIcon, GlobeIcon, ActivityLogIcon, UpdateIcon, ChevronUpIcon, ChevronDownIcon } from '@radix-ui/react-icons';
+import api from '../../api/index';
 import { getAllMonitors, deleteMonitor, updateMonitor, Monitor } from '../../api/monitors';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import StatusCodeSelect from '../../components/StatusCodeSelect';
@@ -142,6 +143,13 @@ const MonitorsList = () => {
     alert(`已删除 ${ok} / ${selected.size} 个`);
   };
 
+  const handleReorder = async (id: number, direction: 'up' | 'down') => {
+    try {
+      await api.post('/api/monitors/reorder', { id, direction });
+      fetchData();
+    } catch {}
+  };
+
   const handleDelete = async (id: number) => {
     if (!window.confirm(t('monitors.delete.confirm'))) return;
     try {
@@ -213,6 +221,8 @@ const MonitorsList = () => {
                       <td className="px-4 py-2.5"><div className="flex gap-1 flex-wrap">{tags.length === 0 ? <span className="text-[11px] text-slate-400">--</span> : tags.map(t => <span key={t} className={`text-[10px] px-1.5 py-0.5 rounded font-medium whitespace-nowrap ${tagColor(t)}`}>{t}</span>)}</div></td>
                       <td className="px-4 py-2.5 text-right">
                         <div className="flex justify-end gap-0.5">
+                          <button onClick={() => handleReorder(m.id, 'up')} className="p-0.5 rounded text-slate-300 hover:text-slate-600 dark:hover:text-slate-300 transition-colors" title="上移"><ChevronUpIcon className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => handleReorder(m.id, 'down')} className="p-0.5 rounded text-slate-300 hover:text-slate-600 dark:hover:text-slate-300 transition-colors" title="下移"><ChevronDownIcon className="w-3.5 h-3.5" /></button>
                           <button onClick={() => navigate(`/monitors/${m.id}`)} className="p-1.5 rounded-md text-slate-400 hover:text-blue-500 hover:bg-blue-500/10 transition-colors" title="详情"><InfoCircledIcon className="w-3.5 h-3.5" /></button>
                           <button onClick={() => setEditing(m)} className="p-1.5 rounded-md text-slate-400 hover:text-amber-500 hover:bg-amber-500/10 transition-colors" title="编辑"><Pencil1Icon className="w-3.5 h-3.5" /></button>
                           <button onClick={() => handleDelete(m.id)} className="p-1.5 rounded-md text-slate-400 hover:text-red-500 hover:bg-red-500/10 transition-colors" title="删除"><TrashIcon className="w-3.5 h-3.5" /></button>
