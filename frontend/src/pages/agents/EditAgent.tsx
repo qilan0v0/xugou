@@ -97,7 +97,7 @@ const EditAgent = () => {
             <input value={name} onChange={e => setName(e.target.value)} required className={inputClass} />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1.5">分类</label>
+            <label className="block text-xs font-medium text-slate-500 mb-1.5">分组</label>
             <input value={category} onChange={e => setCategory(e.target.value)} placeholder="如: 生产环境、测试环境" className={inputClass} />
           </div>
           <div>

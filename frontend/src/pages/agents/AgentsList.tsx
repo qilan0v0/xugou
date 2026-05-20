@@ -87,7 +87,7 @@ function EditModal({ agent, onClose, onSaved }: { agent: Agent; onClose: () => v
         </div>
         <form onSubmit={handleSave} className="p-5 flex flex-col gap-4">
           <div><label className={labelC}>名称 *</label><input value={name} onChange={e => setName(e.target.value)} required className={inputC} /></div>
-          <div><label className={labelC}>分类</label><input value={category} onChange={e => setCategory(e.target.value)} placeholder="如: 生产环境" className={inputC} /></div>
+          <div><label className={labelC}>分组</label><input value={category} onChange={e => setCategory(e.target.value)} placeholder="如: 生产环境" className={inputC} /></div>
           <div>
             <label className={labelC}>标签</label>
             <TagInput value={tags} onChange={setTags} placeholder="输入标签，回车添加" />
