@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { CopyIcon, CheckIcon } from '@radix-ui/react-icons';
+import { CheckIcon } from '@radix-ui/react-icons';
 import * as Toast from '@radix-ui/react-toast';
 import { getAllMonitors, Monitor } from '../../api/monitors';
 import { getAllAgents, Agent } from '../../api/agents';
@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next';
 interface MonitorWithSelection extends Monitor { selected: boolean; }
 interface AgentWithSelection extends Agent { selected: boolean; }
 interface StatusConfigWithDetails {
-  title: string; description: string; logoUrl: string; customCss: string; publicUrl: string;
+  title: string; logoUrl: string; customCss: string;
   monitors: MonitorWithSelection[]; agents: AgentWithSelection[];
 }
 
@@ -21,7 +21,6 @@ const StatusPageConfig = () => {
   const [showToast, setShowToast] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
   const [toastType, setToastType] = useState<'success'|'error'>('success');
-  const [copied, setCopied] = useState(false);
   const [tab, setTab] = useState('general');
   const [webhookUrl, setWebhookUrl] = useState('');
   const [tgBotToken, setTgBotToken] = useState('');
@@ -34,8 +33,8 @@ const StatusPageConfig = () => {
   const { t } = useTranslation();
 
   const [config, setConfig] = useState<StatusConfigWithDetails>({
-    title: t('statusPage.title'), description: t('statusPage.allOperational'), logoUrl: '', customCss: '',
-    publicUrl: window.location.origin + '/status', monitors: [], agents: []
+    title: t('statusPage.title'), logoUrl: '', customCss: '',
+    monitors: [], agents: []
   });
 
   useEffect(() => {
@@ -63,7 +62,6 @@ const StatusPageConfig = () => {
         setConfig(prev => ({
           ...prev,
           title: configData?.title || t('statusPage.title'),
-          description: configData?.description || t('statusPage.allOperational'),
           logoUrl: configData?.logoUrl || '', customCss: configData?.customCss || '',
           monitors, agents
         }));
@@ -77,13 +75,11 @@ const StatusPageConfig = () => {
     setConfig(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleCopyUrl = () => { navigator.clipboard.writeText(config.publicUrl); setCopied(true); setTimeout(() => setCopied(false), 2000); };
-
   const handleSave = async () => {
     setSaving(true);
     try {
       const toSave: StatusConfig = {
-        title: config.title, description: config.description, logoUrl: config.logoUrl, customCss: config.customCss,
+        title: config.title, description: '', logoUrl: config.logoUrl, customCss: config.customCss,
         monitors: config.monitors.filter(m => m.selected).map(m => m.id),
         agents: config.agents.filter(a => a.selected).map(a => a.id)
       };
@@ -105,7 +101,6 @@ const StatusPageConfig = () => {
   const tabs = [
     { key: 'general', label: t('statusPageConfig.general') },
     { key: 'notifications', label: t('statusPageConfig.notifications') },
-    { key: 'appearance', label: t('statusPageConfig.appearance') },
   ];
 
   return (
@@ -144,18 +139,18 @@ const StatusPageConfig = () => {
                 <input name="title" value={config.title} onChange={handleChange} placeholder={t('statusPageConfig.pageTitlePlaceholder')} className={inputClass} />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1.5">{t('statusPageConfig.pageDescription')}</label>
-                <textarea name="description" value={config.description} onChange={handleChange} placeholder={t('statusPageConfig.pageDescriptionPlaceholder')} className={inputClass} rows={3} style={{ minHeight: '80px' }} />
+                <label className="block text-xs font-medium text-slate-500 mb-1.5">{t('statusPageConfig.logoUrl')}</label>
+                <input name="logoUrl" value={config.logoUrl} onChange={handleChange} placeholder={t('statusPageConfig.logoUrlPlaceholder')} className={inputClass} />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1.5">{t('statusPageConfig.publicUrl')}</label>
-                <div className="flex gap-2">
-                  <input value={config.publicUrl} readOnly className={`${inputClass} flex-1 text-slate-500 cursor-default`} />
-                  <button onClick={handleCopyUrl} className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 text-sm font-medium hover:bg-blue-500/20 transition-colors flex-shrink-0">
-                    {copied ? <CheckIcon /> : <CopyIcon />}{copied ? t('common.copied') : t('common.copy')}
-                  </button>
-                </div>
-                <p className="text-xs text-slate-500 mt-1">{t('statusPageConfig.publicUrlHelp')}</p>
+                <label className="block text-xs font-medium text-slate-500 mb-1.5">首页 CSS（公开状态页生效）</label>
+                <textarea name="customCss" value={config.customCss} onChange={handleChange} placeholder={t('statusPageConfig.customCssPlaceholder')} className={`${inputClass} font-mono`} rows={6} style={{ minHeight: '150px' }} />
+                <p className="text-xs text-slate-500 mt-1">支持 CSS + &lt;script&gt; 标签</p>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-500 mb-1.5">后台 CSS（管理页面生效）</label>
+                <textarea value={adminCss} onChange={e => setAdminCss(e.target.value)} placeholder="输入仅用于后台管理页面的自定义样式..." className={`${inputClass} font-mono`} rows={6} style={{ minHeight: '150px' }} />
+                <p className="text-xs text-slate-500 mt-1">仪表盘、API监控、客户端监控等管理页面生效，同样支持 &lt;script&gt;</p>
               </div>
             </div>
           )}
@@ -205,25 +200,6 @@ const StatusPageConfig = () => {
                 <label className="block text-xs font-medium text-slate-500 mb-1.5">{t('statusPageConfig.notifyTemplate')}</label>
                 <textarea value={notifyTemplate} onChange={e => setNotifyTemplate(e.target.value)} className={inputClass} rows={2} style={{ minHeight: '60px' }} />
                 <p className="text-xs text-slate-500 mt-1">{'{name} {status} {time} {hostname} {message}'}</p>
-              </div>
-            </div>
-          )}
-
-          {tab === 'appearance' && (
-            <div className="flex flex-col gap-5">
-              <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1.5">{t('statusPageConfig.logoUrl')}</label>
-                <input name="logoUrl" value={config.logoUrl} onChange={handleChange} placeholder={t('statusPageConfig.logoUrlPlaceholder')} className={inputClass} />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1.5">首页 CSS（公开状态页生效）</label>
-                <textarea name="customCss" value={config.customCss} onChange={handleChange} placeholder={t('statusPageConfig.customCssPlaceholder')} className={`${inputClass} font-mono`} rows={6} style={{ minHeight: '150px' }} />
-                <p className="text-xs text-slate-500 mt-1">支持 CSS + &lt;script&gt; 标签</p>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1.5">后台 CSS（管理页面生效）</label>
-                <textarea value={adminCss} onChange={e => setAdminCss(e.target.value)} placeholder="输入仅用于后台管理页面的自定义样式..." className={`${inputClass} font-mono`} rows={6} style={{ minHeight: '150px' }} />
-                <p className="text-xs text-slate-500 mt-1">仪表盘、API监控、客户端监控等管理页面生效，同样支持 &lt;script&gt;</p>
               </div>
             </div>
           )}
