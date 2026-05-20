@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { CheckIcon } from '@radix-ui/react-icons';
+import { CheckIcon, Cross2Icon } from '@radix-ui/react-icons';
 import * as Toast from '@radix-ui/react-toast';
 import { getAllMonitors, Monitor } from '../../api/monitors';
 import { getAllAgents, Agent } from '../../api/agents';
@@ -23,11 +23,13 @@ const StatusPageConfig = () => {
   const [toastType, setToastType] = useState<'success'|'error'>('success');
   const [tab, setTab] = useState('general');
   const [webhookUrl, setWebhookUrl] = useState('');
-  const [tgBotToken, setTgBotToken] = useState('');
-  const [tgChatId, setTgChatId] = useState('');
+  const [webhookMethod, setWebhookMethod] = useState('POST');
+  const [webhookContentType, setWebhookContentType] = useState('json');
+  const [webhookBody, setWebhookBody] = useState('{"name":"{name}","status":"{status}","time":"{time}"}');
+  const [webhookHeaders, setWebhookHeaders] = useState<{key:string;value:string}[]>([{key:'',value:''}]);
+  const [webhookTls, setWebhookTls] = useState(true);
   const [notifyDown, setNotifyDown] = useState(true);
   const [notifyUp, setNotifyUp] = useState(true);
-  const [notifyTemplate, setNotifyTemplate] = useState('{name} 状态变为 {status}，时间 {time}');
   const [adminCss, setAdminCss] = useState('');
   const hasInit = useRef(false);
   const { t } = useTranslation();
@@ -39,10 +41,16 @@ const StatusPageConfig = () => {
 
   useEffect(() => {
     if (hasInit.current) return; hasInit.current = true;
-    // Restore admin CSS from localStorage
+    // Restore admin CSS + webhook settings from localStorage
     try {
       const c = JSON.parse(localStorage.getItem('xugou_page_config') || '{}');
       if (c.adminCss) setAdminCss(c.adminCss);
+      if (c.webhookUrl) setWebhookUrl(c.webhookUrl);
+      if (c.webhookMethod) setWebhookMethod(c.webhookMethod);
+      if (c.webhookContentType) setWebhookContentType(c.webhookContentType);
+      if (c.webhookBody) setWebhookBody(c.webhookBody);
+      if (c.webhookHeaders) setWebhookHeaders(c.webhookHeaders);
+      if (c.webhookTls !== undefined) setWebhookTls(c.webhookTls);
     } catch {}
     setLoading(true);
     (async () => {
@@ -86,7 +94,10 @@ const StatusPageConfig = () => {
       const res = await saveStatusPageConfig(toSave);
       if (res.success) {
         setToastMsg(t('statusPageConfig.configSaved')); setToastType('success');
-        localStorage.setItem('xugou_page_config', JSON.stringify({ title: config.title, logoUrl: config.logoUrl, adminCss }));
+        localStorage.setItem('xugou_page_config', JSON.stringify({
+          title: config.title, logoUrl: config.logoUrl, adminCss,
+          webhookUrl, webhookMethod, webhookContentType, webhookBody, webhookHeaders, webhookTls,
+        }));
       }
       else { setToastMsg(res.message || t('statusPageConfig.saveError')); setToastType('error'); }
     } catch { setToastMsg(t('statusPageConfig.saveError')); setToastType('error'); }
@@ -157,50 +168,80 @@ const StatusPageConfig = () => {
 
           {tab === 'notifications' && (
             <div className="flex flex-col gap-5">
-              {/* Webhook */}
               <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1.5">{t('statusPageConfig.webhookUrl')}</label>
-                <input value={webhookUrl} onChange={e => setWebhookUrl(e.target.value)} placeholder="https://hooks.slack.com/..." className={inputClass} />
-                <p className="text-xs text-slate-500 mt-1">{t('statusPageConfig.webhookHint')}</p>
-              </div>
-
-              {/* Telegram */}
-              <div className="p-4 rounded-lg border border-white/[0.06] bg-white/[0.02] flex flex-col gap-3">
-                <h4 className="text-sm font-semibold text-slate-900 dark:text-white">Telegram</h4>
-                <div>
-                  <label className="block text-xs font-medium text-slate-500 mb-1">Bot Token</label>
-                  <input value={tgBotToken} onChange={e => setTgBotToken(e.target.value)} placeholder="123456:ABC-DEF1234ghikl-..." className={inputClass} />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-slate-500 mb-1">Chat ID</label>
-                  <input value={tgChatId} onChange={e => setTgChatId(e.target.value)} placeholder="-100123456789" className={inputClass} />
+                <label className="block text-xs font-medium text-slate-500 mb-1.5">通知开关</label>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" checked={notifyDown} onChange={() => setNotifyDown(!notifyDown)} className="chk-box" />
+                    <span className="text-sm text-slate-700 dark:text-slate-300">故障时通知</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" checked={notifyUp} onChange={() => setNotifyUp(!notifyUp)} className="chk-box" />
+                    <span className="text-sm text-slate-700 dark:text-slate-300">恢复时通知</span>
+                  </label>
                 </div>
               </div>
 
-              {/* Notification toggles */}
-              <div className="flex flex-col gap-2">
-                <label className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/5 transition-colors cursor-pointer">
-                  <span className="text-sm text-slate-700 dark:text-slate-300">{t('statusPageConfig.notifyOnDown')}</span>
-                  <span className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${notifyDown ? 'bg-blue-500 border-blue-500' : 'border-slate-400'}`}>
-                    {notifyDown && <CheckIcon className="w-3.5 h-3.5 text-white" />}
-                  </span>
-                  <input type="checkbox" checked={notifyDown} onChange={() => setNotifyDown(!notifyDown)} className="sr-only" />
-                </label>
-                <label className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/5 transition-colors cursor-pointer">
-                  <span className="text-sm text-slate-700 dark:text-slate-300">{t('statusPageConfig.notifyOnUp')}</span>
-                  <span className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${notifyUp ? 'bg-blue-500 border-blue-500' : 'border-slate-400'}`}>
-                    {notifyUp && <CheckIcon className="w-3.5 h-3.5 text-white" />}
-                  </span>
-                  <input type="checkbox" checked={notifyUp} onChange={() => setNotifyUp(!notifyUp)} className="sr-only" />
-                </label>
+              <div>
+                <label className="block text-xs font-medium text-slate-500 mb-1.5">Webhook URL</label>
+                <input value={webhookUrl} onChange={e => setWebhookUrl(e.target.value)} placeholder="https://your-webhook.example.com/alert" className={inputClass} />
               </div>
 
-              {/* Custom template */}
-              <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1.5">{t('statusPageConfig.notifyTemplate')}</label>
-                <textarea value={notifyTemplate} onChange={e => setNotifyTemplate(e.target.value)} className={inputClass} rows={2} style={{ minHeight: '60px' }} />
-                <p className="text-xs text-slate-500 mt-1">{'{name} {status} {time} {hostname} {message}'}</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 mb-1.5">请求方法</label>
+                  <select value={webhookMethod} onChange={e => setWebhookMethod(e.target.value)} className={inputClass}>
+                    {['GET','POST'].map(m => <option key={m} value={m}>{m}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 mb-1.5">内容类型</label>
+                  <select value={webhookContentType} onChange={e => setWebhookContentType(e.target.value)} className={inputClass}>
+                    <option value="json">JSON</option>
+                    <option value="text">纯文本</option>
+                  </select>
+                </div>
               </div>
+
+              {webhookMethod === 'POST' && (
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 mb-1.5">
+                    提交内容 {webhookContentType === 'json' ? '(JSON格式)' : '(纯文本)'}
+                  </label>
+                  <textarea value={webhookBody} onChange={e => setWebhookBody(e.target.value)}
+                    placeholder={webhookContentType === 'json' ? '{"name":"{name}","status":"{status}"}' : '{name} {status} 于 {time}'}
+                    className={`${inputClass} font-mono`} rows={4} style={{ minHeight: '80px' }} />
+                  <p className="text-xs text-slate-500 mt-1">变量: {'{name} {status} {time} {hostname} {message}'}</p>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-medium text-slate-500 mb-1.5">请求头</label>
+                <div className="border border-white/[0.08] rounded-lg p-3 flex flex-col gap-2">
+                  {webhookHeaders.map((h, i) => (
+                    <div key={i} className="flex gap-2">
+                      <input placeholder="Header名" value={h.key} onChange={e => {
+                        const n = [...webhookHeaders]; n[i] = {...n[i], key: e.target.value};
+                        if (i === n.length - 1 && (n[i].key || n[i].value)) n.push({key:'',value:''});
+                        setWebhookHeaders(n);
+                      }} className={`${inputClass} flex-1`} />
+                      <input placeholder="值" value={h.value} onChange={e => {
+                        const n = [...webhookHeaders]; n[i] = {...n[i], value: e.target.value};
+                        setWebhookHeaders(n);
+                      }} className={`${inputClass} flex-1`} />
+                      {webhookHeaders.length > 1 && (
+                        <button type="button" onClick={() => { const n = [...webhookHeaders]; n.splice(i,1); setWebhookHeaders(n); }}
+                          className="p-2 text-slate-400 hover:text-red-500"><Cross2Icon className="w-3 h-3" /></button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={webhookTls} onChange={e => setWebhookTls(e.target.checked)} className="chk-box" />
+                <span className="text-sm text-slate-700 dark:text-slate-300">验证 TLS 证书</span>
+              </label>
             </div>
           )}
         </div>
