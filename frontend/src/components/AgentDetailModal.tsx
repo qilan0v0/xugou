@@ -1,8 +1,30 @@
 import { useEffect } from 'react';
-import { Cross2Icon, CopyIcon, ClockIcon, DesktopIcon, GlobeIcon, LaptopIcon, Component1Icon, StackIcon, ActivityLogIcon, TimerIcon, CodeIcon, CrumpledPaperIcon } from '@radix-ui/react-icons';
+import { Cross2Icon, CopyIcon, ClockIcon, DesktopIcon, GlobeIcon, LaptopIcon, Component1Icon, StackIcon, ActivityLogIcon, TimerIcon, CodeIcon, CrumpledPaperIcon, CheckIcon } from '@radix-ui/react-icons';
+import { useState } from 'react';
 import { Agent } from '../api/agents';
 import CountryFlag from './CountryFlag';
 import ClientResourceSection from './ClientResourceSection';
+import { ENV_API_BASE_URL } from '../config';
+
+function CopyStartCmd({ token }: { token: string }) {
+  const [copied, setCopied] = useState(false);
+  const cmd = `./xugou-agent start --server ${ENV_API_BASE_URL || window.location.origin} --uuid ${token} --interval 60`;
+  const handleCopy = () => {
+    navigator.clipboard.writeText(cmd);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-slate-500 flex-shrink-0">启动:</span>
+      <code className="flex-1 font-mono text-slate-600 dark:text-slate-400 truncate text-[11px]">{cmd}</code>
+      <button onClick={handleCopy} className="text-blue-500 hover:text-blue-400 flex-shrink-0 flex items-center gap-1">
+        {copied ? <CheckIcon className="w-3 h-3 text-emerald-500" /> : <CopyIcon className="w-3 h-3" />}
+        {copied ? '已复制' : '复制'}
+      </button>
+    </div>
+  );
+}
 
 interface AgentDetailModalProps {
   agent: Agent;
@@ -69,14 +91,19 @@ export default function AgentDetailModal({ agent, onClose, showToken }: AgentDet
 
           {/* UUID — admin only */}
           {showToken && agent.token && (
-            <div className="flex items-center gap-2 mb-5 p-2 rounded-lg bg-slate-50 dark:bg-white/[0.02] text-xs">
-              <span className="text-slate-500 flex-shrink-0">UUID:</span>
-              <code className="flex-1 font-mono text-slate-600 dark:text-slate-400 truncate">{agent.token}</code>
-              <button onClick={() => navigator.clipboard.writeText(agent.token || '')} className="text-blue-500 hover:text-blue-400 flex-shrink-0 flex items-center gap-1">
-                <CopyIcon className="w-3 h-3" />复制
-              </button>
+            <div className="flex flex-col gap-2 mb-5 p-2 rounded-lg bg-slate-50 dark:bg-white/[0.02] text-xs">
+              <div className="flex items-center gap-2">
+                <span className="text-slate-500 flex-shrink-0">UUID:</span>
+                <code className="flex-1 font-mono text-slate-600 dark:text-slate-400 truncate">{agent.token}</code>
+                <button onClick={() => navigator.clipboard.writeText(agent.token || '')} className="text-blue-500 hover:text-blue-400 flex-shrink-0 flex items-center gap-1">
+                  <CopyIcon className="w-3 h-3" />复制
+                </button>
+              </div>
+              <CopyStartCmd token={agent.token} />
             </div>
           )}
+
+          {/* System Info + Resources */}
 
           {/* System Info + Resources */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
