@@ -144,6 +144,7 @@ app.post('/api/agents/status', async (c) => {
     const now = new Date().toISOString();
     const currentStatus = await env.DB.prepare('SELECT status FROM agents WHERE id = ?').bind(agent.id).first<{status: string}>();
     const wasInactive = isNewAgent || !currentStatus || currentStatus.status === 'inactive';
+    console.log(`[状态检测] agent=${agent.id} isNew=${isNewAgent} currentStatus=${currentStatus?.status || 'null'} wasInactive=${wasInactive}`);
     if (wasInactive) {
       env.DB.prepare('UPDATE agents SET connected_at = ? WHERE id = ?').bind(now, agent.id).run();
     }
