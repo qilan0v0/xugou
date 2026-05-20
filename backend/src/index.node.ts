@@ -142,9 +142,13 @@ app.post('/api/agents/status', async (c) => {
     }
 
     const now = new Date().toISOString();
-    const currentStatus = await env.DB.prepare('SELECT status FROM agents WHERE id = ?').bind(agent.id).first<{status: string}>();
-    const wasInactive = isNewAgent || !currentStatus || currentStatus.status === 'inactive';
-    console.log(`[状态检测] agent=${agent.id} isNew=${isNewAgent} currentStatus=${currentStatus?.status || 'null'} wasInactive=${wasInactive}`);
+    const prev = await env.DB.prepare('SELECT status, updated_at FROM agents WHERE id = ?').bind(agent.id).first<{status: string; updated_at: string}>();
+    const currentStatus = prev?.status;
+    // Also detect reconnect: if agent hasn't reported for > 60s, treat as coming back online
+    const gapMs = prev?.updated_at ? Date.now() - new Date(prev.updated_at).getTime() : 0;
+    const wasDisconnected = gapMs > 60000;
+    const wasInactive = isNewAgent || !currentStatus || currentStatus === 'inactive' || wasDisconnected;
+    console.log(`[状态检测] agent=${agent.id} isNew=${isNewAgent} status=${currentStatus || 'null'} gap=${Math.round(gapMs/1000)}s wasInactive=${wasInactive}`);
     if (wasInactive) {
       env.DB.prepare('UPDATE agents SET connected_at = ? WHERE id = ?').bind(now, agent.id).run();
     }
