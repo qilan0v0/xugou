@@ -27,6 +27,7 @@ export default function GroupsList() {
   const [allAgents, setAllAgents] = useState<AgentBrief[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [assignLoading, setAssignLoading] = useState(false);
+  const [selected, setSelected] = useState<Set<number>>(new Set());
 
   const fetchGroups = async () => {
     try {
@@ -115,12 +116,34 @@ export default function GroupsList() {
     } catch {}
   };
 
+  const toggle = (id: number) => { const n = new Set(selected); if (n.has(id)) n.delete(id); else n.add(id); setSelected(n); };
+  const toggleAll = () => { if (selected.size === groups.length) setSelected(new Set()); else setSelected(new Set(groups.map(g => g.id))); };
+
+  const handleBatchDelete = async () => {
+    if (!window.confirm(`确定删除选中的 ${selected.size} 个分组吗？`)) return;
+    let ok = 0;
+    for (const id of selected) { try { await api.delete(`/api/agents/groups/${id}`); ok++; } catch {} }
+    setSelected(new Set());
+    fetchGroups();
+    alert(`已删除 ${ok} / ${selected.size} 个`);
+  };
+
   if (loading) return <div className="flex justify-center items-center min-h-[50vh]"><span className="text-slate-500">加载中...</span></div>;
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 animate-slide-up">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">分组管理</h1>
+        <div className="flex items-center gap-4">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">分组管理</h1>
+          {selected.size > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-500">已选 {selected.size} 项</span>
+              <button onClick={handleBatchDelete} className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-red-500 bg-red-500/10 hover:bg-red-500/20 transition-colors">
+                <TrashIcon className="w-3 h-3" />批量删除
+              </button>
+            </div>
+          )}
+        </div>
         <button onClick={fetchGroups} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors">
           <ReloadIcon />刷新
         </button>
@@ -147,6 +170,7 @@ export default function GroupsList() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-white/[0.06] bg-slate-50/50 dark:bg-white/[0.02]">
+                <th className="w-10 px-3 py-3"><input type="checkbox" checked={selected.size === groups.length && groups.length > 0} onChange={toggleAll} className="w-4 h-4 rounded accent-blue-500" /></th>
                 <th className="text-left px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">名称</th>
                 <th className="text-center px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-20">客户端</th>
                 <th className="text-left px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">创建时间</th>
@@ -156,7 +180,8 @@ export default function GroupsList() {
             <tbody>
               {groups.map(g => (
                 <>
-                  <tr key={g.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors">
+                  <tr key={g.id} className={`border-b border-white/[0.04] transition-colors ${selected.has(g.id) ? 'bg-blue-500/[0.04]' : 'hover:bg-white/[0.02]'}`}>
+                    <td className="px-3 py-2.5"><input type="checkbox" checked={selected.has(g.id)} onChange={() => toggle(g.id)} className="w-4 h-4 rounded accent-blue-500" /></td>
                     <td className="px-4 py-2.5">
                       <button onClick={() => toggleExpand(g)} className="text-left">
                         <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 transition-colors">
@@ -189,7 +214,7 @@ export default function GroupsList() {
                   {/* Expanded: agents in group */}
                   {expanded === g.id && (
                     <tr key={`exp-${g.id}`}>
-                      <td colSpan={4} className="px-4 py-3 bg-slate-50/30 dark:bg-white/[0.01]">
+                      <td colSpan={5} className="px-4 py-3 bg-slate-50/30 dark:bg-white/[0.01]">
                         {agents.length === 0 ? (
                           <p className="text-xs text-slate-400">该分组暂无客户端</p>
                         ) : (
