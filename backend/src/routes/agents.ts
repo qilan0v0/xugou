@@ -137,10 +137,13 @@ agents.get('/tags/pool', async (c) => {
   }
 });
 
-// 分组管理 — 获取所有分组
+// 分组管理 — 获取所有分组（含客户端数量）
 agents.get('/groups', async (c) => {
   try {
-    const result = await c.env.DB.prepare('SELECT * FROM agent_groups ORDER BY name ASC').all<{id: number; name: string; created_at: string}>();
+    const result = await c.env.DB.prepare(
+      `SELECT g.*, (SELECT COUNT(*) FROM agents WHERE category = g.name) as agent_count
+       FROM agent_groups g ORDER BY g.name ASC`
+    ).all<{id: number; name: string; created_at: string; agent_count: number}>();
     return c.json({ success: true, groups: result.results || [] });
   } catch (e: any) {
     return c.json({ success: false, message: '获取分组失败' }, 500);
@@ -158,6 +161,37 @@ agents.post('/groups', async (c) => {
   } catch (e: any) {
     if (e.message?.includes('UNIQUE')) return c.json({ success: false, message: '分组名已存在' }, 409);
     return c.json({ success: false, message: '添加分组失败' }, 500);
+  }
+});
+
+// 分组管理 — 添加客户端到分组
+agents.post('/groups/:id/agents', async (c) => {
+  try {
+    const groupId = Number(c.req.param('id'));
+    const { agent_ids } = await c.req.json();
+    if (!Array.isArray(agent_ids) || agent_ids.length === 0) {
+      return c.json({ success: false, message: '请选择至少一个客户端' }, 400);
+    }
+    const group = await c.env.DB.prepare('SELECT name FROM agent_groups WHERE id = ?').bind(groupId).first<{name: string}>();
+    if (!group) return c.json({ success: false, message: '分组不存在' }, 404);
+
+    for (const agentId of agent_ids) {
+      await c.env.DB.prepare('UPDATE agents SET category = ? WHERE id = ?').bind(group.name, agentId).run();
+    }
+    return c.json({ success: true, message: `已将 ${agent_ids.length} 个客户端加入分组` });
+  } catch (e: any) {
+    return c.json({ success: false, message: '操作失败' }, 500);
+  }
+});
+
+// 分组管理 — 从分组移除客户端
+agents.delete('/groups/:id/agents/:agentId', async (c) => {
+  try {
+    const agentId = Number(c.req.param('agentId'));
+    await c.env.DB.prepare("UPDATE agents SET category = NULL WHERE id = ?").bind(agentId).run();
+    return c.json({ success: true, message: '已移出分组' });
+  } catch (e: any) {
+    return c.json({ success: false, message: '操作失败' }, 500);
   }
 });
 
