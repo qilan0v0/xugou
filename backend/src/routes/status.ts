@@ -327,6 +327,40 @@ app.get('/monitor/:id/checks', async (c) => {
   }
 });
 
+// Webhook 测试代理（绕过浏览器 CORS）
+app.post('/webhook-test', async (c) => {
+  try {
+    const { url, method, headers, body, content_type, tls_verify } = await c.req.json();
+    if (!url) return c.json({ success: false, message: '缺少 URL' }, 400);
+
+    const fetchHeaders: Record<string,string> = { ...headers };
+    if (method === 'POST' && body) {
+      fetchHeaders['Content-Type'] = content_type === 'json' ? 'application/json' : 'text/plain';
+    }
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+
+    const res = await fetch(url, {
+      method: method || 'POST',
+      headers: fetchHeaders,
+      body: method !== 'GET' ? body : undefined,
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+
+    const resBody = await res.text().catch(() => '');
+    return c.json({
+      success: true,
+      status: res.status,
+      statusText: res.statusText,
+      body: resBody.slice(0, 500),
+    });
+  } catch (e: any) {
+    return c.json({ success: false, message: e.message || '请求失败' });
+  }
+});
+
 // 健康检查
 app.get('/health', async (c) => {
   try {

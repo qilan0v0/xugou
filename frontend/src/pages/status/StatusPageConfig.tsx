@@ -3,6 +3,7 @@ import { CheckIcon } from '@radix-ui/react-icons';
 import * as Toast from '@radix-ui/react-toast';
 import { getAllMonitors, Monitor } from '../../api/monitors';
 import { getAllAgents, Agent } from '../../api/agents';
+import { ENV_API_BASE_URL } from '../../config';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { getStatusPageConfig, saveStatusPageConfig, StatusPageConfig as StatusConfig, StatusPageConfigResponse } from '../../api/status';
 import { useTranslation } from 'react-i18next';
@@ -324,14 +325,17 @@ const StatusPageConfig = () => {
                         for (const [k, v] of Object.entries(vars)) {
                           body = body.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
                         }
-                        const fetchOptions: RequestInit = { method: webhookMethod, headers: { ...headers } };
-                        if (webhookMethod === 'POST') {
-                          headers['Content-Type'] = webhookContentType === 'json' ? 'application/json' : 'text/plain';
-                          fetchOptions.headers = headers;
-                          fetchOptions.body = body;
+                        const res = await fetch(`${ENV_API_BASE_URL}/api/status/webhook-test`, {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` },
+                          body: JSON.stringify({ url: webhookUrl, method: webhookMethod, headers, body, content_type: webhookContentType, tls_verify: webhookTls }),
+                        });
+                        const json = await res.json();
+                        if (json.success) {
+                          setWebhookTestResult(`${json.status} ${json.statusText}`);
+                        } else {
+                          setWebhookTestResult(`错误: ${json.message}`);
                         }
-                        const res = await fetch(webhookUrl, fetchOptions);
-                        setWebhookTestResult(`${res.status} ${res.statusText}`);
                       } catch (e: any) {
                         setWebhookTestResult(`错误: ${e.message}`);
                       } finally { setWebhookTesting(false); }
