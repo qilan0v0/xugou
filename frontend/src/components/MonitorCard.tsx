@@ -1,3 +1,4 @@
+import React from 'react';
 import { Monitor } from '../api/monitors';
 import HeartbeatGrid from './HeartbeatGrid';
 import { useTranslation } from 'react-i18next';
@@ -7,7 +8,7 @@ interface MonitorCardProps {
   onClick?: () => void;
 }
 
-const MonitorCard = ({ monitor, onClick }: MonitorCardProps) => {
+const MonitorCard = React.memo(({ monitor, onClick }: MonitorCardProps) => {
   const { t } = useTranslation();
 
   const currentStatus = monitor.status || 'pending';
@@ -89,6 +90,6 @@ const MonitorCard = ({ monitor, onClick }: MonitorCardProps) => {
       </div>
     </div>
   );
-};
+});
 
 export default MonitorCard;

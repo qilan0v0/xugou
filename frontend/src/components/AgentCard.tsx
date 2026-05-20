@@ -1,3 +1,4 @@
+import React from 'react';
 import { Agent } from '../api/agents';
 import ResourceBar from './ResourceBar';
 import CountryFlag from './CountryFlag';
@@ -30,7 +31,7 @@ const formatDuration = (ms: number): string => {
   return `${m}分`;
 };
 
-const AgentCard = ({ agent, onClick }: AgentCardProps) => {
+const AgentCard = React.memo(({ agent, onClick }: AgentCardProps) => {
   const { t } = useTranslation();
 
   let cpu = 0, memPct = 0, diskPct = 0;
@@ -179,6 +180,6 @@ const AgentCard = ({ agent, onClick }: AgentCardProps) => {
       </div>
     </div>
   );
-};
+});
 
 export default AgentCard;

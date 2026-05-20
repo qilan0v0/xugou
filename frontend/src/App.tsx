@@ -1,23 +1,34 @@
+import { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import Layout from './components/Layout';
-import Login from './pages/auth/Login';
-import Register from './pages/auth/Register';
-import MonitorsList from './pages/monitors/MonitorsList';
-import MonitorDetail from './pages/monitors/MonitorDetail';
-import CreateMonitor from './pages/monitors/CreateMonitor';
-import EditMonitor from './pages/monitors/EditMonitor';
-import AgentsList from './pages/agents/AgentsList';
-import AgentDetail from './pages/agents/AgentDetail';
-import UsersList from './pages/users/UsersList';
-import UserProfile from './pages/users/UserProfile';
 import LoadingSpinner from './components/LoadingSpinner';
-import NotFound from './pages/NotFound';
+
+// Critical pages — eager loaded
 import StatusPage from './pages/status/StatusPage';
-import StatusPageConfig from './pages/status/StatusPageConfig';
-import CreateAgent from './pages/agents/CreateAgent';
-import EditAgent from './pages/agents/EditAgent';
+import MonitorsList from './pages/monitors/MonitorsList';
+import AgentsList from './pages/agents/AgentsList';
+import NotFound from './pages/NotFound';
+
+// Secondary pages — lazy loaded
+const Login = lazy(() => import('./pages/auth/Login'));
+const Register = lazy(() => import('./pages/auth/Register'));
+const MonitorDetail = lazy(() => import('./pages/monitors/MonitorDetail'));
+const CreateMonitor = lazy(() => import('./pages/monitors/CreateMonitor'));
+const EditMonitor = lazy(() => import('./pages/monitors/EditMonitor'));
+const AgentDetail = lazy(() => import('./pages/agents/AgentDetail'));
+const CreateAgent = lazy(() => import('./pages/agents/CreateAgent'));
+const EditAgent = lazy(() => import('./pages/agents/EditAgent'));
+const UsersList = lazy(() => import('./pages/users/UsersList'));
+const UserProfile = lazy(() => import('./pages/users/UserProfile'));
+const StatusPageConfig = lazy(() => import('./pages/status/StatusPageConfig'));
+
+const Lazy = ({ children }: { children: React.ReactNode }) => (
+  <Suspense fallback={<div className="flex justify-center items-center min-h-[50vh]"><LoadingSpinner /></div>}>
+    {children}
+  </Suspense>
+);
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -39,20 +50,20 @@ function App() {
     <LanguageProvider>
       <Routes>
         <Route path="/" element={<StatusPage />} />
-        <Route path="/login" element={<Layout><Login /></Layout>} />
-        <Route path="/register" element={<Layout><Register /></Layout>} />
+        <Route path="/login" element={<Layout><Lazy><Login /></Lazy></Layout>} />
+        <Route path="/register" element={<Layout><Lazy><Register /></Lazy></Layout>} />
         <Route path="/status" element={<StatusPage />} />
-        <Route path="/status/config" element={<ProtectedRoute><Layout><StatusPageConfig /></Layout></ProtectedRoute>} />
+        <Route path="/status/config" element={<ProtectedRoute><Layout><Lazy><StatusPageConfig /></Lazy></Layout></ProtectedRoute>} />
         <Route path="/monitors" element={<ProtectedRoute><Layout><MonitorsList /></Layout></ProtectedRoute>} />
-        <Route path="/monitors/create" element={<ProtectedRoute><Layout><CreateMonitor /></Layout></ProtectedRoute>} />
-        <Route path="/monitors/edit/:id" element={<ProtectedRoute><Layout><EditMonitor /></Layout></ProtectedRoute>} />
-        <Route path="/monitors/:id" element={<ProtectedRoute><Layout><MonitorDetail /></Layout></ProtectedRoute>} />
+        <Route path="/monitors/create" element={<ProtectedRoute><Layout><Lazy><CreateMonitor /></Lazy></Layout></ProtectedRoute>} />
+        <Route path="/monitors/edit/:id" element={<ProtectedRoute><Layout><Lazy><EditMonitor /></Lazy></Layout></ProtectedRoute>} />
+        <Route path="/monitors/:id" element={<ProtectedRoute><Layout><Lazy><MonitorDetail /></Lazy></Layout></ProtectedRoute>} />
         <Route path="/agents" element={<ProtectedRoute><Layout><AgentsList /></Layout></ProtectedRoute>} />
-        <Route path="/agents/create" element={<ProtectedRoute><Layout><CreateAgent /></Layout></ProtectedRoute>} />
-        <Route path="/agents/edit/:id" element={<ProtectedRoute><Layout><EditAgent /></Layout></ProtectedRoute>} />
-        <Route path="/agents/:id" element={<ProtectedRoute><Layout><AgentDetail /></Layout></ProtectedRoute>} />
-        <Route path="/users" element={<AdminRoute><Layout><UsersList /></Layout></AdminRoute>} />
-        <Route path="/profile" element={<ProtectedRoute><Layout><UserProfile /></Layout></ProtectedRoute>} />
+        <Route path="/agents/create" element={<ProtectedRoute><Layout><Lazy><CreateAgent /></Lazy></Layout></ProtectedRoute>} />
+        <Route path="/agents/edit/:id" element={<ProtectedRoute><Layout><Lazy><EditAgent /></Lazy></Layout></ProtectedRoute>} />
+        <Route path="/agents/:id" element={<ProtectedRoute><Layout><Lazy><AgentDetail /></Lazy></Layout></ProtectedRoute>} />
+        <Route path="/users" element={<AdminRoute><Layout><Lazy><UsersList /></Lazy></Layout></AdminRoute>} />
+        <Route path="/profile" element={<ProtectedRoute><Layout><Lazy><UserProfile /></Lazy></Layout></ProtectedRoute>} />
         <Route path="*" element={<Layout><NotFound /></Layout>} />
       </Routes>
     </LanguageProvider>

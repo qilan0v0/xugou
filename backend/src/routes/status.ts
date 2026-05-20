@@ -327,6 +327,18 @@ app.get('/monitor/:id/checks', async (c) => {
   }
 });
 
+// 健康检查
+app.get('/health', async (c) => {
+  try {
+    const u = await c.env.DB.prepare('SELECT COUNT(*) as count FROM users').first<{count: number}>();
+    const m = await c.env.DB.prepare('SELECT COUNT(*) as count FROM monitors').first<{count: number}>();
+    const a = await c.env.DB.prepare('SELECT COUNT(*) as count FROM agents').first<{count: number}>();
+    return c.json({ status: 'ok', users: u?.count || 0, monitors: m?.count || 0, agents: a?.count || 0 });
+  } catch (e: any) {
+    return c.json({ status: 'error', message: e.message }, 500);
+  }
+});
+
 // 公共路由 - 获取状态页数据（登录用户看全部，游客只看公开）
 app.get('/data', async (c) => {
   try {
@@ -352,35 +364,51 @@ app.get('/data', async (c) => {
     const monitors = await c.env.DB.prepare(monitorQuery).all<any>();
     const agents = await c.env.DB.prepare(agentQuery).all<any>();
 
-    // Enrich monitors with status history
-    const enrichedMonitors = await Promise.all((monitors.results || []).map(async (monitor: any) => {
+    // Batch load all monitor status history in one query
+    const monitorList = (monitors.results || []);
+    const historyMap = new Map<number, {status: string; timestamp: string}[]>();
+    if (monitorList.length > 0) {
       try {
-        const historyResult = await c.env.DB.prepare(
-          `SELECT status, timestamp FROM monitor_status_history
-           WHERE monitor_id = ?
-           ORDER BY timestamp DESC LIMIT 24`
-        ).bind(monitor.id).all<{status: string; timestamp: string}>();
-        const { url, ...rest } = monitor;
-        return {
-          ...rest,
-          history: (historyResult.results || []).reverse(),
-        };
-      } catch {
-        const { url, ...rest } = monitor;
-        return { ...rest, history: [] };
-      }
-    }));
+        const ids = monitorList.map((m: any) => m.id);
+        // Query 24*N rows at once — SQLite has no IN limit at this scale
+        const placeholders = ids.map(() => '?').join(',');
+        const allHistory = await c.env.DB.prepare(
+          `SELECT monitor_id, status, timestamp FROM monitor_status_history
+           WHERE monitor_id IN (${placeholders})
+           ORDER BY monitor_id, timestamp DESC`
+        ).bind(...ids).all<{monitor_id: number; status: string; timestamp: string}>();
+        for (const row of (allHistory.results || [])) {
+          if (!historyMap.has(row.monitor_id)) historyMap.set(row.monitor_id, []);
+          const arr = historyMap.get(row.monitor_id)!;
+          if (arr.length < 24) arr.push(row);
+        }
+      } catch { /* fallback: empty history */ }
+    }
 
-    // Enrich agents with computed fields, strip sensitive fields
+    const enrichedMonitors = monitorList.map((monitor: any) => {
+      const { url, ...rest } = monitor;
+      const hist = historyMap.get(monitor.id) || [];
+      return { ...rest, history: hist.reverse() };
+    });
+
+    // Slim agent fields — only return what the frontend actually renders
+    const agentFields = ['id','name','status','created_at','updated_at',
+      'cpu_usage','memory_total','memory_used','disk_total','disk_used',
+      'network_rx','network_tx','network_rx_total','network_tx_total',
+      'hostname','ip_address','os','version','cpu_arch','cpu_model_name',
+      'cpu_cores','load1','load5','load15','boot_time','agent_version',
+      'country','connected_at','traffic_limit','expiry_time','start_time',
+      'duration_value','duration_unit','category','tags','public'];
     const enrichedAgents = (agents.results || []).map((agent: any) => {
-      const { token, last_payload, ...safe } = agent;
-      const memoryPercent = safe.memory_total && safe.memory_used
-        ? (safe.memory_used / safe.memory_total) * 100 : null;
-      const diskPercent = safe.disk_total && safe.disk_used
-        ? (safe.disk_used / safe.disk_total) * 100 : null;
+      const picked: any = {};
+      for (const k of agentFields) picked[k] = agent[k];
+      const memoryPercent = picked.memory_total && picked.memory_used
+        ? (picked.memory_used / picked.memory_total) * 100 : null;
+      const diskPercent = picked.disk_total && picked.disk_used
+        ? (picked.disk_used / picked.disk_total) * 100 : null;
       return {
-        ...safe,
-        cpu: safe.cpu_usage || 0,
+        ...picked,
+        cpu: picked.cpu_usage || 0,
         memory: memoryPercent || 0,
         disk: diskPercent || 0,
       };

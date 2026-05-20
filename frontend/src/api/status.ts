@@ -100,40 +100,49 @@ export const saveStatusPageConfig = async (config: StatusPageConfig): Promise<{
   }
 };
 
-// 获取状态页数据
-export const getStatusPageData = async (): Promise<{
+// 请求去重：同一时刻只允许一个 /api/status/data 请求
+let _pending: Promise<any> | null = null;
+
+// 获取状态页数据（带去重 + 自动重试）
+export const getStatusPageData = async (retries = 2): Promise<{
   success: boolean;
   message?: string;
   data?: StatusPageData;
 }> => {
-  try {
-    const response = await api.get('/api/status/data');
-
-    // 后端返回 { success: true, data: {...} } 格式
-    const { success, data, message } = response.data;
-
-    if (success && data) {
-      // 确保监控和客户端数据存在
-      const processedData = {
-        ...data,
-        monitors: data.monitors || [],
-        agents: data.agents || []
-      };
-      
-      return {
-        success: true,
-        data: processedData as StatusPageData
-      };
-    } else {
-      return {
-        success: false,
-        message: message || '获取状态页数据失败'
-      };
-    }
-  } catch {
-    return {
-      success: false,
-      message: '获取状态页数据失败'
-    };
+  // Dedup: reuse in-flight request
+  if (_pending) {
+    try { return await _pending; } catch { _pending = null; }
   }
+
+  const doFetch = async () => {
+    try {
+      const response = await api.get('/api/status/data');
+      const { success, data, message } = response.data;
+      if (success && data) {
+        return {
+          success: true,
+          data: {
+            ...data,
+            monitors: data.monitors || [],
+            agents: data.agents || [],
+          } as StatusPageData,
+        };
+      }
+      return { success: false, message: message || '获取状态页数据失败' };
+    } catch {
+      return { success: false, message: '获取状态页数据失败' };
+    }
+  };
+
+  for (let i = 0; i <= retries; i++) {
+    _pending = doFetch();
+    const result = await _pending;
+    _pending = null;
+    if (result.success || i === retries) return result;
+    // Wait before retry (1s, 2s, ...)
+    if (i < retries) await new Promise(r => setTimeout(r, (i + 1) * 1000));
+  }
+
+  _pending = null;
+  return { success: false, message: '获取状态页数据失败' };
 }; 

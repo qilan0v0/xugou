@@ -53,7 +53,8 @@ class D1PreparedStatement {
       }
       stmt.free();
       return null;
-    } catch {
+    } catch (e: any) {
+      console.error('[sqlite] first() error:', e.message, 'SQL:', this.sql);
       return null;
     }
   }
