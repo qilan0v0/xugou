@@ -170,7 +170,7 @@ export default function GroupsList() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-white/[0.06] bg-slate-50/50 dark:bg-white/[0.02]">
-                <th className="w-10 px-3 py-3"><input type="checkbox" checked={selected.size === groups.length && groups.length > 0} onChange={toggleAll} className="w-4 h-4 rounded accent-blue-500" /></th>
+                <th className="w-10 px-3 py-3"><input type="checkbox" checked={selected.size === groups.length && groups.length > 0} onChange={toggleAll} className="chk-box" /></th>
                 <th className="text-left px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">名称</th>
                 <th className="text-center px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-20">客户端</th>
                 <th className="text-left px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">创建时间</th>
@@ -181,7 +181,7 @@ export default function GroupsList() {
               {groups.map(g => (
                 <>
                   <tr key={g.id} className={`border-b border-white/[0.04] transition-colors ${selected.has(g.id) ? 'bg-blue-500/[0.04]' : 'hover:bg-white/[0.02]'}`}>
-                    <td className="px-3 py-2.5"><input type="checkbox" checked={selected.has(g.id)} onChange={() => toggle(g.id)} className="w-4 h-4 rounded accent-blue-500" /></td>
+                    <td className="px-3 py-2.5"><input type="checkbox" checked={selected.has(g.id)} onChange={() => toggle(g.id)} className="chk-box" /></td>
                     <td className="px-4 py-2.5">
                       <button onClick={() => toggleExpand(g)} className="text-left">
                         <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 transition-colors">
@@ -262,7 +262,7 @@ export default function GroupsList() {
                   <div className="flex flex-col gap-1 max-h-60 overflow-y-auto">
                     {available.map(a => (
                       <label key={a.id} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/5 cursor-pointer text-sm text-slate-700 dark:text-slate-300">
-                        <input type="checkbox" checked={selectedIds.has(a.id)} onChange={() => toggleSelect(a.id)} className="w-4 h-4 accent-blue-500" />
+                        <input type="checkbox" checked={selectedIds.has(a.id)} onChange={() => toggleSelect(a.id)} className="chk-box" />
                         {a.name}
                         {a.category && <span className="text-[10px] text-slate-400 ml-auto">{a.category}</span>}
                       </label>

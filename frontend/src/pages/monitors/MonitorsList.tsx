@@ -92,8 +92,8 @@ function EditModal({ monitor, onClose, onSaved }: { monitor: Monitor; onClose: (
           </div>
           {showBody && <div><label className={labelC}>Body</label><textarea value={form.body} onChange={f('body')} className={inputC} rows={4} /></div>}
           <div className="flex items-center gap-5">
-            <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={form.active} onChange={e => setForm(prev => ({ ...prev, active: e.target.checked }))} className="w-4 h-4" /><span className="text-xs text-slate-500">启用</span></label>
-            <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={isPublic} onChange={e => setIsPublic(e.target.checked)} className="w-4 h-4" /><span className="text-xs text-slate-500">公开显示</span></label>
+            <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={form.active} onChange={e => setForm(prev => ({ ...prev, active: e.target.checked }))} className="chk-box" /><span className="text-xs text-slate-500">启用</span></label>
+            <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={isPublic} onChange={e => setIsPublic(e.target.checked)} className="chk-box" /><span className="text-xs text-slate-500">公开显示</span></label>
           </div>
           <div className="flex justify-end gap-3 pt-2 border-t border-white/[0.06]">
             <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5">取消</button>
@@ -183,7 +183,7 @@ const MonitorsList = () => {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-white/[0.06] bg-slate-50/50 dark:bg-white/[0.02]">
-                  <th className="w-10 px-3 py-3"><input type="checkbox" checked={selected.size === monitors.length && monitors.length > 0} onChange={toggleAll} className="w-4 h-4 rounded accent-blue-500" /></th>
+                  <th className="w-10 px-3 py-3"><input type="checkbox" checked={selected.size === monitors.length && monitors.length > 0} onChange={toggleAll} className="chk-box" /></th>
                   <th className="text-left px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[160px]">名称</th>
                   <th className="text-left px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">URL</th>
                   <th className="text-left px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[70px]">方法</th>
@@ -202,7 +202,7 @@ const MonitorsList = () => {
                   const sel = selected.has(m.id);
                   return (
                     <tr key={m.id} className={`border-b border-white/[0.04] transition-colors ${sel ? 'bg-blue-500/[0.04]' : 'hover:bg-white/[0.02]'}`}>
-                      <td className="px-3 py-2.5"><input type="checkbox" checked={sel} onChange={() => toggle(m.id)} className="w-4 h-4 rounded accent-blue-500" /></td>
+                      <td className="px-3 py-2.5"><input type="checkbox" checked={sel} onChange={() => toggle(m.id)} className="chk-box" /></td>
                       <td className="px-4 py-2.5"><span className="text-sm font-medium text-slate-900 dark:text-white truncate block max-w-[150px]">{m.name}</span></td>
                       <td className="px-4 py-2.5"><div className="flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400"><GlobeIcon className="w-3 h-3 flex-shrink-0 text-slate-400" /><span className="truncate max-w-[260px]">{m.url}</span></div></td>
                       <td className="px-4 py-2.5"><span className="text-[11px] font-mono font-medium text-slate-500 bg-slate-100 dark:bg-white/5 px-1.5 py-0.5 rounded">{m.method}</span></td>

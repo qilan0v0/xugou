@@ -115,7 +115,7 @@ function EditModal({ agent, onClose, onSaved }: { agent: Agent; onClose: () => v
               </select>
             </div>
           </div>
-          <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={isPublic} onChange={e => setIsPublic(e.target.checked)} className="w-4 h-4" /><span className="text-xs text-slate-500">公开显示</span></label>
+          <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={isPublic} onChange={e => setIsPublic(e.target.checked)} className="chk-box" /><span className="text-xs text-slate-500">公开显示</span></label>
           <div className="flex justify-end gap-3 pt-2 border-t border-white/[0.06]">
             <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5">取消</button>
             <button type="submit" disabled={saving} className="btn-gradient px-5 py-2 text-sm flex items-center gap-1.5"><UpdateIcon />{saving ? '保存中...' : '保存'}</button>
@@ -273,7 +273,7 @@ const AgentsList = () => {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-white/[0.06] bg-slate-50/50 dark:bg-white/[0.02]">
-                  <th className="w-10 px-3 py-3"><input type="checkbox" checked={filtered.length > 0 && filtered.every(a => selected.has(a.id))} onChange={toggleAll} className="w-4 h-4 rounded accent-blue-500" /></th>
+                  <th className="w-10 px-3 py-3"><input type="checkbox" checked={filtered.length > 0 && filtered.every(a => selected.has(a.id))} onChange={toggleAll} className="chk-box" /></th>
                   <th className="text-left px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[140px]">名称</th>
                   <th className="text-left px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[120px]">主机名</th>
                   <th className="text-left px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[130px]">IP</th>
@@ -294,7 +294,7 @@ const AgentsList = () => {
                   const tags = a.tags ? a.tags.split(',').filter(Boolean) : [];
                   return (
                     <tr key={a.id} className={`border-b border-white/[0.04] transition-colors ${sel ? 'bg-blue-500/[0.04]' : 'hover:bg-white/[0.02]'}`}>
-                      <td className="px-3 py-2.5"><input type="checkbox" checked={sel} onChange={() => toggle(a.id)} className="w-4 h-4 rounded accent-blue-500" /></td>
+                      <td className="px-3 py-2.5"><input type="checkbox" checked={sel} onChange={() => toggle(a.id)} className="chk-box" /></td>
                       <td className="px-4 py-2.5"><span className="text-sm font-medium text-slate-900 dark:text-white truncate block max-w-[130px]">{a.name}</span></td>
                       <td className="px-4 py-2.5 text-sm text-slate-600 dark:text-slate-400 truncate max-w-[110px]">{a.hostname || '--'}</td>
                       <td className="px-4 py-2.5 text-sm text-slate-600 dark:text-slate-400 font-mono text-xs">{a.ip_address || '--'}</td>
