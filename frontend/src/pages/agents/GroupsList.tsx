@@ -26,6 +26,7 @@ export default function GroupsList() {
   const [assignOpen, setAssignOpen] = useState<number | null>(null);
   const [allAgents, setAllAgents] = useState<AgentBrief[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [assignLoading, setAssignLoading] = useState(false);
 
   const fetchGroups = async () => {
     try {
@@ -64,7 +65,9 @@ export default function GroupsList() {
   const openAssign = async (g: Group) => {
     setAssignOpen(g.id);
     setSelectedIds(new Set());
+    setAssignLoading(true);
     await fetchAllAgents();
+    setAssignLoading(false);
   };
 
   const toggleSelect = (id: number) => {
@@ -226,7 +229,9 @@ export default function GroupsList() {
                 <button onClick={() => setAssignOpen(null)} className="p-1 rounded-md hover:bg-slate-100 dark:hover:bg-white/5 text-slate-400"><Cross2Icon /></button>
               </div>
               <div className="p-5">
-                {available.length === 0 ? (
+                {assignLoading ? (
+                  <p className="text-sm text-slate-400 text-center py-4">加载客户端列表...</p>
+                ) : available.length === 0 ? (
                   <p className="text-sm text-slate-500">所有客户端已在该分组中</p>
                 ) : (
                   <div className="flex flex-col gap-1 max-h-60 overflow-y-auto">

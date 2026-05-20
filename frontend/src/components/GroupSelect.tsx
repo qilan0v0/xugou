@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import api from '../api/index';
 
 interface GroupSelectProps {
@@ -14,6 +15,7 @@ export default function GroupSelect({ value, onChange, placeholder, className }:
   const [highlight, setHighlight] = useState(-1);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
 
   useEffect(() => {
     api.get('/api/agents/groups/pool').then(res => {
@@ -35,6 +37,20 @@ export default function GroupSelect({ value, onChange, placeholder, className }:
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
+  // Update dropdown position on open
+  const showDropdown = () => {
+    if (!wrapperRef.current) return;
+    const rect = wrapperRef.current.getBoundingClientRect();
+    setDropdownStyle({
+      position: 'fixed',
+      top: rect.bottom + 4,
+      left: rect.left,
+      width: rect.width,
+      zIndex: 9999,
+    });
+    setOpen(true);
+  };
+
   const select = (name: string) => {
     onChange(name);
     setOpen(false);
@@ -49,20 +65,22 @@ export default function GroupSelect({ value, onChange, placeholder, className }:
     if (e.key === 'Escape') { setOpen(false); setHighlight(-1); return; }
   };
 
+  const hasDropdown = open && filtered.length > 0;
+
   return (
     <div ref={wrapperRef} className="relative">
       <input
         ref={inputRef}
         type="text"
         value={value}
-        onChange={e => { onChange(e.target.value); setOpen(true); setHighlight(-1); }}
-        onFocus={() => setOpen(true)}
+        onChange={e => { onChange(e.target.value); showDropdown(); setHighlight(-1); }}
+        onFocus={showDropdown}
         onKeyDown={handleKeyDown}
         placeholder={placeholder || '选择或输入分组'}
         className={className}
       />
-      {open && filtered.length > 0 && (
-        <div className="absolute top-full left-0 right-0 mt-1 z-50 rounded-lg border border-white/[0.08] bg-white dark:bg-slate-800 shadow-xl max-h-40 overflow-y-auto">
+      {hasDropdown && createPortal(
+        <div className="rounded-lg border border-white/[0.08] bg-white dark:bg-slate-800 shadow-xl max-h-40 overflow-y-auto" style={dropdownStyle}>
           {value && !groups.includes(value) && (
             <button
               type="button"
@@ -92,7 +110,8 @@ export default function GroupSelect({ value, onChange, placeholder, className }:
               {g === value && <span className="text-[10px] text-blue-500 ml-auto">已选</span>}
             </button>
           ))}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
