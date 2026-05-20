@@ -113,6 +113,7 @@ app.post('/api/agents/status', async (c) => {
       }
     }
 
+    let isNewAgent = false;
     let agent = await env.DB.prepare('SELECT id FROM agents WHERE token = ?').bind(token).first<{id: number}>();
     if (!agent) {
       const adminUser = env.DB.prepare('SELECT id FROM users WHERE role = ?').bind('admin').first<{id: number}>();
@@ -125,6 +126,7 @@ app.post('/api/agents/status', async (c) => {
       ).bind(autoName, token, adminUser.id, now2, now2, now2).run();
       agent = env.DB.prepare('SELECT id FROM agents WHERE token = ?').bind(token).first<{id: number}>();
       if (!agent) return c.json({ success: false, message: 'auto-create failed' }, 500);
+      isNewAgent = true;
     }
 
     // Recalc network rate from cumulative byte delta if agent reports 0
@@ -141,7 +143,7 @@ app.post('/api/agents/status', async (c) => {
 
     const now = new Date().toISOString();
     const currentStatus = await env.DB.prepare('SELECT status FROM agents WHERE id = ?').bind(agent.id).first<{status: string}>();
-    const wasInactive = !currentStatus || currentStatus.status === 'inactive';
+    const wasInactive = isNewAgent || !currentStatus || currentStatus.status === 'inactive';
     if (wasInactive) {
       env.DB.prepare('UPDATE agents SET connected_at = ? WHERE id = ?').bind(now, agent.id).run();
     }
