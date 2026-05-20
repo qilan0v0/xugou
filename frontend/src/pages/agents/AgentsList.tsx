@@ -193,12 +193,32 @@ const AgentsList = () => {
     alert(`已删除 ${ok} / ${selected.size} 个`);
   };
 
-  const handleReorder = async (id: number, direction: 'up' | 'down') => {
+  const [dragId, setDragId] = useState<number | null>(null);
+  const [dragOverId, setDragOverId] = useState<number | null>(null);
+
+  const handleDragStart = (e: React.DragEvent, id: number) => {
+    setDragId(id);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+  const handleDragOver = (e: React.DragEvent, id: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (id !== dragOverId) setDragOverId(id);
+  };
+  const handleDragLeave = () => setDragOverId(null);
+  const handleDrop = async (e: React.DragEvent, toId: number) => {
+    e.preventDefault();
+    setDragId(null);
+    setDragOverId(null);
+    if (dragId == null || dragId === toId) return;
+    const toIndex = filtered.findIndex(a => a.id === toId);
+    if (toIndex < 0) return;
     try {
-      await api.post('/api/agents/reorder', { id, direction });
+      await api.post('/api/agents/reorder', { id: dragId, toIndex });
       fetchAgents();
     } catch {}
   };
+  const handleDragEnd = () => { setDragId(null); setDragOverId(null); };
 
   const handleDeleteOne = async (id: number) => {
     if (!window.confirm(t('agent.deleteConfirm'))) return;
@@ -301,7 +321,15 @@ const AgentsList = () => {
                   const sel = selected.has(a.id);
                   const tags = a.tags ? a.tags.split(',').filter(Boolean) : [];
                   return (
-                    <tr key={a.id} className={`border-b border-white/[0.04] transition-colors ${sel ? 'bg-blue-500/[0.04]' : 'hover:bg-white/[0.02]'}`}>
+                    <tr key={a.id}
+                      draggable
+                      onDragStart={e => handleDragStart(e, a.id)}
+                      onDragOver={e => handleDragOver(e, a.id)}
+                      onDragLeave={handleDragLeave}
+                      onDrop={e => handleDrop(e, a.id)}
+                      onDragEnd={handleDragEnd}
+                      className={`border-b border-white/[0.04] transition-colors cursor-grab active:cursor-grabbing ${dragOverId === a.id ? 'border-t-2 border-t-blue-500' : ''} ${sel ? 'bg-blue-500/[0.04]' : 'hover:bg-white/[0.02]'} ${dragId === a.id ? 'opacity-50' : ''}`}
+                    >
                       <td className="px-3 py-2.5"><input type="checkbox" checked={sel} onChange={() => toggle(a.id)} className="chk-box" /></td>
                       <td className="px-4 py-2.5"><span className="text-sm font-medium text-slate-900 dark:text-white truncate block max-w-[130px]">{a.name}</span></td>
                       <td className="px-4 py-2.5 text-sm text-slate-600 dark:text-slate-400 truncate max-w-[110px]">{a.hostname || '--'}</td>
@@ -314,8 +342,8 @@ const AgentsList = () => {
                       <td className="px-4 py-2.5"><div className="flex gap-1 flex-wrap">{tags.length === 0 ? <span className="text-[11px] text-slate-400">--</span> : tags.map(t => <span key={t} className={`text-[10px] px-1.5 py-0.5 rounded font-medium whitespace-nowrap ${tagColor(t)}`}>{t}</span>)}</div></td>
                       <td className="px-4 py-2.5 text-right">
                         <div className="flex justify-end gap-0.5">
-                          <button onClick={() => handleReorder(a.id, 'up')} className="p-0.5 rounded text-slate-300 hover:text-slate-600 dark:hover:text-slate-300 transition-colors" title="上移"><ChevronUpIcon className="w-3.5 h-3.5" /></button>
-                          <button onClick={() => handleReorder(a.id, 'down')} className="p-0.5 rounded text-slate-300 hover:text-slate-600 dark:hover:text-slate-300 transition-colors" title="下移"><ChevronDownIcon className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => { const idx = filtered.findIndex(x => x.id === a.id); if (idx > 0) api.post('/api/agents/reorder', { id: a.id, toIndex: idx - 1 }).then(fetchAgents); }} className="p-0.5 rounded text-slate-300 hover:text-slate-600 dark:hover:text-slate-300 transition-colors" title="上移"><ChevronUpIcon className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => { const idx = filtered.findIndex(x => x.id === a.id); if (idx < filtered.length - 1) api.post('/api/agents/reorder', { id: a.id, toIndex: idx + 1 }).then(fetchAgents); }} className="p-0.5 rounded text-slate-300 hover:text-slate-600 dark:hover:text-slate-300 transition-colors" title="下移"><ChevronDownIcon className="w-3.5 h-3.5" /></button>
                           <button onClick={() => setDetailAgent(a)} className="p-1.5 rounded-md text-slate-400 hover:text-blue-500 hover:bg-blue-500/10 transition-colors" title="详情"><InfoCircledIcon className="w-3.5 h-3.5" /></button>
                           <button onClick={() => setEditing(a)} className="p-1.5 rounded-md text-slate-400 hover:text-amber-500 hover:bg-amber-500/10 transition-colors" title="编辑"><Pencil1Icon className="w-3.5 h-3.5" /></button>
                           <button onClick={() => handleDeleteOne(a.id)} className="p-1.5 rounded-md text-slate-400 hover:text-red-500 hover:bg-red-500/10 transition-colors" title="删除"><Cross2Icon className="w-3.5 h-3.5" /></button>

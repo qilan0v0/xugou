@@ -223,27 +223,25 @@ agents.get('/groups/pool', async (c) => {
   }
 });
 
-// 排序：上移/下移
+// 排序：拖拽到目标位置 (toIndex: 0-based)
 agents.post('/reorder', async (c) => {
   try {
-    const { id, direction } = await c.req.json(); // direction: 'up' | 'down'
-    if (!id || !direction) return c.json({ success: false, message: '缺少参数' }, 400);
+    const { id, toIndex } = await c.req.json();
+    if (id == null || toIndex == null) return c.json({ success: false, message: '缺少参数' }, 400);
 
-    const current = await c.env.DB.prepare('SELECT id, sort_order FROM agents WHERE id = ?').bind(id).first<{id: number; sort_order: number}>();
-    if (!current) return c.json({ success: false, message: '客户端不存在' }, 404);
+    const all = await c.env.DB.prepare('SELECT id, sort_order FROM agents ORDER BY sort_order ASC, created_at DESC').all<{id: number; sort_order: number}>();
+    const items = all.results || [];
+    const idx = items.findIndex(a => a.id === id);
+    if (idx < 0) return c.json({ success: false, message: '客户端不存在' }, 404);
+    if (idx === toIndex) return c.json({ success: true, message: '位置未变' });
 
-    const currentSort = current.sort_order ?? 0;
-    const targetSort = direction === 'up' ? currentSort - 1 : currentSort + 1;
+    // Remove from current position, insert at target
+    const [moved] = items.splice(idx, 1);
+    items.splice(toIndex, 0, moved);
 
-    // Find the agent at the target position
-    const target = await c.env.DB.prepare('SELECT id, sort_order FROM agents WHERE sort_order = ? AND id != ? LIMIT 1').bind(targetSort, id).first<{id: number; sort_order: number}>();
-    if (target) {
-      // Swap
-      await c.env.DB.prepare('UPDATE agents SET sort_order = ? WHERE id = ?').bind(targetSort, id).run();
-      await c.env.DB.prepare('UPDATE agents SET sort_order = ? WHERE id = ?').bind(currentSort, target.id).run();
-    } else {
-      // No adjacent item — just move by 1
-      await c.env.DB.prepare('UPDATE agents SET sort_order = ? WHERE id = ?').bind(targetSort, id).run();
+    // Reassign sort_order
+    for (let i = 0; i < items.length; i++) {
+      await c.env.DB.prepare('UPDATE agents SET sort_order = ? WHERE id = ?').bind(i, items[i].id).run();
     }
 
     return c.json({ success: true, message: '排序已更新' });

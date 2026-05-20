@@ -143,12 +143,32 @@ const MonitorsList = () => {
     alert(`已删除 ${ok} / ${selected.size} 个`);
   };
 
-  const handleReorder = async (id: number, direction: 'up' | 'down') => {
+  const [dragId, setDragId] = useState<number | null>(null);
+  const [dragOverId, setDragOverId] = useState<number | null>(null);
+
+  const handleDragStart = (e: React.DragEvent, id: number) => {
+    setDragId(id);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+  const handleDragOver = (e: React.DragEvent, id: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (id !== dragOverId) setDragOverId(id);
+  };
+  const handleDragLeave = () => setDragOverId(null);
+  const handleDrop = async (e: React.DragEvent, toId: number) => {
+    e.preventDefault();
+    setDragId(null);
+    setDragOverId(null);
+    if (dragId == null || dragId === toId) return;
+    const toIndex = monitors.findIndex(m => m.id === toId);
+    if (toIndex < 0) return;
     try {
-      await api.post('/api/monitors/reorder', { id, direction });
+      await api.post('/api/monitors/reorder', { id: dragId, toIndex });
       fetchData();
     } catch {}
   };
+  const handleDragEnd = () => { setDragId(null); setDragOverId(null); };
 
   const handleDelete = async (id: number) => {
     if (!window.confirm(t('monitors.delete.confirm'))) return;
@@ -209,7 +229,15 @@ const MonitorsList = () => {
                   const tags = m.tags ? m.tags.split(',').filter(Boolean) : [];
                   const sel = selected.has(m.id);
                   return (
-                    <tr key={m.id} className={`border-b border-white/[0.04] transition-colors ${sel ? 'bg-blue-500/[0.04]' : 'hover:bg-white/[0.02]'}`}>
+                    <tr key={m.id}
+                      draggable
+                      onDragStart={e => handleDragStart(e, m.id)}
+                      onDragOver={e => handleDragOver(e, m.id)}
+                      onDragLeave={handleDragLeave}
+                      onDrop={e => handleDrop(e, m.id)}
+                      onDragEnd={handleDragEnd}
+                      className={`border-b border-white/[0.04] transition-colors cursor-grab active:cursor-grabbing ${dragOverId === m.id ? 'border-t-2 border-t-blue-500' : ''} ${sel ? 'bg-blue-500/[0.04]' : 'hover:bg-white/[0.02]'} ${dragId === m.id ? 'opacity-50' : ''}`}
+                    >
                       <td className="px-3 py-2.5"><input type="checkbox" checked={sel} onChange={() => toggle(m.id)} className="chk-box" /></td>
                       <td className="px-4 py-2.5"><span className="text-sm font-medium text-slate-900 dark:text-white truncate block max-w-[150px]">{m.name}</span></td>
                       <td className="px-4 py-2.5"><div className="flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400"><GlobeIcon className="w-3 h-3 flex-shrink-0 text-slate-400" /><span className="truncate max-w-[260px]">{m.url}</span></div></td>
@@ -221,8 +249,8 @@ const MonitorsList = () => {
                       <td className="px-4 py-2.5"><div className="flex gap-1 flex-wrap">{tags.length === 0 ? <span className="text-[11px] text-slate-400">--</span> : tags.map(t => <span key={t} className={`text-[10px] px-1.5 py-0.5 rounded font-medium whitespace-nowrap ${tagColor(t)}`}>{t}</span>)}</div></td>
                       <td className="px-4 py-2.5 text-right">
                         <div className="flex justify-end gap-0.5">
-                          <button onClick={() => handleReorder(m.id, 'up')} className="p-0.5 rounded text-slate-300 hover:text-slate-600 dark:hover:text-slate-300 transition-colors" title="上移"><ChevronUpIcon className="w-3.5 h-3.5" /></button>
-                          <button onClick={() => handleReorder(m.id, 'down')} className="p-0.5 rounded text-slate-300 hover:text-slate-600 dark:hover:text-slate-300 transition-colors" title="下移"><ChevronDownIcon className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => { const idx = monitors.findIndex(x => x.id === m.id); if (idx > 0) api.post('/api/monitors/reorder', { id: m.id, toIndex: idx - 1 }).then(fetchData); }} className="p-0.5 rounded text-slate-300 hover:text-slate-600 dark:hover:text-slate-300 transition-colors" title="上移"><ChevronUpIcon className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => { const idx = monitors.findIndex(x => x.id === m.id); if (idx < monitors.length - 1) api.post('/api/monitors/reorder', { id: m.id, toIndex: idx + 1 }).then(fetchData); }} className="p-0.5 rounded text-slate-300 hover:text-slate-600 dark:hover:text-slate-300 transition-colors" title="下移"><ChevronDownIcon className="w-3.5 h-3.5" /></button>
                           <button onClick={() => navigate(`/monitors/${m.id}`)} className="p-1.5 rounded-md text-slate-400 hover:text-blue-500 hover:bg-blue-500/10 transition-colors" title="详情"><InfoCircledIcon className="w-3.5 h-3.5" /></button>
                           <button onClick={() => setEditing(m)} className="p-1.5 rounded-md text-slate-400 hover:text-amber-500 hover:bg-amber-500/10 transition-colors" title="编辑"><Pencil1Icon className="w-3.5 h-3.5" /></button>
                           <button onClick={() => handleDelete(m.id)} className="p-1.5 rounded-md text-slate-400 hover:text-red-500 hover:bg-red-500/10 transition-colors" title="删除"><TrashIcon className="w-3.5 h-3.5" /></button>
