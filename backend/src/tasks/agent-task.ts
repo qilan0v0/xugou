@@ -7,7 +7,7 @@ export const checkAgentsStatus = async (env: any) => {
     const now = new Date();
 
     const activeAgents = await env.DB.prepare(
-      "SELECT id, name, hostname, ip_address, os, cpu_usage, updated_at, created_by FROM agents WHERE status = 'active'"
+      "SELECT * FROM agents WHERE status = 'active'"
     ).all();
 
     if (!activeAgents.results || activeAgents.results.length === 0) {
@@ -50,14 +50,41 @@ async function sendAgentNotification(env: any, agent: any, event: 'down' | 'up')
     const diskPct = agent.disk_total && agent.disk_used ? Math.round((agent.disk_used/agent.disk_total)*100) : 0;
     const upMs = agent.boot_time ? Math.max(0, Date.now() - new Date(agent.boot_time).getTime()) : 0;
 
+    const upDays = upMs ? Math.floor(upMs / 86400000) : 0;
+    const upHours = upMs ? Math.floor((upMs % 86400000) / 3600000) : 0;
+    const memTotalGB = agent.memory_total ? (agent.memory_total / 1073741824).toFixed(1) : '';
+    const diskTotalGB = agent.disk_total ? (agent.disk_total / 1073741824).toFixed(1) : '';
+    const netRxTotal = agent.network_rx_total ? (agent.network_rx_total / 1073741824).toFixed(2) : '';
+    const netTxTotal = agent.network_tx_total ? (agent.network_tx_total / 1073741824).toFixed(2) : '';
+    const totalTraffic = ((agent.network_rx_total || 0) + (agent.network_tx_total || 0)) / 1073741824;
+
+    const fmtDateTime = (s: string) => { try { return new Date(s).toLocaleString('zh-CN'); } catch { return s || ''; } };
+
     const vars: Record<string,string> = {
-      name: agent.name, status: event === 'down' ? '离线' : '在线', time: now,
-      hostname: agent.hostname || '', ip: agent.ip_address || '', os: agent.os || '',
+      name: agent.name || '',
+      status: event === 'down' ? '离线' : '在线',
+      time: now,
+      hostname: agent.hostname || '',
+      ip: agent.ip_address || '',
+      os: agent.os || '',
+      version: agent.version || '',
       cpu: agent.cpu_usage ? `${Math.round(agent.cpu_usage)}%` : '',
+      cpu_cores: agent.cpu_cores ? String(agent.cpu_cores) : '',
+      cpu_model: agent.cpu_model_name || '',
+      cpu_arch: agent.cpu_arch || '',
       memory: memPct ? `${memPct}%` : '',
+      memory_total: memTotalGB ? `${memTotalGB} GiB` : '',
       disk: diskPct ? `${diskPct}%` : '',
-      uptime: upMs ? `${Math.floor(upMs/86400000)}d${Math.floor((upMs%86400000)/3600000)}h` : '',
+      disk_total: diskTotalGB ? `${diskTotalGB} GiB` : '',
+      uptime: upMs ? `${upDays}d ${upHours}h` : '',
+      load: agent.load1 != null ? `${agent.load1.toFixed(2)} / ${(agent.load5||0).toFixed(2)} / ${(agent.load15||0).toFixed(2)}` : '',
       country: agent.country || '',
+      agent_version: agent.agent_version || '',
+      boot_time: agent.boot_time ? fmtDateTime(agent.boot_time) : '',
+      connected_at: agent.connected_at ? fmtDateTime(agent.connected_at) : '',
+      network_rx_total: netRxTotal ? `${netRxTotal} GiB` : '',
+      network_tx_total: netTxTotal ? `${netTxTotal} GiB` : '',
+      traffic_total: totalTraffic ? `${totalTraffic.toFixed(2)} GiB` : '',
       message: event === 'down' ? `${agent.name} 已离线` : `${agent.name} 已上线`,
       url: '', response_time: '',
     };

@@ -171,13 +171,34 @@ app.post('/api/agents/status', async (c) => {
         const memPct = fullAgent.memory_total && fullAgent.memory_used ? Math.round((fullAgent.memory_used/fullAgent.memory_total)*100) : 0;
         const diskPct = fullAgent.disk_total && fullAgent.disk_used ? Math.round((fullAgent.disk_used/fullAgent.disk_total)*100) : 0;
         const upMs = fullAgent.boot_time ? Math.max(0, Date.now() - new Date(fullAgent.boot_time).getTime()) : 0;
+        const upDays = upMs ? Math.floor(upMs / 86400000) : 0;
+        const upHours = upMs ? Math.floor((upMs % 86400000) / 3600000) : 0;
+        const memTotalGB = fullAgent.memory_total ? (fullAgent.memory_total / 1073741824).toFixed(1) : '';
+        const diskTotalGB = fullAgent.disk_total ? (fullAgent.disk_total / 1073741824).toFixed(1) : '';
+        const netRxTotal = fullAgent.network_rx_total ? (fullAgent.network_rx_total / 1073741824).toFixed(2) : '';
+        const netTxTotal = fullAgent.network_tx_total ? (fullAgent.network_tx_total / 1073741824).toFixed(2) : '';
+        const totalTraffic = ((fullAgent.network_rx_total || 0) + (fullAgent.network_tx_total || 0)) / 1073741824;
+        const fmtDateTime = (s: string) => { try { return new Date(s).toLocaleString('zh-CN'); } catch { return s || ''; } };
+
         const vars: Record<string,string> = {
-          name: fullAgent.name, status: '在线', time: now2,
+          name: fullAgent.name || '', status: '在线', time: now2,
           hostname: fullAgent.hostname || '', ip: fullAgent.ip_address || '', os: fullAgent.os || '',
+          version: fullAgent.version || '',
           cpu: fullAgent.cpu_usage ? `${Math.round(fullAgent.cpu_usage)}%` : '',
-          memory: memPct ? `${memPct}%` : '', disk: diskPct ? `${diskPct}%` : '',
-          uptime: upMs ? `${Math.floor(upMs/86400000)}d${Math.floor((upMs%86400000)/3600000)}h` : '',
+          cpu_cores: fullAgent.cpu_cores ? String(fullAgent.cpu_cores) : '',
+          cpu_model: fullAgent.cpu_model_name || '',
+          cpu_arch: fullAgent.cpu_arch || '',
+          memory: memPct ? `${memPct}%` : '', memory_total: memTotalGB ? `${memTotalGB} GiB` : '',
+          disk: diskPct ? `${diskPct}%` : '', disk_total: diskTotalGB ? `${diskTotalGB} GiB` : '',
+          uptime: upMs ? `${upDays}d ${upHours}h` : '',
+          load: fullAgent.load1 != null ? `${fullAgent.load1.toFixed(2)} / ${(fullAgent.load5||0).toFixed(2)} / ${(fullAgent.load15||0).toFixed(2)}` : '',
           country: fullAgent.country || '',
+          agent_version: fullAgent.agent_version || '',
+          boot_time: fullAgent.boot_time ? fmtDateTime(fullAgent.boot_time) : '',
+          connected_at: fullAgent.connected_at ? fmtDateTime(fullAgent.connected_at) : '',
+          network_rx_total: netRxTotal ? `${netRxTotal} GiB` : '',
+          network_tx_total: netTxTotal ? `${netTxTotal} GiB` : '',
+          traffic_total: totalTraffic ? `${totalTraffic.toFixed(2)} GiB` : '',
           message: `${fullAgent.name} 已上线`, url: '', response_time: '',
         };
         try {

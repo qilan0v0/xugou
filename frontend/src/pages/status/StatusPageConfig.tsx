@@ -27,14 +27,14 @@ const StatusPageConfig = () => {
   const [webhookUrl, setWebhookUrl] = useState('');
   const [webhookMethod, setWebhookMethod] = useState('POST');
   const [webhookContentType, setWebhookContentType] = useState('json');
-  const [webhookBodyDown, setWebhookBodyDown] = useState('{"name":"{name}","status":"故障","time":"{time}","message":"{name} 出现故障"}');
-  const [webhookBodyUp, setWebhookBodyUp] = useState('{"name":"{name}","status":"已恢复","time":"{time}","message":"{name} 已恢复正常"}');
+  const [webhookBodyDown, setWebhookBodyDown] = useState('{"chat_id":"YOUR_CHAT_ID","text":"⚠️ *{name}* 故障\\n\\n状态: {status}\\n时间: {time}\\n主机: {hostname} ({ip})\\n系统: {os}\\nCPU: {cpu} | 内存: {memory} | 磁盘: {disk}\\n运行时长: {uptime}\\n地区: {country}\\n\\n总流量: {traffic_total}","parse_mode":"Markdown"}');
+  const [webhookBodyUp, setWebhookBodyUp] = useState('{"chat_id":"YOUR_CHAT_ID","text":"✅ *{name}* 已恢复\\n\\n状态: {status}\\n时间: {time}\\n主机: {hostname} ({ip})\\n系统: {os}\\nCPU: {cpu} | 内存: {memory} | 磁盘: {disk}\\n运行时长: {uptime}\\n地区: {country}\\n\\n总流量: {traffic_total}","parse_mode":"Markdown"}');
   const [webhookHeaders, setWebhookHeaders] = useState('');
   const [webhookTesting, setWebhookTesting] = useState(false);
   const [webhookTestResult, setWebhookTestResult] = useState('');
   const [varsExpanded, setVarsExpanded] = useState(false);
   const [testAgentId, setTestAgentId] = useState<number | null>(null);
-  const [agentsBrief, setAgentsBrief] = useState<{id:number;name:string;hostname:string;os:string;ip_address:string;cpu_usage:number;country:string;boot_time:string;memory_total:number;memory_used:number;disk_total:number;disk_used:number}[]>([]);
+  const [agentsBrief, setAgentsBrief] = useState<{id:number;name:string;hostname:string;os:string;ip_address:string;cpu_usage:number;country:string;boot_time:string;memory_total:number;memory_used:number;disk_total:number;disk_used:number;version:string}[]>([]);
   const [webhookTls, setWebhookTls] = useState(true);
   const [notifyDown, setNotifyDown] = useState(true);
   const [notifyUp, setNotifyUp] = useState(true);
@@ -253,20 +253,36 @@ const StatusPageConfig = () => {
                     {varsExpanded && (
                       <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] bg-slate-50 dark:bg-white/[0.03] rounded-lg p-3 border border-white/[0.06]">
                         {[
-                          ['{name}', '客户端名称'],
-                          ['{status}', '状态: up/down/pending'],
-                          ['{time}', '当前时间 (ISO格式)'],
+                          ['{name}', '名称（客户端/监控项）'],
+                          ['{status}', '状态: 在线/离线 或 故障/已恢复'],
+                          ['{previous_status}', '之前状态 (仅API监控)'],
+                          ['{time}', '当前时间'],
                           ['{hostname}', '主机名'],
                           ['{ip}', 'IP 地址'],
                           ['{os}', '操作系统'],
+                          ['{version}', '系统版本'],
                           ['{cpu}', 'CPU 使用率 (%)'],
+                          ['{cpu_cores}', 'CPU 核心数'],
+                          ['{cpu_model}', 'CPU 型号'],
+                          ['{cpu_arch}', 'CPU 架构'],
                           ['{memory}', '内存使用率 (%)'],
+                          ['{memory_total}', '内存总量'],
                           ['{disk}', '磁盘使用率 (%)'],
+                          ['{disk_total}', '磁盘总量'],
                           ['{uptime}', '运行时长'],
+                          ['{load}', '系统负载 (1m/5m/15m)'],
                           ['{country}', '所在地区'],
+                          ['{agent_version}', 'Agent 版本号'],
+                          ['{boot_time}', '系统启动时间'],
+                          ['{connected_at}', '首次连接时间'],
+                          ['{network_rx_total}', '总下载流量'],
+                          ['{network_tx_total}', '总上传流量'],
+                          ['{traffic_total}', '总流量（下载+上传）'],
                           ['{message}', '故障/恢复 描述'],
                           ['{url}', '监控URL (仅API监控)'],
+                          ['{method}', '请求方法 (仅API监控)'],
                           ['{response_time}', '响应时间ms (仅API监控)'],
+                          ['{expected_status}', '期望状态码 (仅API监控)'],
                         ].map(([v, d]) => (
                           <div key={v} className="flex items-baseline gap-1.5">
                             <code className="text-blue-600 dark:text-blue-400 font-mono whitespace-nowrap">{v}</code>
@@ -322,20 +338,28 @@ const StatusPageConfig = () => {
                         const now = new Date().toISOString();
                         const upMs = agent?.boot_time ? Math.max(0, Date.now() - new Date(agent.boot_time).getTime()) : 0;
                         const vars: Record<string,string> = {
-                          name: agent?.name || 'TEST-监控项',
-                          status: 'up',
-                          time: now,
+                          name: agent?.name || 'TEST-监控项', status: '测试',
+                          previous_status: 'up', time: now,
                           hostname: agent?.hostname || 'test.example.com',
                           ip: agent?.ip_address || '127.0.0.1',
-                          os: agent?.os || 'Linux',
-                          cpu: agent ? `${Math.round(agent.cpu_usage || 0)}` : '25',
-                          memory: agent?.memory_total ? `${Math.round(((agent.memory_used||0)/(agent.memory_total||1))*100)}` : '50',
-                          disk: agent?.disk_total ? `${Math.round(((agent.disk_used||0)/(agent.disk_total||1))*100)}` : '30',
-                          uptime: upMs ? `${Math.floor(upMs/86400000)}d${Math.floor((upMs%86400000)/3600000)}h` : '1d2h',
+                          os: agent?.os || 'Linux', version: agent?.version || '22.04',
+                          cpu: agent ? `${Math.round(agent.cpu_usage || 0)}%` : '25%',
+                          cpu_cores: '4', cpu_model: 'Intel Test', cpu_arch: 'x86_64',
+                          memory: agent?.memory_total ? `${Math.round(((agent.memory_used||0)/(agent.memory_total||1))*100)}%` : '50%',
+                          memory_total: agent?.memory_total ? `${(agent.memory_total/1073741824).toFixed(1)} GiB` : '8.0 GiB',
+                          disk: agent?.disk_total ? `${Math.round(((agent.disk_used||0)/(agent.disk_total||1))*100)}%` : '30%',
+                          disk_total: agent?.disk_total ? `${(agent.disk_total/1073741824).toFixed(1)} GiB` : '256.0 GiB',
+                          uptime: upMs ? `${Math.floor(upMs/86400000)}d ${Math.floor((upMs%86400000)/3600000)}h` : '1d 2h',
+                          load: '0.50 / 0.30 / 0.20',
                           country: agent?.country || 'CN',
+                          agent_version: '1.0.0',
+                          boot_time: agent?.boot_time || now,
+                          connected_at: now,
+                          network_rx_total: '1.23 GiB', network_tx_total: '0.56 GiB',
+                          traffic_total: '1.79 GiB',
                           message: '这是一条测试消息',
-                          url: 'https://example.com',
-                          response_time: '120',
+                          url: 'https://example.com', method: 'GET',
+                          response_time: '120', expected_status: '200',
                         };
                         let body = webhookBodyDown;  // use down template for testing
                         for (const [k, v] of Object.entries(vars)) {

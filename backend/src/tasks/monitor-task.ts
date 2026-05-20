@@ -27,11 +27,18 @@ async function sendNotification(env: any, monitor: Monitor, event: 'down' | 'up'
     }
 
     const now = new Date().toISOString();
+    const prevStatus = monitor.status || 'pending';
     const vars: Record<string,string> = {
       name: monitor.name, status: event === 'down' ? '故障' : '已恢复', time: now,
-      hostname: '', ip: '', os: '', cpu: '', memory: '', disk: '', uptime: '',
-      country: '', message: event === 'down' ? `${monitor.name} 出现故障` : `${monitor.name} 已恢复正常`,
-      url: monitor.url, response_time: String(monitor.response_time || 0),
+      previous_status: prevStatus, url: monitor.url,
+      method: monitor.method, expected_status: String(monitor.expected_status || 200),
+      response_time: String(monitor.response_time || 0),
+      uptime: monitor.uptime ? `${monitor.uptime.toFixed(1)}%` : '',
+      message: event === 'down' ? `${monitor.name} 出现故障` : `${monitor.name} 已恢复正常`,
+      hostname: '', ip: '', os: '', cpu: '', memory: '', disk: '', country: '',
+      version: '', cpu_cores: '', cpu_model: '', cpu_arch: '', memory_total: '', disk_total: '',
+      load: '', agent_version: '', boot_time: '', connected_at: '',
+      network_rx_total: '', network_tx_total: '', traffic_total: '',
     };
 
     const template = event === 'down' ? (cfg.webhook_body_down || '') : (cfg.webhook_body_up || '');
