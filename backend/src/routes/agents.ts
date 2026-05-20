@@ -195,13 +195,18 @@ agents.delete('/groups/:id/agents/:agentId', async (c) => {
   }
 });
 
-// 分组管理 — 删除分组
+// 分组管理 — 删除分组（同时清除关联客户端的 category）
 agents.delete('/groups/:id', async (c) => {
   try {
     const id = Number(c.req.param('id'));
+    const group = await c.env.DB.prepare('SELECT name FROM agent_groups WHERE id = ?').bind(id).first<{name: string}>();
+    if (!group) return c.json({ success: false, message: '分组不存在' }, 404);
+    // Clear category on all agents in this group
+    await c.env.DB.prepare("UPDATE agents SET category = NULL WHERE category = ?").bind(group.name).run();
+    // Delete the group
     const result = await c.env.DB.prepare('DELETE FROM agent_groups WHERE id = ?').bind(id).run();
     if (!result.success) throw new Error('删除失败');
-    return c.json({ success: true, message: '分组已删除' });
+    return c.json({ success: true, message: '分组已删除，关联客户端已移出' });
   } catch (e: any) {
     return c.json({ success: false, message: '删除分组失败' }, 500);
   }
