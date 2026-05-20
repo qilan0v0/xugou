@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { EyeOpenIcon, CopyIcon, CheckIcon } from '@radix-ui/react-icons';
+import { CopyIcon, CheckIcon } from '@radix-ui/react-icons';
 import * as Toast from '@radix-ui/react-toast';
 import { getAllMonitors, Monitor } from '../../api/monitors';
 import { getAllAgents, Agent } from '../../api/agents';
@@ -113,9 +113,6 @@ const StatusPageConfig = () => {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t('statusPageConfig.title')}</h1>
         <div className="flex gap-3">
-          <button onClick={() => window.open('/status', '_blank')} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors">
-            <EyeOpenIcon />{t('statusPageConfig.preview')}
-          </button>
           <button onClick={handleSave} disabled={saving} className="btn-gradient px-5 py-2 text-sm flex items-center gap-1.5 disabled:opacity-60">
             {saving ? (
               <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />{t('common.savingChanges')}</>
