@@ -7,10 +7,24 @@ const monitorTask = new Hono<{ Bindings: Bindings }>();
 // ── Webhook 通知 ──────────────────────────────────────────
 async function sendNotification(env: any, monitor: Monitor, event: 'down' | 'up') {
   try {
+    console.log(`[Webhook] 查找用户 ${monitor.created_by} 的通知配置...`);
     const cfg = await env.DB.prepare('SELECT * FROM webhook_config WHERE user_id = ?').bind(monitor.created_by).first<any>();
-    if (!cfg || !cfg.webhook_url) return;
-    if (event === 'down' && !cfg.notify_down) return;
-    if (event === 'up' && !cfg.notify_up) return;
+    if (!cfg) {
+      console.log(`[Webhook] 用户 ${monitor.created_by} 无通知配置，跳过`);
+      return;
+    }
+    if (!cfg.webhook_url) {
+      console.log(`[Webhook] webhook_url 为空，跳过`);
+      return;
+    }
+    if (event === 'down' && !cfg.notify_down) {
+      console.log(`[Webhook] notify_down 关闭，跳过`);
+      return;
+    }
+    if (event === 'up' && !cfg.notify_up) {
+      console.log(`[Webhook] notify_up 关闭，跳过`);
+      return;
+    }
 
     const now = new Date().toISOString();
     const vars: Record<string,string> = {
@@ -37,6 +51,7 @@ async function sendNotification(env: any, monitor: Monitor, event: 'down' | 'up'
       reqHeaders['Content-Type'] = cfg.webhook_content_type === 'json' ? 'application/json' : 'text/plain';
     }
 
+    console.log(`[Webhook] 发送 ${event} 通知 → ${cfg.webhook_url}`);
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10000);
     const res = await fetch(cfg.webhook_url, {
@@ -46,9 +61,9 @@ async function sendNotification(env: any, monitor: Monitor, event: 'down' | 'up'
       signal: controller.signal,
     });
     clearTimeout(timeout);
-    console.log(`Webhook sent: ${monitor.name} ${event} → ${cfg.webhook_url} → ${res.status}`);
+    console.log(`[Webhook] 结果: ${monitor.name} ${event} → ${res.status}`);
   } catch (e: any) {
-    console.error(`Webhook failed (${monitor.name} ${event}):`, e.message);
+    console.error(`[Webhook] 失败 (${monitor.name} ${event}):`, e.message);
   }
 }
 
@@ -169,8 +184,9 @@ async function checkSingleMonitor(c: any, monitor: Monitor) {
     const status = isUp ? 'up' : 'down';
     const prevStatus = monitor.status;
 
-    // 状态变化时发送通知
-    if (prevStatus !== status && (prevStatus === 'up' || prevStatus === 'down' || prevStatus === 'pending')) {
+    // 状态变化时发送通知 (up↔down 或 pending→up/down)
+    if (prevStatus !== status) {
+      console.log(`[Webhook] 状态变化: ${monitor.name} ${prevStatus} → ${status}`);
       sendNotification(c.env, monitor, status === 'down' ? 'down' : 'up');
     }
 
@@ -212,8 +228,9 @@ async function checkSingleMonitor(c: any, monitor: Monitor) {
   } catch (error: any) {
     console.error(`检查监控项失败: ${monitor.name}`, error);
 
-    // 状态变化时发送通知
-    if (monitor.status === 'up') {
+    // 仅当之前是正常状态时才发故障通知
+    if (monitor.status === 'up' || monitor.status === 'pending') {
+      console.log(`[Webhook] 检查异常: ${monitor.name} ${monitor.status} → down`);
       sendNotification(c.env, monitor, 'down');
     }
 
