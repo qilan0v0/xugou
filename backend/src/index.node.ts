@@ -163,6 +163,41 @@ app.post('/api/agents/status', async (c) => {
       return c.json({ success: false, message: 'update failed' }, 500);
     }
 
+    // 首次上线通知 (wasInactive → active)
+    if (wasInactive) {
+      const fullAgent = await env.DB.prepare('SELECT * FROM agents WHERE id = ?').bind(agent.id).first<any>();
+      if (fullAgent) {
+        const now2 = new Date().toISOString();
+        const memPct = fullAgent.memory_total && fullAgent.memory_used ? Math.round((fullAgent.memory_used/fullAgent.memory_total)*100) : 0;
+        const diskPct = fullAgent.disk_total && fullAgent.disk_used ? Math.round((fullAgent.disk_used/fullAgent.disk_total)*100) : 0;
+        const upMs = fullAgent.boot_time ? Math.max(0, Date.now() - new Date(fullAgent.boot_time).getTime()) : 0;
+        const vars: Record<string,string> = {
+          name: fullAgent.name, status: '在线', time: now2,
+          hostname: fullAgent.hostname || '', ip: fullAgent.ip_address || '', os: fullAgent.os || '',
+          cpu: fullAgent.cpu_usage ? `${Math.round(fullAgent.cpu_usage)}%` : '',
+          memory: memPct ? `${memPct}%` : '', disk: diskPct ? `${diskPct}%` : '',
+          uptime: upMs ? `${Math.floor(upMs/86400000)}d${Math.floor((upMs%86400000)/3600000)}h` : '',
+          country: fullAgent.country || '',
+          message: `${fullAgent.name} 已上线`, url: '', response_time: '',
+        };
+        try {
+          const cfg = await env.DB.prepare('SELECT * FROM webhook_config WHERE user_id = ?').bind(fullAgent.created_by).first<any>();
+          if (cfg && cfg.webhook_url && cfg.notify_up) {
+            let body = cfg.webhook_body_up || '';
+            for (const [k,v] of Object.entries(vars)) body = body.replace(new RegExp(`\\{${k}\\}`,'g'), v);
+            const headers: Record<string,string> = {};
+            if (cfg.webhook_headers) cfg.webhook_headers.split('\n').forEach((l: string) => { const i = l.indexOf(':'); if (i>0) headers[l.slice(0,i).trim()]=l.slice(i+1).trim(); });
+            if (cfg.webhook_method === 'POST') headers['Content-Type'] = cfg.webhook_content_type === 'json' ? 'application/json' : 'text/plain';
+            console.log('[Webhook-Agent] 上线通知:', fullAgent.name);
+            const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), 10000);
+            const r = await fetch(cfg.webhook_url, { method: cfg.webhook_method||'POST', headers, body: cfg.webhook_method!=='GET'?body:undefined, signal: ctrl.signal });
+            clearTimeout(t);
+            console.log('[Webhook-Agent] 结果:', r.status);
+          }
+        } catch (e: any) { console.error('[Webhook-Agent] 上线通知失败:', e.message); }
+      }
+    }
+
     // Broadcast real-time update to connected WebSocket clients
     broadcast?.('agent-update', { id: agent.id });
 
