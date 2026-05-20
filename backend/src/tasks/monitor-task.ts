@@ -1,9 +1,56 @@
 import { Hono } from 'hono';
 import { Bindings } from '../models/db';
 import { Monitor } from '../models/monitor';
-import { generateToken } from '../utils/jwt';
 
 const monitorTask = new Hono<{ Bindings: Bindings }>();
+
+// ── Webhook 通知 ──────────────────────────────────────────
+async function sendNotification(env: any, monitor: Monitor, event: 'down' | 'up') {
+  try {
+    const cfg = await env.DB.prepare('SELECT * FROM webhook_config WHERE user_id = ?').bind(monitor.created_by).first<any>();
+    if (!cfg || !cfg.webhook_url) return;
+    if (event === 'down' && !cfg.notify_down) return;
+    if (event === 'up' && !cfg.notify_up) return;
+
+    const now = new Date().toISOString();
+    const vars: Record<string,string> = {
+      name: monitor.name, status: event === 'down' ? '故障' : '已恢复', time: now,
+      hostname: '', ip: '', os: '', cpu: '', memory: '', disk: '', uptime: '',
+      country: '', message: event === 'down' ? `${monitor.name} 出现故障` : `${monitor.name} 已恢复正常`,
+      url: monitor.url, response_time: String(monitor.response_time || 0),
+    };
+
+    const template = event === 'down' ? (cfg.webhook_body_down || '') : (cfg.webhook_body_up || '');
+    let body = template;
+    for (const [k, v] of Object.entries(vars)) {
+      body = body.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
+    }
+
+    const reqHeaders: Record<string,string> = {};
+    if (cfg.webhook_headers) {
+      cfg.webhook_headers.split('\n').forEach((line: string) => {
+        const idx = line.indexOf(':');
+        if (idx > 0) reqHeaders[line.slice(0,idx).trim()] = line.slice(idx+1).trim();
+      });
+    }
+    if (cfg.webhook_method === 'POST') {
+      reqHeaders['Content-Type'] = cfg.webhook_content_type === 'json' ? 'application/json' : 'text/plain';
+    }
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+    const res = await fetch(cfg.webhook_url, {
+      method: cfg.webhook_method || 'POST',
+      headers: reqHeaders,
+      body: cfg.webhook_method !== 'GET' ? body : undefined,
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+    console.log(`Webhook sent: ${monitor.name} ${event} → ${cfg.webhook_url} → ${res.status}`);
+  } catch (e: any) {
+    console.error(`Webhook failed (${monitor.name} ${event}):`, e.message);
+  }
+}
 
 // 清理30天以前的历史记录
 async function cleanupOldRecords(c: any) {
@@ -120,7 +167,13 @@ async function checkSingleMonitor(c: any, monitor: Monitor) {
     }
     
     const status = isUp ? 'up' : 'down';
-    
+    const prevStatus = monitor.status;
+
+    // 状态变化时发送通知
+    if (prevStatus !== status && (prevStatus === 'up' || prevStatus === 'down' || prevStatus === 'pending')) {
+      sendNotification(c.env, monitor, status === 'down' ? 'down' : 'up');
+    }
+
     // 记录状态历史
     await c.env.DB.prepare(
       `INSERT INTO monitor_status_history (monitor_id, status, timestamp) 
@@ -158,7 +211,12 @@ async function checkSingleMonitor(c: any, monitor: Monitor) {
     };
   } catch (error: any) {
     console.error(`检查监控项失败: ${monitor.name}`, error);
-    
+
+    // 状态变化时发送通知
+    if (monitor.status === 'up') {
+      sendNotification(c.env, monitor, 'down');
+    }
+
     // 记录错误状态
     await c.env.DB.prepare(
       `INSERT INTO monitor_status_history (monitor_id, status, timestamp) 

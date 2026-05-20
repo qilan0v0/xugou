@@ -5,6 +5,7 @@ import { getAllMonitors, Monitor } from '../../api/monitors';
 import { getAllAgents, Agent } from '../../api/agents';
 import { ENV_API_BASE_URL } from '../../config';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import api from '../../api/index';
 import { getStatusPageConfig, saveStatusPageConfig, StatusPageConfig as StatusConfig, StatusPageConfigResponse } from '../../api/status';
 import { useTranslation } from 'react-i18next';
 
@@ -48,18 +49,27 @@ const StatusPageConfig = () => {
 
   useEffect(() => {
     if (hasInit.current) return; hasInit.current = true;
-    // Restore admin CSS + webhook settings from localStorage
+    // Restore admin CSS from localStorage (fast first paint)
     try {
       const c = JSON.parse(localStorage.getItem('xugou_page_config') || '{}');
       if (c.adminCss) setAdminCss(c.adminCss);
-      if (c.webhookUrl) setWebhookUrl(c.webhookUrl);
-      if (c.webhookMethod) setWebhookMethod(c.webhookMethod);
-      if (c.webhookContentType) setWebhookContentType(c.webhookContentType);
-      if (c.webhookBodyDown) setWebhookBodyDown(c.webhookBodyDown);
-      if (c.webhookBodyUp) setWebhookBodyUp(c.webhookBodyUp);
-      if (c.webhookHeaders) setWebhookHeaders(c.webhookHeaders);
-      if (c.webhookTls !== undefined) setWebhookTls(c.webhookTls);
     } catch {}
+
+    // Load webhook config and admin CSS from backend
+    api.get('/api/status/webhook').then(res => {
+      if (res.data?.success && res.data.config) {
+        const c = res.data.config;
+        if (c.webhook_url) setWebhookUrl(c.webhook_url);
+        if (c.webhook_method) setWebhookMethod(c.webhook_method);
+        if (c.webhook_content_type) setWebhookContentType(c.webhook_content_type);
+        if (c.webhook_body_down) setWebhookBodyDown(c.webhook_body_down);
+        if (c.webhook_body_up) setWebhookBodyUp(c.webhook_body_up);
+        if (c.webhook_headers) setWebhookHeaders(c.webhook_headers);
+        if (c.webhook_tls_verify != null) setWebhookTls(!!c.webhook_tls_verify);
+        if (c.notify_down != null) setNotifyDown(!!c.notify_down);
+        if (c.notify_up != null) setNotifyUp(!!c.notify_up);
+      }
+    }).catch(() => {});
     setLoading(true);
     (async () => {
       try {
@@ -102,9 +112,15 @@ const StatusPageConfig = () => {
       const res = await saveStatusPageConfig(toSave);
       if (res.success) {
         setToastMsg(t('statusPageConfig.configSaved')); setToastType('success');
+        // Save webhook config to backend
+        api.post('/api/status/webhook', {
+          webhookUrl, webhookMethod, webhookContentType,
+          webhookBodyDown, webhookBodyUp, webhookHeaders,
+          webhookTlsVerify: webhookTls, notifyDown, notifyUp,
+        }).catch(() => {});
+        // Cache to localStorage for fast next load
         localStorage.setItem('xugou_page_config', JSON.stringify({
           title: config.title, logoUrl: config.logoUrl, adminCss,
-          webhookUrl, webhookMethod, webhookContentType, webhookBodyDown, webhookBodyUp, webhookHeaders, webhookTls,
         }));
       }
       else { setToastMsg(res.message || t('statusPageConfig.saveError')); setToastType('error'); }

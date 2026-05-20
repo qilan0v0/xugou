@@ -290,6 +290,42 @@ adminRoutes.post('/config', async (c) => {
   }
 });
 
+// 获取 webhook 通知配置
+adminRoutes.get('/webhook', async (c) => {
+  const payload = c.get('jwtPayload');
+  try {
+    let cfg = await c.env.DB.prepare('SELECT * FROM webhook_config WHERE user_id = ?').bind(payload.id).first<any>();
+    if (!cfg) {
+      const now = new Date().toISOString();
+      await c.env.DB.prepare(`INSERT INTO webhook_config (user_id, created_at, updated_at) VALUES (?, ?, ?)`).bind(payload.id, now, now).run();
+      cfg = await c.env.DB.prepare('SELECT * FROM webhook_config WHERE user_id = ?').bind(payload.id).first<any>();
+    }
+    return c.json({ success: true, config: cfg });
+  } catch (e: any) {
+    return c.json({ success: false, message: '获取通知配置失败' }, 500);
+  }
+});
+
+// 保存 webhook 通知配置
+adminRoutes.post('/webhook', async (c) => {
+  const payload = c.get('jwtPayload');
+  try {
+    const data = await c.req.json();
+    const now = new Date().toISOString();
+    const existing = await c.env.DB.prepare('SELECT id FROM webhook_config WHERE user_id = ?').bind(payload.id).first<{id:number}>();
+    if (existing) {
+      await c.env.DB.prepare(`UPDATE webhook_config SET webhook_url=?, webhook_method=?, webhook_content_type=?, webhook_body_down=?, webhook_body_up=?, webhook_headers=?, webhook_tls_verify=?, notify_down=?, notify_up=?, updated_at=? WHERE user_id=?`)
+        .bind(data.webhookUrl||'', data.webhookMethod||'POST', data.webhookContentType||'json', data.webhookBodyDown||'', data.webhookBodyUp||'', data.webhookHeaders||'', data.webhookTlsVerify?1:0, data.notifyDown?1:0, data.notifyUp?1:0, now, payload.id).run();
+    } else {
+      await c.env.DB.prepare(`INSERT INTO webhook_config (user_id, webhook_url, webhook_method, webhook_content_type, webhook_body_down, webhook_body_up, webhook_headers, webhook_tls_verify, notify_down, notify_up, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`)
+        .bind(payload.id, data.webhookUrl||'', data.webhookMethod||'POST', data.webhookContentType||'json', data.webhookBodyDown||'', data.webhookBodyUp||'', data.webhookHeaders||'', data.webhookTlsVerify?1:0, data.notifyDown?1:0, data.notifyUp?1:0, now, now).run();
+    }
+    return c.json({ success: true, message: '通知配置已保存' });
+  } catch (e: any) {
+    return c.json({ success: false, message: '保存通知配置失败' }, 500);
+  }
+});
+
 // 公共路由 - 获取单个监控的检查记录（可选认证）
 app.get('/monitor/:id/checks', async (c) => {
   try {
@@ -326,6 +362,47 @@ app.get('/monitor/:id/checks', async (c) => {
     return c.json({ success: false, message: '获取检查记录失败' }, 500);
   }
 });
+
+// ── Webhook 发送函数 ──────────────────────────────────────
+async function sendWebhookNotification(env: any, userId: number, event: 'down' | 'up', vars: Record<string, string>) {
+  try {
+    const cfg = await env.DB.prepare('SELECT * FROM webhook_config WHERE user_id = ?').bind(userId).first<any>();
+    if (!cfg || !cfg.webhook_url) return;
+    if (event === 'down' && !cfg.notify_down) return;
+    if (event === 'up' && !cfg.notify_up) return;
+
+    const template = event === 'down' ? (cfg.webhook_body_down || '') : (cfg.webhook_body_up || '');
+    let body = template;
+    for (const [k, v] of Object.entries(vars)) {
+      body = body.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
+    }
+
+    const reqHeaders: Record<string, string> = {};
+    if (cfg.webhook_headers) {
+      cfg.webhook_headers.split('\n').forEach((line: string) => {
+        const idx = line.indexOf(':');
+        if (idx > 0) reqHeaders[line.slice(0, idx).trim()] = line.slice(idx + 1).trim();
+      });
+    }
+    if (cfg.webhook_method === 'POST') {
+      reqHeaders['Content-Type'] = cfg.webhook_content_type === 'json' ? 'application/json' : 'text/plain';
+    }
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+
+    const res = await fetch(cfg.webhook_url, {
+      method: cfg.webhook_method || 'POST',
+      headers: reqHeaders,
+      body: cfg.webhook_method !== 'GET' ? body : undefined,
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+    console.log(`Webhook sent: ${event} → ${cfg.webhook_url} → ${res.status}`);
+  } catch (e: any) {
+    console.error(`Webhook failed (${event}):`, e.message);
+  }
+}
 
 // Webhook 测试代理（绕过浏览器 CORS）
 app.post('/webhook-test', async (c) => {

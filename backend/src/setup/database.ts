@@ -47,6 +47,9 @@ export async function createTables(env: Bindings): Promise<void> {
 
   console.log('创建分组表...');
   await env.DB.exec("CREATE TABLE IF NOT EXISTS agent_groups (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE, created_at TEXT NOT NULL)");
+
+  console.log('创建通知配置表...');
+  await env.DB.exec("CREATE TABLE IF NOT EXISTS webhook_config (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL UNIQUE, webhook_url TEXT DEFAULT '', webhook_method TEXT DEFAULT 'POST', webhook_content_type TEXT DEFAULT 'json', webhook_body_down TEXT DEFAULT '{\"name\":\"{name}\",\"status\":\"故障\"}', webhook_body_up TEXT DEFAULT '{\"name\":\"{name}\",\"status\":\"已恢复\"}', webhook_headers TEXT DEFAULT '', webhook_tls_verify INTEGER DEFAULT 1, notify_down INTEGER DEFAULT 1, notify_up INTEGER DEFAULT 1, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, FOREIGN KEY (user_id) REFERENCES users(id))");
 }
 
 // 创建管理员用户
