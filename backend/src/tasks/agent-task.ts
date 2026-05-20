@@ -20,7 +20,7 @@ export const checkAgentsStatus = async (env: any) => {
       const timeDiff = now.getTime() - lastUpdateTime.getTime();
 
       if (timeDiff > inactiveThreshold) {
-        console.log(`定时任务: 客户端 ${agent.name} (ID: ${agent.id}) 超过2分钟未上报，设置为离线`);
+        console.log(`[离线] ${agent.name} (${agent.hostname || '?'}) 超过2分钟未上报，设置为离线`);
 
         await env.DB.prepare(
           "UPDATE agents SET status = 'inactive' WHERE id = ?"
@@ -39,9 +39,8 @@ export const checkAgentsStatus = async (env: any) => {
 // ── Agent Webhook 通知 ────────────────────────────────────
 async function sendAgentNotification(env: any, agent: any, event: 'down' | 'up') {
   try {
-    console.log(`[Webhook-Agent] 查找用户 ${agent.created_by} 的通知配置...`);
     const cfg = await env.DB.prepare('SELECT * FROM webhook_config WHERE user_id = ?').bind(agent.created_by).first<any>();
-    if (!cfg || !cfg.webhook_url) { console.log('[Webhook-Agent] 无配置或URL为空，跳过'); return; }
+    if (!cfg || !cfg.webhook_url) return;
     if (event === 'down' && !cfg.notify_down) return;
     if (event === 'up' && !cfg.notify_up) return;
 
@@ -106,7 +105,7 @@ async function sendAgentNotification(env: any, agent: any, event: 'down' | 'up')
       reqHeaders['Content-Type'] = cfg.webhook_content_type === 'json' ? 'application/json' : 'text/plain';
     }
 
-    console.log(`[Webhook-Agent] 发送 ${event} → ${cfg.webhook_url}`);
+    console.log(`[通知] 发送离线通知: ${agent.name} → ${cfg.webhook_url}`);
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10000);
     const res = await fetch(cfg.webhook_url, {
@@ -116,8 +115,9 @@ async function sendAgentNotification(env: any, agent: any, event: 'down' | 'up')
       signal: controller.signal,
     });
     clearTimeout(timeout);
-    console.log(`[Webhook-Agent] 结果: ${agent.name} ${event} → ${res.status}`);
+    const rBody = await res.text().catch(() => '');
+    console.log(`[通知] 结果: ${agent.name} → HTTP ${res.status} ${res.statusText} | ${rBody.slice(0, 200)}`);
   } catch (e: any) {
-    console.error(`[Webhook-Agent] 失败 (${agent.name} ${event}):`, e.message);
+    console.error(`[通知] 离线通知失败: ${agent.name} | ${e.message}`);
   }
 } 

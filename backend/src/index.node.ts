@@ -165,6 +165,7 @@ app.post('/api/agents/status', async (c) => {
 
     // 首次上线通知 (wasInactive → active)
     if (wasInactive) {
+      console.log(`[上线] ${body.hostname || agent.id} 已上线 (IP: ${body.ip_address || '?'}, OS: ${body.os || '?'})`);
       const fullAgent = await env.DB.prepare('SELECT * FROM agents WHERE id = ?').bind(agent.id).first<any>();
       if (fullAgent) {
         const now2 = new Date().toISOString();
@@ -209,13 +210,14 @@ app.post('/api/agents/status', async (c) => {
             const headers: Record<string,string> = {};
             if (cfg.webhook_headers) cfg.webhook_headers.split('\n').forEach((l: string) => { const i = l.indexOf(':'); if (i>0) headers[l.slice(0,i).trim()]=l.slice(i+1).trim(); });
             if (cfg.webhook_method === 'POST') headers['Content-Type'] = cfg.webhook_content_type === 'json' ? 'application/json' : 'text/plain';
-            console.log('[Webhook-Agent] 上线通知:', fullAgent.name);
+            console.log(`[通知] 发送上线通知: ${fullAgent.name} → ${cfg.webhook_url}`);
             const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), 10000);
             const r = await fetch(cfg.webhook_url, { method: cfg.webhook_method||'POST', headers, body: cfg.webhook_method!=='GET'?body:undefined, signal: ctrl.signal });
             clearTimeout(t);
-            console.log('[Webhook-Agent] 结果:', r.status);
+            const rBody = await r.text().catch(() => '');
+            console.log(`[通知] 结果: ${fullAgent.name} → HTTP ${r.status} ${r.statusText} | ${rBody.slice(0, 200)}`);
           }
-        } catch (e: any) { console.error('[Webhook-Agent] 上线通知失败:', e.message); }
+        } catch (e: any) { console.error(`[通知] 上线通知失败: ${fullAgent.name} | ${e.message}`); }
       }
     }
 
