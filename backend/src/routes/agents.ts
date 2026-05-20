@@ -137,6 +137,53 @@ agents.get('/tags/pool', async (c) => {
   }
 });
 
+// 分组管理 — 获取所有分组
+agents.get('/groups', async (c) => {
+  try {
+    const result = await c.env.DB.prepare('SELECT * FROM agent_groups ORDER BY name ASC').all<{id: number; name: string; created_at: string}>();
+    return c.json({ success: true, groups: result.results || [] });
+  } catch (e: any) {
+    return c.json({ success: false, message: '获取分组失败' }, 500);
+  }
+});
+
+// 分组管理 — 新增分组
+agents.post('/groups', async (c) => {
+  try {
+    const { name } = await c.req.json();
+    if (!name?.trim()) return c.json({ success: false, message: '分组名不能为空' }, 400);
+    const now = new Date().toISOString();
+    await c.env.DB.prepare('INSERT INTO agent_groups (name, created_at) VALUES (?, ?)').bind(name.trim(), now).run();
+    return c.json({ success: true, message: '分组已添加' }, 201);
+  } catch (e: any) {
+    if (e.message?.includes('UNIQUE')) return c.json({ success: false, message: '分组名已存在' }, 409);
+    return c.json({ success: false, message: '添加分组失败' }, 500);
+  }
+});
+
+// 分组管理 — 删除分组
+agents.delete('/groups/:id', async (c) => {
+  try {
+    const id = Number(c.req.param('id'));
+    const result = await c.env.DB.prepare('DELETE FROM agent_groups WHERE id = ?').bind(id).run();
+    if (!result.success) throw new Error('删除失败');
+    return c.json({ success: true, message: '分组已删除' });
+  } catch (e: any) {
+    return c.json({ success: false, message: '删除分组失败' }, 500);
+  }
+});
+
+// 分组池（供前端 autocomplete 使用）
+agents.get('/groups/pool', async (c) => {
+  try {
+    const result = await c.env.DB.prepare('SELECT name FROM agent_groups ORDER BY name ASC').all<{name: string}>();
+    const names = (result.results || []).map(r => r.name);
+    return c.json({ success: true, groups: names });
+  } catch {
+    return c.json({ success: false, message: '获取分组池失败' }, 500);
+  }
+});
+
 // 获取单个客户端
 agents.get('/:id', async (c) => {
   try {

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeftIcon, CopyIcon, CheckIcon, InfoCircledIcon, PlusIcon } from '@radix-ui/react-icons';
 import api from '../../api/index';
 import TagInput from '../../components/TagInput';
+import GroupSelect from '../../components/GroupSelect';
 import { useTranslation } from 'react-i18next';
 
 const CreateAgent = () => {
@@ -100,7 +101,7 @@ const CreateAgent = () => {
         {!created && <>
         <div>
           <label className="block text-xs font-semibold text-slate-500 mb-1.5">分组</label>
-          <input value={category} onChange={e => setCategory(e.target.value)} placeholder="如: 生产环境" className={inputClass} />
+          <GroupSelect value={category} onChange={setCategory} placeholder="选择或输入分组" className={inputClass} />
         </div>
         <div>
           <label className="block text-xs font-semibold text-slate-500 mb-1.5">标签</label>

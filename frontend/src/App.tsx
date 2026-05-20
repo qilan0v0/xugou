@@ -20,6 +20,7 @@ const EditMonitor = lazy(() => import('./pages/monitors/EditMonitor'));
 const AgentDetail = lazy(() => import('./pages/agents/AgentDetail'));
 const CreateAgent = lazy(() => import('./pages/agents/CreateAgent'));
 const EditAgent = lazy(() => import('./pages/agents/EditAgent'));
+const GroupsList = lazy(() => import('./pages/agents/GroupsList'));
 const UsersList = lazy(() => import('./pages/users/UsersList'));
 const UserProfile = lazy(() => import('./pages/users/UserProfile'));
 const StatusPageConfig = lazy(() => import('./pages/status/StatusPageConfig'));
@@ -61,6 +62,7 @@ function App() {
         <Route path="/agents" element={<ProtectedRoute><Layout><AgentsList /></Layout></ProtectedRoute>} />
         <Route path="/agents/create" element={<ProtectedRoute><Layout><Lazy><CreateAgent /></Lazy></Layout></ProtectedRoute>} />
         <Route path="/agents/edit/:id" element={<ProtectedRoute><Layout><Lazy><EditAgent /></Lazy></Layout></ProtectedRoute>} />
+        <Route path="/agents/groups" element={<ProtectedRoute><Layout><Lazy><GroupsList /></Lazy></Layout></ProtectedRoute>} />
         <Route path="/agents/:id" element={<ProtectedRoute><Layout><Lazy><AgentDetail /></Lazy></Layout></ProtectedRoute>} />
         <Route path="/users" element={<AdminRoute><Layout><Lazy><UsersList /></Lazy></Layout></AdminRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Layout><Lazy><UserProfile /></Lazy></Layout></ProtectedRoute>} />

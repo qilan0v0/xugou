@@ -44,6 +44,9 @@ export async function createTables(env: Bindings): Promise<void> {
 
   console.log('创建状态页客户端关联表...');
   await env.DB.exec("CREATE TABLE IF NOT EXISTS status_page_agents (config_id INTEGER NOT NULL, agent_id INTEGER NOT NULL, PRIMARY KEY (config_id, agent_id), FOREIGN KEY (config_id) REFERENCES status_page_config(id) ON DELETE CASCADE, FOREIGN KEY (agent_id) REFERENCES agents(id) ON DELETE CASCADE)");
+
+  console.log('创建分组表...');
+  await env.DB.exec("CREATE TABLE IF NOT EXISTS agent_groups (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE, created_at TEXT NOT NULL)");
 }
 
 // 创建管理员用户

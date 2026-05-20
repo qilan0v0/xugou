@@ -5,6 +5,7 @@ import { getAllAgents, deleteAgent, updateAgent, Agent } from '../../api/agents'
 import LoadingSpinner from '../../components/LoadingSpinner';
 import AgentDetailModal from '../../components/AgentDetailModal';
 import TagInput from '../../components/TagInput';
+import GroupSelect from '../../components/GroupSelect';
 import CountryFlag from '../../components/CountryFlag';
 import { ENV_API_BASE_URL } from '../../config';
 import { useTranslation } from 'react-i18next';
@@ -87,7 +88,7 @@ function EditModal({ agent, onClose, onSaved }: { agent: Agent; onClose: () => v
         </div>
         <form onSubmit={handleSave} className="p-5 flex flex-col gap-4">
           <div><label className={labelC}>名称 *</label><input value={name} onChange={e => setName(e.target.value)} required className={inputC} /></div>
-          <div><label className={labelC}>分组</label><input value={category} onChange={e => setCategory(e.target.value)} placeholder="如: 生产环境" className={inputC} /></div>
+          <div><label className={labelC}>分组</label><GroupSelect value={category} onChange={setCategory} placeholder="选择或输入分组" className={inputC} /></div>
           <div>
             <label className={labelC}>标签</label>
             <TagInput value={tags} onChange={setTags} placeholder="输入标签，回车添加" />
