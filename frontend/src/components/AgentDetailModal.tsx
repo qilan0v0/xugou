@@ -85,8 +85,8 @@ export default function AgentDetailModal({ agent, onClose, showToken }: AgentDet
 
           {/* quick info */}
           <div className="grid grid-cols-2 gap-2 mb-5 text-xs">
-            <div className="flex items-center gap-2"><ClockIcon className="text-slate-400 w-3.5 h-3.5" /><span className="text-slate-500">最后更新:</span><span className="text-slate-700 dark:text-slate-300">{formatDateTime(agent.updated_at)}</span></div>
-            <div className="flex items-center gap-2"><GlobeIcon className="text-slate-400 w-3.5 h-3.5" /><span className="text-slate-500">地区:</span><span className="text-slate-700 dark:text-slate-300">{agent.country || '--'}</span></div>
+            <div className="flex items-center gap-2"><ClockIcon className="text-teal-500 w-3.5 h-3.5" /><span className="text-slate-500">最后更新:</span><span className="text-slate-700 dark:text-slate-300">{formatDateTime(agent.updated_at)}</span></div>
+            <div className="flex items-center gap-2"><GlobeIcon className="text-blue-500 w-3.5 h-3.5" /><span className="text-slate-500">地区:</span><span className="text-slate-700 dark:text-slate-300">{agent.country || '--'}</span></div>
           </div>
 
           {/* UUID — admin only */}
@@ -110,17 +110,17 @@ export default function AgentDetailModal({ agent, onClose, showToken }: AgentDet
             <div className="glass rounded-xl p-4">
               <h3 className="font-semibold text-sm text-slate-900 dark:text-white mb-3">系统信息</h3>
               <div className="flex flex-col gap-1.5 text-xs">
-                <div className="flex items-center gap-2"><DesktopIcon className="text-slate-400 w-3.5 h-3.5" /><span className="text-slate-500">OS:</span><span className="text-slate-700 dark:text-slate-300">{agent.os || '--'}</span></div>
-                <div className="flex items-center gap-2"><LaptopIcon className="text-slate-400 w-3.5 h-3.5" /><span className="text-slate-500">版本:</span><span className="text-slate-700 dark:text-slate-300">{agent.version || '--'}</span></div>
-                {agent.cpu_arch && <div className="flex items-center gap-2"><Component1Icon className="text-slate-400 w-3.5 h-3.5" /><span className="text-slate-500">CPU架构:</span><span className="text-slate-700 dark:text-slate-300">{agent.cpu_arch}</span></div>}
-                {agent.cpu_model_name && <div className="flex items-center gap-2"><CrumpledPaperIcon className="text-slate-400 w-3.5 h-3.5" /><span className="text-slate-500">CPU型号:</span><span className="text-slate-700 dark:text-slate-300 truncate max-w-[160px]">{agent.cpu_model_name}</span></div>}
-                {agent.cpu_cores != null && <div className="flex items-center gap-2"><Component1Icon className="text-slate-400 w-3.5 h-3.5" /><span className="text-slate-500">CPU核心:</span><span className="text-slate-700 dark:text-slate-300">{agent.cpu_cores}</span></div>}
-                {agent.memory_total != null && <div className="flex items-center gap-2"><StackIcon className="text-slate-400 w-3.5 h-3.5" /><span className="text-slate-500">内存:</span><span className="text-slate-700 dark:text-slate-300">{`${(agent.memory_total / 1073741824).toFixed(1)} GiB`}</span></div>}
-                {(agent.load1 != null) && <div className="flex items-center gap-2"><ActivityLogIcon className="text-slate-400 w-3.5 h-3.5" /><span className="text-slate-500">负载:</span><span className="text-slate-700 dark:text-slate-300">{[agent.load1, agent.load5, agent.load15].map(v => v?.toFixed(2) ?? '-').join(' / ')}</span></div>}
-                {agent.boot_time && <div className="flex items-center gap-2"><TimerIcon className="text-slate-400 w-3.5 h-3.5" /><span className="text-slate-500">启动时间:</span><span className="text-slate-700 dark:text-slate-300">{formatDateTime(agent.boot_time)}</span></div>}
-                {connectStr && <div className="flex items-center gap-2"><ActivityLogIcon className="text-slate-400 w-3.5 h-3.5" /><span className="text-slate-500">连接时长:</span><span className="text-slate-700 dark:text-slate-300">{connectStr}</span></div>}
-                {uptimeStr && <div className="flex items-center gap-2"><TimerIcon className="text-slate-400 w-3.5 h-3.5" /><span className="text-slate-500">运行时长:</span><span className="text-slate-700 dark:text-slate-300">{uptimeStr}</span></div>}
-                {agent.agent_version && <div className="flex items-center gap-2"><CodeIcon className="text-slate-400 w-3.5 h-3.5" /><span className="text-slate-500">Agent版本:</span><span className="text-slate-700 dark:text-slate-300">{agent.agent_version}</span></div>}
+                <div className="flex items-center gap-2"><DesktopIcon className="text-indigo-500 w-3.5 h-3.5" /><span className="text-slate-500">OS:</span><span className="text-slate-700 dark:text-slate-300">{agent.os || '--'}</span></div>
+                <div className="flex items-center gap-2"><LaptopIcon className="text-violet-500 w-3.5 h-3.5" /><span className="text-slate-500">版本:</span><span className="text-slate-700 dark:text-slate-300">{agent.version || '--'}</span></div>
+                {agent.cpu_arch && <div className="flex items-center gap-2"><Component1Icon className="text-emerald-500 w-3.5 h-3.5" /><span className="text-slate-500">CPU架构:</span><span className="text-slate-700 dark:text-slate-300">{agent.cpu_arch}</span></div>}
+                {agent.cpu_model_name && <div className="flex items-center gap-2"><CrumpledPaperIcon className="text-orange-500 w-3.5 h-3.5" /><span className="text-slate-500">CPU型号:</span><span className="text-slate-700 dark:text-slate-300 truncate max-w-[160px]">{agent.cpu_model_name}</span></div>}
+                {agent.cpu_cores != null && <div className="flex items-center gap-2"><Component1Icon className="text-emerald-500 w-3.5 h-3.5" /><span className="text-slate-500">CPU核心:</span><span className="text-slate-700 dark:text-slate-300">{agent.cpu_cores}</span></div>}
+                {agent.memory_total != null && <div className="flex items-center gap-2"><StackIcon className="text-blue-500 w-3.5 h-3.5" /><span className="text-slate-500">内存:</span><span className="text-slate-700 dark:text-slate-300">{`${(agent.memory_total / 1073741824).toFixed(1)} GiB`}</span></div>}
+                {(agent.load1 != null) && <div className="flex items-center gap-2"><ActivityLogIcon className="text-rose-500 w-3.5 h-3.5" /><span className="text-slate-500">负载:</span><span className="text-slate-700 dark:text-slate-300">{[agent.load1, agent.load5, agent.load15].map(v => v?.toFixed(2) ?? '-').join(' / ')}</span></div>}
+                {agent.boot_time && <div className="flex items-center gap-2"><TimerIcon className="text-amber-500 w-3.5 h-3.5" /><span className="text-slate-500">启动时间:</span><span className="text-slate-700 dark:text-slate-300">{formatDateTime(agent.boot_time)}</span></div>}
+                {connectStr && <div className="flex items-center gap-2"><ActivityLogIcon className="text-cyan-500 w-3.5 h-3.5" /><span className="text-slate-500">连接时长:</span><span className="text-slate-700 dark:text-slate-300">{connectStr}</span></div>}
+                {uptimeStr && <div className="flex items-center gap-2"><TimerIcon className="text-teal-500 w-3.5 h-3.5" /><span className="text-slate-500">运行时长:</span><span className="text-slate-700 dark:text-slate-300">{uptimeStr}</span></div>}
+                {agent.agent_version && <div className="flex items-center gap-2"><CodeIcon className="text-purple-500 w-3.5 h-3.5" /><span className="text-slate-500">Agent版本:</span><span className="text-slate-700 dark:text-slate-300">{agent.agent_version}</span></div>}
               </div>
             </div>
 

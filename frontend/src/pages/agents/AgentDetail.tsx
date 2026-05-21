@@ -105,8 +105,8 @@ const AgentDetail = () => {
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-          <div className="flex items-center gap-2"><ClockIcon className="text-slate-400" /><span className="text-slate-500">{t('agent.lastUpdated')}:</span><span>{formatDateTime(agent.updated_at)}</span></div>
-          {agent.status === 'active' && agent.connectStr && <div className="flex items-center gap-2"><ActivityLogIcon className="text-slate-400" /><span className="text-slate-500">{t('agent.connectDuration')}:</span><span>{agent.connectStr}</span></div>}
+          <div className="flex items-center gap-2"><ClockIcon className="text-teal-500" /><span className="text-slate-500">{t('agent.lastUpdated')}:</span><span>{formatDateTime(agent.updated_at)}</span></div>
+          {agent.status === 'active' && agent.connectStr && <div className="flex items-center gap-2"><ActivityLogIcon className="text-cyan-500" /><span className="text-slate-500">{t('agent.connectDuration')}:</span><span>{agent.connectStr}</span></div>}
           {agent.token && (
             <div className="flex items-center gap-2 col-span-full">
               <span className="text-xs text-slate-500">UUID:</span>
@@ -124,18 +124,18 @@ const AgentDetail = () => {
         <div className="glass p-5">
           <h3 className="font-semibold text-slate-900 dark:text-white mb-3">{t('agent.systemInfo')}</h3>
           <div className="flex flex-col gap-2 text-sm">
-            <div className="flex items-center gap-2"><DesktopIcon className="text-slate-400" /><span className="text-slate-500">{t('agent.os')}:</span><span>{agent.os || t('common.notFound')}</span></div>
-            <div className="flex items-center gap-2"><LaptopIcon className="text-slate-400" /><span className="text-slate-500">{t('agent.version')}:</span><span>{agent.version || t('common.notFound')}</span></div>
-            <div className="flex items-center gap-2"><GlobeIcon className="text-slate-400" /><span className="text-slate-500">{t('agent.hostname')}:</span><span>{agent.hostname || t('common.notFound')}</span></div>
-            <div className="flex items-center gap-2"><GlobeIcon className="text-slate-400" /><span className="text-slate-500">地区:</span><span>{agent.country || t('common.notFound')}</span></div>
-            {agent.cpu_arch && <div className="flex items-center gap-2"><Component1Icon className="text-slate-400" /><span className="text-slate-500">{t('agent.cpuArch')}:</span><span>{agent.cpu_arch}</span></div>}
-            {agent.cpu_model_name && <div className="flex items-center gap-2"><CrumpledPaperIcon className="text-slate-400" /><span className="text-slate-500">{t('agent.cpuModel')}:</span><span className="truncate max-w-[200px]">{agent.cpu_model_name}</span></div>}
-            {agent.cpu_cores != null && <div className="flex items-center gap-2"><Component1Icon className="text-slate-400" /><span className="text-slate-500">{t('agent.cpuCores')}:</span><span>{agent.cpu_cores}</span></div>}
-            {agent.memory_total != null && <div className="flex items-center gap-2"><StackIcon className="text-slate-400" /><span className="text-slate-500">{t('agent.memory')}:</span><span>{agent.memory_used != null ? `${(agent.memory_used / 1073741824).toFixed(1)} / ${(agent.memory_total / 1073741824).toFixed(1)} GiB` : `${(agent.memory_total / 1073741824).toFixed(1)} GiB`}</span></div>}
-            {(agent.load1 != null || agent.load5 != null || agent.load15 != null) && <div className="flex items-center gap-2"><ActivityLogIcon className="text-slate-400" /><span className="text-slate-500">{t('agent.loadAverage')}:</span><span>{[agent.load1, agent.load5, agent.load15].map(v => v?.toFixed(2) ?? '-').join(' / ')}</span></div>}
-            {agent.boot_time && <div className="flex items-center gap-2"><TimerIcon className="text-slate-400" /><span className="text-slate-500">{t('agent.bootTime')}:</span><span>{formatDateTime(agent.boot_time)}</span></div>}
-            {agent.uptimeStr && <div className="flex items-center gap-2"><TimerIcon className="text-slate-400" /><span className="text-slate-500">{t('agent.uptime')}:</span><span>{agent.uptimeStr}</span></div>}
-            {agent.agent_version && <div className="flex items-center gap-2"><CodeIcon className="text-slate-400" /><span className="text-slate-500">{t('agent.agentVersion')}:</span><span>{agent.agent_version}</span></div>}
+            <div className="flex items-center gap-2"><DesktopIcon className="text-indigo-500" /><span className="text-slate-500">{t('agent.os')}:</span><span>{agent.os || t('common.notFound')}</span></div>
+            <div className="flex items-center gap-2"><LaptopIcon className="text-violet-500" /><span className="text-slate-500">{t('agent.version')}:</span><span>{agent.version || t('common.notFound')}</span></div>
+            <div className="flex items-center gap-2"><GlobeIcon className="text-blue-500" /><span className="text-slate-500">{t('agent.hostname')}:</span><span>{agent.hostname || t('common.notFound')}</span></div>
+            <div className="flex items-center gap-2"><GlobeIcon className="text-blue-500" /><span className="text-slate-500">地区:</span><span>{agent.country || t('common.notFound')}</span></div>
+            {agent.cpu_arch && <div className="flex items-center gap-2"><Component1Icon className="text-emerald-500" /><span className="text-slate-500">{t('agent.cpuArch')}:</span><span>{agent.cpu_arch}</span></div>}
+            {agent.cpu_model_name && <div className="flex items-center gap-2"><CrumpledPaperIcon className="text-orange-500" /><span className="text-slate-500">{t('agent.cpuModel')}:</span><span className="truncate max-w-[200px]">{agent.cpu_model_name}</span></div>}
+            {agent.cpu_cores != null && <div className="flex items-center gap-2"><Component1Icon className="text-emerald-500" /><span className="text-slate-500">{t('agent.cpuCores')}:</span><span>{agent.cpu_cores}</span></div>}
+            {agent.memory_total != null && <div className="flex items-center gap-2"><StackIcon className="text-blue-500" /><span className="text-slate-500">{t('agent.memory')}:</span><span>{agent.memory_used != null ? `${(agent.memory_used / 1073741824).toFixed(1)} / ${(agent.memory_total / 1073741824).toFixed(1)} GiB` : `${(agent.memory_total / 1073741824).toFixed(1)} GiB`}</span></div>}
+            {(agent.load1 != null || agent.load5 != null || agent.load15 != null) && <div className="flex items-center gap-2"><ActivityLogIcon className="text-rose-500" /><span className="text-slate-500">{t('agent.loadAverage')}:</span><span>{[agent.load1, agent.load5, agent.load15].map(v => v?.toFixed(2) ?? '-').join(' / ')}</span></div>}
+            {agent.boot_time && <div className="flex items-center gap-2"><TimerIcon className="text-amber-500" /><span className="text-slate-500">{t('agent.bootTime')}:</span><span>{formatDateTime(agent.boot_time)}</span></div>}
+            {agent.uptimeStr && <div className="flex items-center gap-2"><TimerIcon className="text-teal-500" /><span className="text-slate-500">{t('agent.uptime')}:</span><span>{agent.uptimeStr}</span></div>}
+            {agent.agent_version && <div className="flex items-center gap-2"><CodeIcon className="text-purple-500" /><span className="text-slate-500">{t('agent.agentVersion')}:</span><span>{agent.agent_version}</span></div>}
           </div>
         </div>
         <div className="glass p-5">
