@@ -1,6 +1,6 @@
 // 导出所有定时任务
 import monitorTask from './monitor-task';
-import { checkAgentsStatus } from './agent-task';
+import { checkAgentsStatus, sendAgentNotification } from './agent-task';
 
 // 统一的定时任务处理函数
 export const runScheduledTasks = async (event: any, env: any, ctx: any) => {
@@ -19,5 +19,6 @@ export const runScheduledTasks = async (event: any, env: any, ctx: any) => {
 
 export {
   monitorTask,
-  checkAgentsStatus
+  checkAgentsStatus,
+  sendAgentNotification,
 }; 

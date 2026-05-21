@@ -12,7 +12,7 @@ import agentRoutes from './routes/agents';
 import userRoutes from './routes/users';
 import statusRoutes from './routes/status';
 import initDbRoutes from './setup/database';
-import { monitorTask, runScheduledTasks, checkAgentsStatus } from './tasks';
+import { monitorTask, runScheduledTasks, checkAgentsStatus, sendAgentNotification } from './tasks';
 import { toD1Primitive, generateAgentName } from './utils/jwt';
 import { rateLimit } from './utils/ratelimit';
 
@@ -172,59 +172,10 @@ app.post('/api/agents/status', async (c) => {
 
     // 首次上线通知 (wasInactive → active)
     if (wasInactive) {
-      console.log(`[上线] ${body.hostname || agent.id} 已上线 (IP: ${body.ip_address || '?'}, OS: ${body.os || '?'})`);
       const fullAgent = await env.DB.prepare('SELECT * FROM agents WHERE id = ?').bind(agent.id).first<any>();
       if (fullAgent) {
-        const now2 = new Date().toISOString();
-        const memPct = fullAgent.memory_total && fullAgent.memory_used ? Math.round((fullAgent.memory_used/fullAgent.memory_total)*100) : 0;
-        const diskPct = fullAgent.disk_total && fullAgent.disk_used ? Math.round((fullAgent.disk_used/fullAgent.disk_total)*100) : 0;
-        const upMs = fullAgent.boot_time ? Math.max(0, Date.now() - new Date(fullAgent.boot_time).getTime()) : 0;
-        const upDays = upMs ? Math.floor(upMs / 86400000) : 0;
-        const upHours = upMs ? Math.floor((upMs % 86400000) / 3600000) : 0;
-        const memTotalGB = fullAgent.memory_total ? (fullAgent.memory_total / 1073741824).toFixed(1) : '';
-        const diskTotalGB = fullAgent.disk_total ? (fullAgent.disk_total / 1073741824).toFixed(1) : '';
-        const netRxTotal = fullAgent.network_rx_total ? (fullAgent.network_rx_total / 1073741824).toFixed(2) : '';
-        const netTxTotal = fullAgent.network_tx_total ? (fullAgent.network_tx_total / 1073741824).toFixed(2) : '';
-        const totalTraffic = ((fullAgent.network_rx_total || 0) + (fullAgent.network_tx_total || 0)) / 1073741824;
-        const fmtDateTime = (s: string) => { try { return new Date(s).toLocaleString('zh-CN'); } catch { return s || ''; } };
-
-        const vars: Record<string,string> = {
-          name: fullAgent.name || '', status: '在线', time: now2,
-          hostname: fullAgent.hostname || '', ip: fullAgent.ip_address || '', os: fullAgent.os || '',
-          version: fullAgent.version || '',
-          cpu: fullAgent.cpu_usage ? `${Math.round(fullAgent.cpu_usage)}%` : '',
-          cpu_cores: fullAgent.cpu_cores ? String(fullAgent.cpu_cores) : '',
-          cpu_model: fullAgent.cpu_model_name || '',
-          cpu_arch: fullAgent.cpu_arch || '',
-          memory: memPct ? `${memPct}%` : '', memory_total: memTotalGB ? `${memTotalGB} GiB` : '',
-          disk: diskPct ? `${diskPct}%` : '', disk_total: diskTotalGB ? `${diskTotalGB} GiB` : '',
-          uptime: upMs ? `${upDays}d ${upHours}h` : '',
-          load: fullAgent.load1 != null ? `${fullAgent.load1.toFixed(2)} / ${(fullAgent.load5||0).toFixed(2)} / ${(fullAgent.load15||0).toFixed(2)}` : '',
-          country: fullAgent.country || '',
-          agent_version: fullAgent.agent_version || '',
-          boot_time: fullAgent.boot_time ? fmtDateTime(fullAgent.boot_time) : '',
-          connected_at: fullAgent.connected_at ? fmtDateTime(fullAgent.connected_at) : '',
-          network_rx_total: netRxTotal ? `${netRxTotal} GiB` : '',
-          network_tx_total: netTxTotal ? `${netTxTotal} GiB` : '',
-          traffic_total: totalTraffic ? `${totalTraffic.toFixed(2)} GiB` : '',
-          message: `${fullAgent.name} 已上线`, url: '', response_time: '',
-        };
-        try {
-          const cfg = await env.DB.prepare('SELECT * FROM webhook_config WHERE user_id = ?').bind(fullAgent.created_by).first<any>();
-          if (cfg && cfg.webhook_url && cfg.notify_up) {
-            let body = cfg.webhook_body_up || '';
-            for (const [k,v] of Object.entries(vars)) body = body.replace(new RegExp(`\\{${k}\\}`,'g'), v);
-            const headers: Record<string,string> = {};
-            if (cfg.webhook_headers) cfg.webhook_headers.split('\n').forEach((l: string) => { const i = l.indexOf(':'); if (i>0) headers[l.slice(0,i).trim()]=l.slice(i+1).trim(); });
-            if (cfg.webhook_method === 'POST') headers['Content-Type'] = cfg.webhook_content_type === 'json' ? 'application/json' : 'text/plain';
-            console.log(`[通知] 发送上线通知: ${fullAgent.name} → ${cfg.webhook_url}`);
-            const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), 10000);
-            const r = await fetch(cfg.webhook_url, { method: cfg.webhook_method||'POST', headers, body: cfg.webhook_method!=='GET'?body:undefined, signal: ctrl.signal });
-            clearTimeout(t);
-            const rBody = await r.text().catch(() => '');
-            console.log(`[通知] 结果: ${fullAgent.name} → HTTP ${r.status} ${r.statusText} | ${rBody.slice(0, 200)}`);
-          }
-        } catch (e: any) { console.error(`[通知] 上线通知失败: ${fullAgent.name} | ${e.message}`); }
+        console.log(`[上线] ${fullAgent.hostname || fullAgent.name || agent.id} 已上线 (IP: ${fullAgent.ip_address || '?'}, OS: ${fullAgent.os || '?'})`);
+        sendAgentNotification(env, fullAgent, 'up').catch(e => console.error('[通知] 上线通知失败:', e.message));
       }
     }
 

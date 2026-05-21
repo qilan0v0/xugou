@@ -40,9 +40,15 @@ export const checkAgentsStatus = async (env: any) => {
 export async function sendAgentNotification(env: any, agent: any, event: 'down' | 'up') {
   try {
     const cfg = await env.DB.prepare('SELECT * FROM webhook_config WHERE user_id = ?').bind(agent.created_by).first<any>();
-    if (!cfg || !cfg.webhook_url) return;
+    if (!cfg || !cfg.webhook_url) {
+      if (event === 'up') console.log(`[通知] ${agent.name} 上线但未配置 webhook URL，跳过通知`);
+      return;
+    }
     if (event === 'down' && !cfg.notify_down) return;
-    if (event === 'up' && !cfg.notify_up) return;
+    if (event === 'up' && !cfg.notify_up) {
+      console.log(`[通知] ${agent.name} 上线但 notify_up 已关闭，跳过通知`);
+      return;
+    }
 
     const now = new Date().toISOString();
     const memPct = agent.memory_total && agent.memory_used ? Math.round((agent.memory_used/agent.memory_total)*100) : 0;
