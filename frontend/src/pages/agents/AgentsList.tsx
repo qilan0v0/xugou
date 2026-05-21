@@ -178,7 +178,7 @@ const AgentsList = () => {
     if (categoryFilter && a.category !== categoryFilter) return false;
     if (search) {
       const q = search.toLowerCase();
-      const haystack = [a.name, a.hostname, a.ip_address, a.os, a.tags].join(' ').toLowerCase();
+      const haystack = [a.name, a.hostname, a.os, a.tags].join(' ').toLowerCase();
       if (!haystack.includes(q)) return false;
     }
     return true;
@@ -277,7 +277,7 @@ const AgentsList = () => {
 
       {/* Search + Category */}
       <div className="flex gap-3 mb-3">
-        <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="搜索名称、主机名、IP、标签..." className="flex-1 px-4 py-2.5 rounded-lg border border-white/[0.08] bg-white/5 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 transition-all" />
+        <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="搜索名称、主机名、标签..." className="flex-1 px-4 py-2.5 rounded-lg border border-white/[0.08] bg-white/5 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 transition-all" />
       </div>
       {(() => {
         const cats = [...new Set(agents.map(a => a.category).filter(Boolean))] as string[];
@@ -304,7 +304,6 @@ const AgentsList = () => {
                   <th className="w-10 px-3 py-3"><input type="checkbox" checked={filtered.length > 0 && filtered.every(a => selected.has(a.id))} onChange={toggleAll} className="chk-box" /></th>
                   <th className="text-left px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[140px]">名称</th>
                   <th className="text-left px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[120px]">主机名</th>
-                  <th className="text-left px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[130px]">IP</th>
                   <th className="text-left px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[80px]">状态</th>
                   <th className="text-left px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[110px]">系统</th>
                   <th className="text-left px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[60px]">地区</th>
@@ -333,7 +332,6 @@ const AgentsList = () => {
                       <td className="px-3 py-2.5"><input type="checkbox" checked={sel} onChange={() => toggle(a.id)} className="chk-box" /></td>
                       <td className="px-4 py-2.5"><span className="text-sm font-medium text-slate-900 dark:text-white truncate block max-w-[130px]">{a.name}</span></td>
                       <td className="px-4 py-2.5 text-sm text-slate-600 dark:text-slate-400 truncate max-w-[110px]">{a.hostname || '--'}</td>
-                      <td className="px-4 py-2.5 text-sm text-slate-600 dark:text-slate-400 font-mono text-xs">{a.ip_address || '--'}</td>
                       <td className="px-4 py-2.5"><span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[11px] font-medium ${cfg.bg} ${cfg.text}`}><span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />{label}</span></td>
                       <td className="px-4 py-2.5">{a.os ? <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${osColor(a.os)}`}>{a.os.split(' ')[0]}</span> : <span className="text-sm text-slate-400">--</span>}</td>
                       <td className="px-4 py-2.5">{a.country ? <span className="inline-flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400"><CountryFlag code={a.country} className="w-4 h-3 rounded-sm" />{a.country}</span> : <span className="text-slate-400">--</span>}</td>

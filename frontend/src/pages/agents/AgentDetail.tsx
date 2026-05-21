@@ -99,7 +99,7 @@ const AgentDetail = () => {
           <div>
             <h2 className="text-xl font-bold text-slate-900 dark:text-white">{agent.name}</h2>
             <p className="text-sm text-slate-500">
-              {agent.hostname}{agent.hostname && agent.ip_address ? ` (${agent.ip_address})` : ''}
+              {agent.hostname}
               {agent.country && <> · <CountryFlag code={agent.country} className='inline-block w-4 h-3 align-middle rounded-sm' /> {agent.country}</>}
             </p>
           </div>
@@ -127,7 +127,7 @@ const AgentDetail = () => {
             <div className="flex items-center gap-2"><DesktopIcon className="text-slate-400" /><span className="text-slate-500">{t('agent.os')}:</span><span>{agent.os || t('common.notFound')}</span></div>
             <div className="flex items-center gap-2"><LaptopIcon className="text-slate-400" /><span className="text-slate-500">{t('agent.version')}:</span><span>{agent.version || t('common.notFound')}</span></div>
             <div className="flex items-center gap-2"><GlobeIcon className="text-slate-400" /><span className="text-slate-500">{t('agent.hostname')}:</span><span>{agent.hostname || t('common.notFound')}</span></div>
-            <div className="flex items-center gap-2"><GlobeIcon className="text-slate-400" /><span className="text-slate-500">{t('agent.ipAddress')}:</span><span>{agent.ip_address || t('common.notFound')}</span></div>
+            <div className="flex items-center gap-2"><GlobeIcon className="text-slate-400" /><span className="text-slate-500">{t('agent.country')}:</span><span>{agent.country || t('common.notFound')}</span></div>
             {agent.cpu_arch && <div className="flex items-center gap-2"><Component1Icon className="text-slate-400" /><span className="text-slate-500">{t('agent.cpuArch')}:</span><span>{agent.cpu_arch}</span></div>}
             {agent.cpu_model_name && <div className="flex items-center gap-2"><CrumpledPaperIcon className="text-slate-400" /><span className="text-slate-500">{t('agent.cpuModel')}:</span><span className="truncate max-w-[200px]">{agent.cpu_model_name}</span></div>}
             {agent.cpu_cores != null && <div className="flex items-center gap-2"><Component1Icon className="text-slate-400" /><span className="text-slate-500">{t('agent.cpuCores')}:</span><span>{agent.cpu_cores}</span></div>}

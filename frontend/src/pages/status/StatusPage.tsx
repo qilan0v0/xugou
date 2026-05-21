@@ -172,7 +172,7 @@ const StatusPage = () => {
           if (search.trim()) {
             const q = search.toLowerCase();
             filtered = filtered.filter(a => {
-              const hay = [a.name, a.hostname, a.ip_address, a.os, a.tags].join(' ').toLowerCase();
+              const hay = [a.name, a.hostname, a.os, a.tags].join(' ').toLowerCase();
               return hay.includes(q);
             });
           }

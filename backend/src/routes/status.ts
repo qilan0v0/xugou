@@ -506,7 +506,7 @@ app.get('/data', async (c) => {
     const agentFields = ['id','name','status','created_at','updated_at',
       'cpu_usage','memory_total','memory_used','disk_total','disk_used',
       'network_rx','network_tx','network_rx_total','network_tx_total',
-      'hostname','ip_address','os','version','cpu_arch','cpu_model_name',
+      'hostname','os','version','cpu_arch','cpu_model_name',
       'cpu_cores','load1','load5','load15','boot_time','agent_version',
       'country','connected_at','traffic_limit','expiry_time','start_time',
       'duration_value','duration_unit','category','tags','public'];

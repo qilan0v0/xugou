@@ -38,8 +38,9 @@ agents.get('/', async (c) => {
     }
     
     const agents = (result.results || []).map((a: any) => {
-      if (payload.role !== 'admin') { const { token, ...rest } = a; return rest; }
-      return a;
+      const { ip_address: _ip, ...restNoIp } = a;
+      if (payload.role !== 'admin') { const { token } = restNoIp; return restNoIp; }
+      return restNoIp;
     });
     return c.json({ success: true, agents });
   } catch (error) {
@@ -98,10 +99,11 @@ agents.post('/', async (c) => {
       'SELECT * FROM agents WHERE rowid = last_insert_rowid()'
     ).first<Agent>();
     
-    return c.json({ 
-      success: true, 
+    const { ip_address: _newIp, ...newNoIp } = newAgent || {};
+    return c.json({
+      success: true,
       message: '客户端创建成功',
-      agent: newAgent // 创建时返回完整信息，包括令牌
+      agent: newNoIp
     }, 201);
   } catch (error) {
     console.error('创建客户端错误:', error);
@@ -270,11 +272,12 @@ agents.get('/:id', async (c) => {
       return c.json({ success: false, message: '无权访问此客户端' }, 403);
     }
     
+    const { ip_address: _ipDetail, ...agentNoIp } = agent;
     return c.json({
       success: true,
       agent: {
-        ...agent,
-        cpu_usage: agent.cpu_usage || 0,
+        ...agentNoIp,
+        cpu_usage: agentNoIp.cpu_usage || 0,
         memory_total: agent.memory_total || 0,
         memory_used: agent.memory_used || 0,
         disk_total: agent.disk_total || 0,
@@ -455,10 +458,11 @@ agents.put('/:id', async (c) => {
       'SELECT * FROM agents WHERE id = ?'
     ).bind(agentId).first<Agent>();
     
-    return c.json({ 
-      success: true, 
+    const { ip_address: _updatedIp, ...updatedNoIp } = updatedAgent || {};
+    return c.json({
+      success: true,
       message: '客户端信息已更新',
-      agent: updatedAgent
+      agent: updatedNoIp
     });
   } catch (error) {
     console.error('更新客户端错误:', error);
@@ -723,10 +727,11 @@ agents.post('/register', async (c) => {
     }
 
     const created = await c.env.DB.prepare('SELECT * FROM agents WHERE rowid = last_insert_rowid()').first<Agent>();
+    const { ip_address: _createdIp, ...createdNoIp } = created || {};
     return c.json({
       success: true,
       message: '客户端自动注册成功',
-      agent: created,
+      agent: createdNoIp,
       token: token
     }, 201);
   } catch (error) {
