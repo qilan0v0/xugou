@@ -149,11 +149,11 @@ app.post('/api/agents/status', async (c) => {
 
     // 首次连接/重连时刷新 connected_at
     const now = new Date().toISOString();
-    const prev = await c.env.DB.prepare('SELECT status, updated_at FROM agents WHERE id = ?').bind(agent.id).first<{status: string; updated_at: string}>();
+    const prev = await c.env.DB.prepare('SELECT status, updated_at, connected_at FROM agents WHERE id = ?').bind(agent.id).first<{status: string; updated_at: string; connected_at: string | null}>();
     const currentStatus = prev?.status;
     const gapMs = prev?.updated_at ? Date.now() - new Date(prev.updated_at).getTime() : 0;
     const wasDisconnected = gapMs > 60000;
-    const wasInactive = isNewAgent || !currentStatus || currentStatus === 'inactive' || wasDisconnected;
+    const wasInactive = isNewAgent || !currentStatus || currentStatus === 'inactive' || wasDisconnected || !prev?.connected_at;
     if (wasInactive) {
       await c.env.DB.prepare('UPDATE agents SET connected_at = ? WHERE id = ?').bind(now, agent.id).run();
     }
