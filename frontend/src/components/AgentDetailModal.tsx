@@ -86,7 +86,7 @@ export default function AgentDetailModal({ agent, onClose, showToken }: AgentDet
           {/* quick info */}
           <div className="grid grid-cols-2 gap-2 mb-5 text-xs">
             <div className="flex items-center gap-2"><ClockIcon className="text-slate-400 w-3.5 h-3.5" /><span className="text-slate-500">最后更新:</span><span className="text-slate-700 dark:text-slate-300">{formatDateTime(agent.updated_at)}</span></div>
-            <div className="flex items-center gap-2"><GlobeIcon className="text-slate-400 w-3.5 h-3.5" /><span className="text-slate-500">{t('agent.country')}:</span><span className="text-slate-700 dark:text-slate-300">{agent.country || '--'}</span></div>
+            <div className="flex items-center gap-2"><GlobeIcon className="text-slate-400 w-3.5 h-3.5" /><span className="text-slate-500">地区:</span><span className="text-slate-700 dark:text-slate-300">{agent.country || '--'}</span></div>
           </div>
 
           {/* UUID — admin only */}
