@@ -144,9 +144,9 @@ app.post('/api/agents/status', async (c) => {
     const now = new Date().toISOString();
     const prev = await env.DB.prepare('SELECT status, updated_at, connected_at FROM agents WHERE id = ?').bind(agent.id).first<{status: string; updated_at: string; connected_at: string | null}>();
     const currentStatus = prev?.status;
-    // Also detect reconnect: if agent hasn't reported for > 60s, treat as coming back online
+    // Also detect reconnect: if agent hasn't reported for > 120s, treat as coming back online
     const gapMs = prev?.updated_at ? Date.now() - new Date(prev.updated_at).getTime() : 0;
-    const wasDisconnected = gapMs > 60000;
+    const wasDisconnected = gapMs > 120000;
     const wasInactive = isNewAgent || !currentStatus || currentStatus === 'inactive' || wasDisconnected || !prev?.connected_at;
     if (wasInactive) {
       env.DB.prepare('UPDATE agents SET connected_at = ? WHERE id = ?').bind(now, agent.id).run();
