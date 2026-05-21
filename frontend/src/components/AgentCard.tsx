@@ -56,7 +56,7 @@ const AgentCard = React.memo(({ agent, onClick }: AgentCardProps) => {
   const isExpired = hasExpiry && expiryDays < 0;
   const hasDuration = !!(agent.duration_value && agent.duration_unit);
   const durationLabel = hasDuration
-    ? `${agent.duration_value}${agent.duration_unit === 'day' ? '天' : agent.duration_unit === 'month' ? '月' : '年'}`
+    ? `${agent.duration_value}${agent.duration_unit === 'day' ? '天' : agent.duration_unit === 'month' ? '个月' : '年'}`
     : '';
   const startLabel = agent.start_time ? new Date(agent.start_time).toLocaleDateString('zh-CN') : '';
 
