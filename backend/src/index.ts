@@ -5,6 +5,7 @@ import { Bindings } from './models/db';
 import { prettyJSON } from 'hono/pretty-json';
 import { checkAndInitializeDatabase } from './setup/initCheck';
 import { toD1Primitive, generateAgentName, addDuration } from './utils/jwt';
+import { sendAgentNotification } from './tasks/agent-task';
 
 // 声明环境变量类型
 declare global {
@@ -130,6 +131,7 @@ app.post('/api/agents/status', async (c) => {
     // 从 Cloudflare 请求元数据提取国家代码 (before auto-create)
     const country = (c.req.raw as any)?.cf?.country ?? null;
 
+    let isNewAgent = false;
     let agent = await c.env.DB.prepare('SELECT id FROM agents WHERE token = ?').bind(token).first<{id: number}>();
     if (!agent) {
       const adminUser = await c.env.DB.prepare('SELECT id FROM users WHERE role = ?').bind('admin').first<{id: number}>();
@@ -142,12 +144,17 @@ app.post('/api/agents/status', async (c) => {
       ).bind(autoName, token, adminUser.id, now, now, now).run();
       agent = await c.env.DB.prepare('SELECT id FROM agents WHERE token = ?').bind(token).first<{id: number}>();
       if (!agent) return c.json({ success: false, message: 'auto-create failed' }, 500);
+      isNewAgent = true;
     }
 
     // 首次连接/重连时刷新 connected_at
     const now = new Date().toISOString();
-    const currentStatus = await c.env.DB.prepare('SELECT status FROM agents WHERE id = ?').bind(agent.id).first<{status: string}>();
-    const wasInactive = !currentStatus || currentStatus.status === 'inactive';
+    const prev = await c.env.DB.prepare('SELECT status, updated_at FROM agents WHERE id = ?').bind(agent.id).first<{status: string; updated_at: string}>();
+    const currentStatus = prev?.status;
+    const gapMs = prev?.updated_at ? Date.now() - new Date(prev.updated_at).getTime() : 0;
+    const wasDisconnected = gapMs > 60000;
+    const wasInactive = isNewAgent || !currentStatus || currentStatus === 'inactive' || wasDisconnected;
+    console.log(`[状态检测] agent=${agent.id} isNew=${isNewAgent} status=${currentStatus || 'null'} gap=${Math.round(gapMs/1000)}s wasInactive=${wasInactive}`);
     if (wasInactive) {
       await c.env.DB.prepare('UPDATE agents SET connected_at = ? WHERE id = ?').bind(now, agent.id).run();
     }
@@ -167,6 +174,15 @@ app.post('/api/agents/status', async (c) => {
     if (!result.success) {
       console.error('DIRECT_STATUS update failed:', result.error);
       return c.json({ success: false, message: 'update failed: ' + (result.error || 'unknown') }, 500);
+    }
+
+    // 首次上线通知
+    if (wasInactive) {
+      const fullAgent = await c.env.DB.prepare('SELECT * FROM agents WHERE id = ?').bind(agent.id).first<any>();
+      if (fullAgent) {
+        console.log(`[上线] ${fullAgent.hostname || fullAgent.name || agent.id} 已上线`);
+        sendAgentNotification(c.env, fullAgent, 'up').catch(e => console.error('[通知] 上线通知失败:', e.message));
+      }
     }
 
     // 自动续期

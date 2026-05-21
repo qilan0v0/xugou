@@ -37,7 +37,7 @@ export const checkAgentsStatus = async (env: any) => {
 };
 
 // ── Agent Webhook 通知 ────────────────────────────────────
-async function sendAgentNotification(env: any, agent: any, event: 'down' | 'up') {
+export async function sendAgentNotification(env: any, agent: any, event: 'down' | 'up') {
   try {
     const cfg = await env.DB.prepare('SELECT * FROM webhook_config WHERE user_id = ?').bind(agent.created_by).first<any>();
     if (!cfg || !cfg.webhook_url) return;
@@ -105,7 +105,7 @@ async function sendAgentNotification(env: any, agent: any, event: 'down' | 'up')
       reqHeaders['Content-Type'] = cfg.webhook_content_type === 'json' ? 'application/json' : 'text/plain';
     }
 
-    console.log(`[通知] 发送离线通知: ${agent.name} → ${cfg.webhook_url}`);
+    console.log(`[通知] 发送${event === 'up' ? '上线' : '离线'}通知: ${agent.name} → ${cfg.webhook_url}`);
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10000);
     const res = await fetch(cfg.webhook_url, {
@@ -118,6 +118,6 @@ async function sendAgentNotification(env: any, agent: any, event: 'down' | 'up')
     const rBody = await res.text().catch(() => '');
     console.log(`[通知] 结果: ${agent.name} → HTTP ${res.status} ${res.statusText} | ${rBody.slice(0, 200)}`);
   } catch (e: any) {
-    console.error(`[通知] 离线通知失败: ${agent.name} | ${e.message}`);
+    console.error(`[通知] ${event === 'up' ? '上线' : '离线'}通知失败: ${agent.name} | ${e.message}`);
   }
 } 
