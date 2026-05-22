@@ -65,7 +65,7 @@ class D1PreparedStatement {
       stmt.bind(this.params);
       stmt.step();
       stmt.free();
-      if (dbPath) saveDb();
+      if (dbPath) scheduleSave();
       return { success: true };
     } catch (e: any) {
       console.error('run error:', e.message);
@@ -89,6 +89,20 @@ function saveDb() {
       console.error('saveDb error:', e);
     }
   }
+}
+
+let saveTimer: ReturnType<typeof setTimeout> | null = null;
+function scheduleSave() {
+  if (saveTimer) return;
+  saveTimer = setTimeout(() => {
+    saveTimer = null;
+    saveDb();
+  }, 5000);
+}
+
+function flushSave() {
+  if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
+  saveDb();
 }
 
 // Match D1Database interface
@@ -128,7 +142,7 @@ export async function createDb(path?: string): Promise<SqliteAdapter> {
     exec<T = unknown>(sql: string): D1Result<T> {
       try {
         db!.run(sql);
-        saveDb();
+        scheduleSave();
         return { success: true };
       } catch (e: any) {
         return { success: false, error: e.message };
