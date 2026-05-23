@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeftIcon, Cross2Icon } from '@radix-ui/react-icons';
-import * as Toast from '@radix-ui/react-toast';
+import { ArrowLeftIcon } from '@radix-ui/react-icons';
 import { getAgent, updateAgent } from '../../api/agents';
+import ToastNotify from '../../components/ToastNotify';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import TagInput from '../../components/TagInput';
 import GroupSelect from '../../components/GroupSelect';
@@ -156,15 +156,7 @@ const EditAgent = () => {
           </div>
         </form>
       </div>
-      <Toast.Provider>
-        <Toast.Root open={toastOpen} onOpenChange={setToastOpen} duration={3000}
-          className={`fixed bottom-6 right-6 z-[9999] px-5 py-3 rounded-xl shadow-lg text-white text-sm font-medium animate-slide-up ${toastType === 'success' ? 'bg-emerald-500' : 'bg-red-500'}`}>
-          <Toast.Title className="font-semibold">{toastType === 'success' ? t('common.success') : t('common.error')}</Toast.Title>
-          <Toast.Description className="text-white/80 text-xs mt-0.5">{toastMsg}</Toast.Description>
-          <Toast.Close className="absolute top-2 right-2 text-white/70 hover:text-white"><Cross2Icon /></Toast.Close>
-        </Toast.Root>
-        <Toast.Viewport />
-      </Toast.Provider>
+      <ToastNotify open={toastOpen} onOpenChange={setToastOpen} type={toastType} title={toastType === 'success' ? t('common.success') : t('common.error')} msg={toastMsg} />
     </div>
   );
 };
