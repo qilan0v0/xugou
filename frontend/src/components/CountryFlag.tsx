@@ -10,7 +10,7 @@ export default function CountryFlag({ code, className = 'w-5 h-3.5 rounded-sm fl
 
   return (
     <img
-      src={`/flags/${code.toLowerCase()}.png`}
+      src={`/assets/flags/${code.toUpperCase()}.svg`}
       alt={code}
       className={className}
       loading="lazy"
