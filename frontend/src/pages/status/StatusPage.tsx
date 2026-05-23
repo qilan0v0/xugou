@@ -62,8 +62,12 @@ const StatusPage = () => {
     es.addEventListener('agent-update', refresh);
     es.addEventListener('monitor-update', refresh);
 
+    // Disconnect SSE after 30 minutes, keep polling at 60s
+    const sseTimeout = setTimeout(() => { es.close(); }, 30 * 60 * 1000);
+
     return () => {
       clearInterval(interval);
+      clearTimeout(sseTimeout);
       es.close();
     };
   }, []);

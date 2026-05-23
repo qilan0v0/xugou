@@ -165,7 +165,16 @@ const AgentsList = () => {
       sseDebounce = setTimeout(() => fetchAgents(), 500);
     };
     es.addEventListener('agent-update', refresh);
-    return () => { es.close(); };
+
+    // Disconnect SSE after 30 minutes, keep polling at 60s
+    const sseTimeout = setTimeout(() => { es.close(); }, 30 * 60 * 1000);
+    const pollInterval = setInterval(fetchAgents, 60000);
+
+    return () => {
+      clearTimeout(sseTimeout);
+      clearInterval(pollInterval);
+      es.close();
+    };
   }, []);
 
   const toggle = (id: number) => { const n = new Set(selected); if (n.has(id)) n.delete(id); else n.add(id); setSelected(n); };
