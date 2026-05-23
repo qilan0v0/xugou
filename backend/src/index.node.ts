@@ -13,7 +13,7 @@ import userRoutes from './routes/users';
 import statusRoutes from './routes/status';
 import initDbRoutes from './setup/database';
 import { monitorTask, runScheduledTasks, checkAgentsStatus, sendAgentNotification } from './tasks';
-import { toD1Primitive, generateAgentName } from './utils/jwt';
+import { toD1Primitive, generateAgentName, addDuration } from './utils/jwt';
 import { rateLimit } from './utils/ratelimit';
 
 // GeoIP cache (module-level)
@@ -167,6 +167,20 @@ app.post('/api/agents/status', async (c) => {
     if (!result.success) {
       console.error('Status update failed:', result.error);
       return c.json({ success: false, message: 'update failed' }, 500);
+    }
+
+    // 自动续期：已过期但在线的 agent 自动续期
+    const agentForRenew = env.DB.prepare(
+      'SELECT expiry_time, duration_value, duration_unit FROM agents WHERE id = ?'
+    ).bind(agent.id).first<{expiry_time: string | null; duration_value: number | null; duration_unit: string | null}>();
+    if (agentForRenew?.expiry_time && agentForRenew?.duration_value && agentForRenew?.duration_unit) {
+      if (new Date() > new Date(agentForRenew.expiry_time)) {
+        const newExpiry = addDuration(new Date(), agentForRenew.duration_value, agentForRenew.duration_unit);
+        env.DB.prepare(
+          'UPDATE agents SET start_time = ?, expiry_time = ? WHERE id = ?'
+        ).bind(new Date().toISOString(), newExpiry.toISOString(), agent.id).run();
+        console.log(`[续期] agent=${agent.id} 已过期，自动续期至 ${newExpiry.toISOString()}`);
+      }
     }
 
     // 首次上线通知 (wasInactive → active)

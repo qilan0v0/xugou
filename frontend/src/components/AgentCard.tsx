@@ -53,8 +53,9 @@ const AgentCard = React.memo(({ agent, onClick }: AgentCardProps) => {
   const trafficLimitStr = trafficLimit > 0 ? formatBytes(trafficLimit) : '';
   const trafficPct = trafficLimit > 0 ? Math.round((totalTraffic / trafficLimit) * 1000) / 10 : 0;
   const hasExpiry = !!agent.expiry_time;
-  const expiryDays = hasExpiry ? Math.ceil((new Date(agent.expiry_time!).getTime() - Date.now()) / 86400000) : -1;
-  const isExpired = hasExpiry && expiryDays < 0;
+  const expiryMs = hasExpiry ? Math.max(0, new Date(agent.expiry_time!).getTime() - Date.now()) : 0;
+  const isExpired = hasExpiry && expiryMs <= 0;
+  const expiryStr = hasExpiry ? (isExpired ? '' : formatDuration(expiryMs)) : '';
   const hasDuration = !!(agent.duration_value && agent.duration_unit);
   const durationLabel = hasDuration
     ? `${agent.duration_value}${agent.duration_unit === 'day' ? '天' : agent.duration_unit === 'month' ? '个月' : '年'}`
@@ -159,7 +160,7 @@ const AgentCard = React.memo(({ agent, onClick }: AgentCardProps) => {
           <MetricItem
             icon={<CalendarIcon />} iconColor="bg-orange-500/10 text-orange-600"
             label={t('agent.expiry')}
-            value={isExpired ? (hasDuration ? '已过期·自动续' : t('agent.expired')) : hasExpiry ? `${expiryDays}天` : '--'}
+            value={hasExpiry ? (expiryStr || (hasDuration ? '已过期' : t('agent.expired'))) : '--'}
             sub={hasDuration ? `${startLabel} / ${durationLabel}` : undefined}
           />
         </div>
