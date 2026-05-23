@@ -30,14 +30,18 @@ const Navbar = () => {
     navigate('/login');
   };
 
-  const isActive = (path: string) =>
-    location.pathname === path || location.pathname.startsWith(`${path}/`);
+  const isActive = (path: string) => {
+    if (location.pathname === path) return true;
+    if (!location.pathname.startsWith(`${path}/`)) return false;
+    if (path === '/agents' && location.pathname.startsWith('/agents/groups')) return false;
+    return true;
+  };
 
   const navLinks = isAuthenticated ? [
     { to: '/agents', icon: <CubeIcon />, label: t('navbar.agentMonitors') },
-    { to: '/agents/groups', icon: <StackIcon />, label: '分组管理' },
     { to: '/monitors', icon: <ActivityLogIcon />, label: t('navbar.apiMonitors') },
-    { to: '/status/config', icon: <PieChartIcon />, label: '首页配置' },
+    { to: '/agents/groups', icon: <StackIcon />, label: '分组管理' },
+    { to: '/status/config', icon: <PieChartIcon />, label: '配置' },
       ] : [];
 
   return (
