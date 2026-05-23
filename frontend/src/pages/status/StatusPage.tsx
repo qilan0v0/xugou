@@ -184,24 +184,30 @@ const StatusPage = () => {
             <section>
               <h2 className="text-lg font-bold text-slate-900 dark:text-white section-heading mb-4">{t('statusPage.agentStatus')}</h2>
               {/* Search */}
-              <div className="mb-3">
-                <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="搜索名称、主机名、IP、标签..." className="w-full px-4 py-2.5 rounded-lg border border-white/[0.08] bg-white/5 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 transition-all" />
+              <div className="mb-3 relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                  <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 6.5C10 8.433 8.433 10 6.5 10C4.567 10 3 8.433 3 6.5C3 4.567 4.567 3 6.5 3C8.433 3 10 4.567 10 6.5ZM9.30884 10.0159C8.53901 10.6318 7.56251 11 6.5 11C4.01472 11 2 8.98528 2 6.5C2 4.01472 4.01472 2 6.5 2C8.98528 2 11 4.01472 11 6.5C11 7.56251 10.6318 8.53901 10.0159 9.30884L12.8536 12.1464C13.0488 12.3417 13.0488 12.6583 12.8536 12.8536C12.6583 13.0488 12.3417 13.0488 12.1464 12.8536L9.30884 10.0159Z" fill="currentColor" fillRule="evenodd" clipRule="evenodd"/></svg>
+                </span>
+                <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="搜索名称、主机名、标签..." className="w-full pl-9 pr-4 py-2.5 rounded-xl border-2 border-slate-200/60 dark:border-slate-700/60 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm text-sm text-slate-700 dark:text-slate-300 placeholder:text-slate-400 focus:outline-none focus:border-blue-400 dark:focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-sm" />
               </div>
               {/* Category filter */}
-              {cats.length > 0 && (
+              {(() => {
+                const allAgentCount = data.agents.length;
+                const catCounts: Record<string, number> = {};
+                cats.forEach(c => { catCounts[c] = data.agents.filter(a => a.category === c).length; });
+                return cats.length > 0 ? (
                 <div className="flex gap-2 mb-4 flex-wrap">
                   <button onClick={() => setCategoryFilter('')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${!categoryFilter ? 'bg-blue-500/10 text-blue-600' : 'text-slate-500 hover:text-slate-700 bg-slate-100 dark:bg-white/5'}`}>
-                    全部
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${!categoryFilter ? 'bg-blue-500 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 border border-slate-200/60 dark:border-slate-700/60'}`}>
+                    全部 <span className={`ml-1 text-[10px] ${!categoryFilter ? 'text-white/70' : 'text-slate-400'}`}>{allAgentCount}</span>
                   </button>
                   {cats.map(cat => (
                     <button key={cat} onClick={() => setCategoryFilter(cat)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${categoryFilter === cat ? 'bg-blue-500/10 text-blue-600' : 'text-slate-500 hover:text-slate-700 bg-slate-100 dark:bg-white/5'}`}>
-                      {cat}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${categoryFilter === cat ? 'bg-blue-500 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 border border-slate-200/60 dark:border-slate-700/60'}`}>
+                      {cat} <span className={`ml-1 text-[10px] ${categoryFilter === cat ? 'text-white/70' : 'text-slate-400'}`}>{catCounts[cat]}</span>
                     </button>
                   ))}
-                </div>
-              )}
+                </div>) : null; })()}
               {filtered.length === 0 ? (
                 <div className="glass p-8 text-center"><p className="text-sm text-slate-500">没有匹配的客户端</p></div>
               ) : (
