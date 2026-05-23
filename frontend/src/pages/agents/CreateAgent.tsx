@@ -118,7 +118,7 @@ const CreateAgent = () => {
         </div>
         <div>
           <label className="block text-xs font-semibold text-slate-500 mb-1.5">开始时间</label>
-          <input type="date" value={startTime} onChange={e => setStartTime(e.target.value)} className={inputClass} />
+          <input type="datetime-local" value={startTime} onChange={e => setStartTime(e.target.value)} className={inputClass} />
         </div>
         <div>
           <label className="block text-xs font-semibold text-slate-500 mb-1.5">使用时长</label>
@@ -138,7 +138,7 @@ const CreateAgent = () => {
                   case 'month': d.setMonth(d.getMonth() + v); break;
                   case 'year': d.setFullYear(d.getFullYear() + v); break;
                 }
-                return d.toLocaleDateString('zh-CN');
+                return d.toLocaleString('zh-CN');
               })()}
             </p>
           )}

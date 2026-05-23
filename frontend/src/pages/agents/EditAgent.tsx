@@ -41,7 +41,7 @@ const EditAgent = () => {
           if (tl >= 1099511627776) { setTrafficVal(String(Math.round(tl / 1099511627776 * 10) / 10)); setTrafficUnit('TB'); }
           else { setTrafficVal(String(Math.round(tl / 1073741824 * 10) / 10)); setTrafficUnit('GB'); }
         }
-        setStartTime(res.agent.start_time ? res.agent.start_time.slice(0, 10) : '');
+        setStartTime(res.agent.start_time ? new Date(res.agent.start_time).toISOString().slice(0, 16) : '');
         setDurationVal(res.agent.duration_value ? String(res.agent.duration_value) : '1');
         setDurationUnit(res.agent.duration_unit || 'month');
       }
@@ -125,7 +125,7 @@ const EditAgent = () => {
           </div>
           <div>
             <label className="block text-xs font-medium text-slate-500 mb-1.5">开始时间</label>
-            <input type="date" value={startTime} onChange={e => setStartTime(e.target.value)} className={inputClass} />
+            <input type="datetime-local" value={startTime} onChange={e => setStartTime(e.target.value)} className={inputClass} />
           </div>
           <div>
             <label className="block text-xs font-medium text-slate-500 mb-1.5">使用时长</label>
@@ -145,7 +145,7 @@ const EditAgent = () => {
                     case 'month': d.setMonth(d.getMonth() + v); break;
                     case 'year': d.setFullYear(d.getFullYear() + v); break;
                   }
-                  return d.toLocaleDateString('zh-CN');
+                  return d.toLocaleString('zh-CN');
                 })()}
               </p>
             )}

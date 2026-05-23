@@ -44,7 +44,7 @@ function EditModal({ agent, onClose, onSaved }: { agent: Agent; onClose: () => v
   const [trafficUnit, setTrafficUnit] = useState(() => {
     const tl = agent.traffic_limit; return tl && tl >= 1099511627776 ? 'TB' : 'GB';
   });
-  const [startTime, setStartTime] = useState(agent.start_time ? agent.start_time.slice(0, 10) : '');
+  const [startTime, setStartTime] = useState(agent.start_time ? new Date(agent.start_time).toISOString().slice(0, 16) : '');
   const [durationVal, setDurationVal] = useState(agent.duration_value ? String(agent.duration_value) : '1');
   const [durationUnit, setDurationUnit] = useState(agent.duration_unit || 'month');
   const [isPublic, setIsPublic] = useState(agent.public !== 0);
@@ -105,7 +105,7 @@ function EditModal({ agent, onClose, onSaved }: { agent: Agent; onClose: () => v
           </div>
           <div>
             <label className={labelC}>开始时间</label>
-            <input type="date" value={startTime} onChange={e => setStartTime(e.target.value)} className={inputC} />
+            <input type="datetime-local" value={startTime} onChange={e => setStartTime(e.target.value)} className={inputC} />
           </div>
           <div>
             <label className={labelC}>使用时长</label>
