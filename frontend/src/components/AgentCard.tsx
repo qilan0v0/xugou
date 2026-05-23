@@ -4,10 +4,8 @@ import ResourceBar from './ResourceBar';
 import CountryFlag from './CountryFlag';
 import { useTranslation } from 'react-i18next';
 import { getOSImage } from '../utils/osImageHelper';
-import {
-  LayersIcon, Component1Icon, StackIcon, TimerIcon, CalendarIcon,
-  DownloadIcon, UploadIcon, ArrowDownIcon, ArrowUpIcon, ActivityLogIcon,
-} from '@radix-ui/react-icons';
+import { TimerIcon, CalendarIcon } from '@radix-ui/react-icons';
+import { Cpu, MemoryStick, HardDrive, ArrowDown, ArrowUp, Download, Upload, Activity } from 'lucide-react';
 
 interface AgentCardProps {
   agent: Agent;
@@ -138,14 +136,14 @@ const AgentCard = React.memo(({ agent, onClick }: AgentCardProps) => {
       {/* Two-column metrics - paired rows for alignment */}
       <div className="flex flex-col gap-1.5">
         {[
-          [<MetricItem key="cpu" icon={<Component1Icon />} iconColor="bg-emerald-500/10 text-emerald-600" label="CPU" value={`${cpu.toFixed(1)}%`} barValue={cpu} barColor="green" />,
-           <MetricItem key="mem" icon={<StackIcon />} iconColor="bg-blue-500/10 text-blue-600" label={t('agent.memory')} value={`${memPct.toFixed(1)}%`} sub={`${memUsedStr} / ${memTotalStr}`} barValue={memPct} barColor="blue" />],
-          [<MetricItem key="disk" icon={<LayersIcon />} iconColor="bg-amber-500/10 text-amber-600" label={t('agent.disk')} value={`${diskPct.toFixed(1)}%`} sub={`${diskUsedStr} / ${diskTotalStr}`} barValue={diskPct} barColor="amber" />,
-           <MetricItem key="traf" icon={<ActivityLogIcon />} iconColor="bg-violet-500/10 text-violet-600" label={t('agent.traffic')} value={trafficLimit > 0 ? `${totalTrafficStr} / ${trafficLimitStr}` : '--'} barValue={trafficLimit > 0 ? trafficPct : 0} barColor="purple" />],
-          [<MetricItem key="dl" icon={<ArrowDownIcon />} iconColor="bg-cyan-500/10 text-cyan-600" label={t('clientResource.download')} value={netRx >= 1024 ? `${(netRx / 1024).toFixed(1)} MB/s` : `${netRx.toFixed(1)} KB/s`} />,
-           <MetricItem key="ul" icon={<ArrowUpIcon />} iconColor="bg-indigo-500/10 text-indigo-600" label={t('clientResource.upload')} value={netTx >= 1024 ? `${(netTx / 1024).toFixed(1)} MB/s` : `${netTx.toFixed(1)} KB/s`} />],
-          [<MetricItem key="tdl" icon={<DownloadIcon />} iconColor="bg-slate-500/10 text-slate-500" label={t('agent.networkTotalRx')} value={rxTotalStr} />,
-           <MetricItem key="tul" icon={<UploadIcon />} iconColor="bg-slate-500/10 text-slate-500" label={t('agent.networkTotalTx')} value={txTotalStr} />],
+          [<MetricItem key="cpu" icon={<Cpu size={14} />} iconColor="bg-blue-500/10 text-blue-600" label="CPU" value={`${cpu.toFixed(1)}%`} barValue={cpu} barColor="blue" />,
+           <MetricItem key="mem" icon={<MemoryStick size={14} />} iconColor="bg-green-500/10 text-green-600" label={t('agent.memory')} value={`${memPct.toFixed(1)}%`} sub={`${memUsedStr} / ${memTotalStr}`} barValue={memPct} barColor="green" />],
+          [<MetricItem key="disk" icon={<HardDrive size={14} />} iconColor="bg-red-500/10 text-red-600" label={t('agent.disk')} value={`${diskPct.toFixed(1)}%`} sub={`${diskUsedStr} / ${diskTotalStr}`} barValue={diskPct} barColor="red" />,
+           <MetricItem key="traf" icon={<Activity size={14} />} iconColor="bg-violet-500/10 text-violet-600" label={t('agent.traffic')} value={trafficLimit > 0 ? `${totalTrafficStr} / ${trafficLimitStr}` : '--'} barValue={trafficLimit > 0 ? trafficPct : 0} barColor="purple" />],
+          [<MetricItem key="dl" icon={<ArrowDown size={14} />} iconColor="bg-cyan-500/10 text-cyan-600" label={t('clientResource.download')} value={netRx >= 1024 ? `${(netRx / 1024).toFixed(1)} MB/s` : `${netRx.toFixed(1)} KB/s`} />,
+           <MetricItem key="ul" icon={<ArrowUp size={14} />} iconColor="bg-indigo-500/10 text-indigo-600" label={t('clientResource.upload')} value={netTx >= 1024 ? `${(netTx / 1024).toFixed(1)} MB/s` : `${netTx.toFixed(1)} KB/s`} />],
+          [<MetricItem key="tdl" icon={<Download size={14} />} iconColor="bg-slate-500/10 text-slate-500" label={t('agent.networkTotalRx')} value={rxTotalStr} />,
+           <MetricItem key="tul" icon={<Upload size={14} />} iconColor="bg-slate-500/10 text-slate-500" label={t('agent.networkTotalTx')} value={txTotalStr} />],
         ].map((row, i) => (
           <div key={i} className="flex gap-4">
             <div className="flex-1">{row[0]}</div>
