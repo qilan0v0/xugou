@@ -60,7 +60,7 @@ const AgentCard = React.memo(({ agent, onClick }: AgentCardProps) => {
   const durationLabel = hasDuration
     ? `${agent.duration_value}${agent.duration_unit === 'day' ? '天' : agent.duration_unit === 'month' ? '个月' : '年'}`
     : '';
-  const startLabel = agent.start_time ? new Date(agent.start_time).toLocaleString('zh-CN') : '';
+  const startLabel = agent.start_time ? new Date(agent.start_time).toLocaleDateString('zh-CN') : '';
 
   const rxTotalStr = formatBytes(agent.network_rx_total || 0);
   const txTotalStr = formatBytes(agent.network_tx_total || 0);
