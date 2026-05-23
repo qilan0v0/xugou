@@ -103,7 +103,7 @@ const AgentCard = React.memo(({ agent, onClick }: AgentCardProps) => {
         <CountryFlag code={agent.country} />
         <span className="font-semibold text-sm text-slate-900 dark:text-white truncate">{agent.name}</span>
         {agent.os && (
-          <img src={getOSImage(agent.os)} alt={agent.os.split(' ')[0]} className="w-5 h-5 object-contain flex-shrink-0" title={agent.os} />
+          <img src={getOSImage((agent.os || '') + ' ' + (agent.version || ''))} alt={agent.os.split(' ')[0]} className="w-4 h-4 object-contain flex-shrink-0" title={`${agent.os} · ${agent.version || ''}`} />
         )}
         <span className="ml-auto flex items-center gap-1 flex-shrink-0">
           <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse-dot shadow-[0_0_6px_rgba(34,197,94,0.6)]' : 'bg-slate-400'}`} />
