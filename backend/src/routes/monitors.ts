@@ -177,7 +177,7 @@ monitors.post('/', async (c) => {
     const result = await c.env.DB.prepare(
       `INSERT INTO monitors
        (name, url, method, interval, timeout, expected_status, headers, body, created_by, active, status, tags, uptime, response_time, last_checked, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).bind(
       data.name,
       data.url,
