@@ -299,9 +299,9 @@ const AgentsList = () => {
         const counts: Record<string, number> = {};
         cats.forEach(c => { counts[c] = agents.filter(a => a.category === c).length; });
         return (
-          <div className="flex gap-2 mb-4 flex-wrap">
-            <button onClick={() => setCategoryFilter('')} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${!categoryFilter ? 'bg-blue-500 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 border border-slate-200/60 dark:border-slate-700/60'}`}>全部 <span className={`ml-1 text-[10px] ${!categoryFilter ? 'text-white/70' : 'text-slate-400'}`}>{allCount}</span></button>
-            {cats.map(cat => <button key={cat} onClick={() => setCategoryFilter(cat)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${categoryFilter === cat ? 'bg-blue-500 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 border border-slate-200/60 dark:border-slate-700/60'}`}>{cat} <span className={`ml-1 text-[10px] ${categoryFilter === cat ? 'text-white/70' : 'text-slate-400'}`}>{counts[cat]}</span></button>)}
+          <div className="flex gap-1.5 mb-4 flex-wrap">
+            <button onClick={() => setCategoryFilter('')} className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${!categoryFilter ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-md shadow-slate-900/20' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5'}`}>全部<span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] ${!categoryFilter ? 'bg-white/20 text-white/90' : 'bg-slate-200/60 dark:bg-white/10 text-slate-500'}`}>{allCount}</span></button>
+            {cats.map(cat => <button key={cat} onClick={() => setCategoryFilter(cat)} className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${categoryFilter === cat ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-md shadow-slate-900/20' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5'}`}>{cat}<span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] ${categoryFilter === cat ? 'bg-white/20 text-white/90' : 'bg-slate-200/60 dark:bg-white/10 text-slate-500'}`}>{counts[cat]}</span></button>)}
           </div>
         );
       })()}
