@@ -20,11 +20,14 @@ if (fs.existsSync(configPath)) {
 function log(msg) { console.log(`[${new Date().toLocaleString()}] ${msg}`); }
 
 function startBackend() {
-  const cmd = `cd ${BACKEND_DIR} && nohup npx tsx src/index.node.ts >> ${LOG_FILE} 2>&1 &`;
-  log('Starting backend...');
-  exec(cmd, (err) => {
-    if (err) log('Start error: ' + err.message);
-    else log('Backend spawned');
+  // Kill any old backend processes first
+  exec('pkill -9 -f "tsx.*index.node" 2>/dev/null; pkill -9 -f "node.*index.node" 2>/dev/null; sleep 1', () => {
+    const cmd = `cd ${BACKEND_DIR} && nohup npx tsx src/index.node.ts >> ${LOG_FILE} 2>&1 &`;
+    log('Starting backend...');
+    exec(cmd, (err) => {
+      if (err) log('Start error: ' + err.message);
+      else log('Backend spawned');
+    });
   });
 }
 

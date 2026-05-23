@@ -284,6 +284,16 @@ broadcast = (type, data) => {
   const initResult = await checkAndInitializeDatabase(env);
   console.log('DB init:', initResult.message);
 
+  server.on('error', (e: NodeJS.ErrnoException) => {
+    if (e.code === 'EADDRINUSE') {
+      console.log(`Port ${port} busy, retrying in 3s...`);
+      setTimeout(() => { server.close(); server.listen(port, host); }, 3000);
+    } else {
+      console.error('Server error:', e);
+      process.exit(1);
+    }
+  });
+
   server.listen(port, host, () => {
     console.log(`Xugou Node.js backend on http://${host}:${port}`);
   });
