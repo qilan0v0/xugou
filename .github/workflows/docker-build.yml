@@ -1,0 +1,111 @@
+name: Build and Push Agent Docker Image
+
+on:
+  workflow_dispatch:
+    inputs:
+      agent_version:
+        description: 'Agent release version tag (e.g. v20260519-042217)'
+        required: false
+        type: string
+        default: 'v20260519-042217'
+      agent_binary:
+        description: 'Agent binary name'
+        required: false
+        type: string
+        default: 'XA-linux-amd64'
+      image_tag:
+        description: 'Docker image tag (leave blank for version-based auto tag)'
+        required: false
+        type: string
+        default: ''
+      registry:
+        description: 'Container registry'
+        required: false
+        type: choice
+        options:
+          - 'ghcr.io'
+          - 'docker.io'
+        default: 'ghcr.io'
+      push:
+        description: 'Push image to registry'
+        required: false
+        type: boolean
+        default: true
+  release:
+    types: [published]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}-agent
+
+jobs:
+  build-and-push:
+    name: Build and push Docker image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Determine metadata
+        id: meta
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            AGENT_VER="${{ github.ref_name }}"
+            IMG_TAG="${AGENT_VER#v}"
+          else
+            AGENT_VER="${{ inputs.agent_version }}"
+            if [[ -n "${{ inputs.image_tag }}" ]]; then
+              IMG_TAG="${{ inputs.image_tag }}"
+            else
+              IMG_TAG="${AGENT_VER#v}"
+            fi
+          fi
+
+          REGISTRY="${{ inputs.registry || env.REGISTRY }}"
+          REPO="${REGISTRY}/${{ github.repository_owner }}/xugou-agent"
+
+          echo "agent_version=${AGENT_VER}" >> $GITHUB_OUTPUT
+          echo "image_tag=${IMG_TAG}" >> $GITHUB_OUTPUT
+          echo "registry=${REGISTRY}" >> $GITHUB_OUTPUT
+          echo "repository=${REPO}" >> $GITHUB_OUTPUT
+          echo "created=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_OUTPUT
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Container Registry
+        if: inputs.push != false || github.event_name == 'release'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ steps.meta.outputs.registry }}
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: agent
+          file: agent/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name == 'release' || inputs.push }}
+          build-args: |
+            AGENT_VERSION=${{ steps.meta.outputs.agent_version }}
+            AGENT_BINARY=${{ inputs.agent_binary || 'XA-linux-amd64' }}
+          tags: |
+            ${{ steps.meta.outputs.repository }}:${{ steps.meta.outputs.image_tag }}
+            ${{ steps.meta.outputs.repository }}:latest
+          labels: |
+            org.opencontainers.image.title=Xugou Agent
+            org.opencontainers.image.description=System monitoring agent probe
+            org.opencontainers.image.version=${{ steps.meta.outputs.image_tag }}
+            org.opencontainers.image.created=${{ steps.meta.outputs.created }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
