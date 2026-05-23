@@ -65,11 +65,10 @@ const AgentCard = React.memo(({ agent, onClick }: AgentCardProps) => {
 
   const rxTotalStr = formatBytes(agent.network_rx_total || 0);
   const txTotalStr = formatBytes(agent.network_tx_total || 0);
-  // Agent reports mem/disk in KB, convert to bytes for formatBytes
-  const memUsedStr = formatBytes((agent.memory_used || 0) * 1024);
-  const memTotalStr = formatBytes((agent.memory_total || 0) * 1024);
-  const diskUsedStr = formatBytes((agent.disk_used || 0) * 1024);
-  const diskTotalStr = formatBytes((agent.disk_total || 0) * 1024);
+  const memUsedStr = formatBytes(agent.memory_used || 0);
+  const memTotalStr = formatBytes(agent.memory_total || 0);
+  const diskUsedStr = formatBytes(agent.disk_used || 0);
+  const diskTotalStr = formatBytes(agent.disk_total || 0);
 
   const IconWrap = ({ children, color }: { children: React.ReactNode; color: string }) => (
     <span className={`w-4 h-4 flex items-center justify-center rounded ${color}`}>{children}</span>
