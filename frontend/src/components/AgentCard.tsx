@@ -96,7 +96,7 @@ const AgentCard = React.memo(({ agent, onClick }: AgentCardProps) => {
   return (
     <div
       onClick={onClick}
-      className={`glass rounded-xl p-4 hover:shadow-lg transition-shadow duration-200 ${onClick ? 'cursor-pointer' : ''} ${!isOnline ? 'ring-2 ring-red-500/40' : ''}`}
+      className={`glass rounded-xl p-4 hover:shadow-lg transition-shadow duration-200 ${onClick ? 'cursor-pointer' : ''} ${!isOnline ? 'offline-striped ring-2 ring-red-500/50' : ''}`}
     >
       {/* Header: flag + OS + name + status */}
       <div className="flex items-center gap-2 mb-3">
