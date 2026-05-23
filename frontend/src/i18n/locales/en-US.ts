@@ -19,6 +19,7 @@ const enUS = {
     'theme.forest': 'Forest',
     'theme.sunset': 'Sunset',
     'theme.midnight': 'Midnight',
+    'theme.purcarte': 'PurCarte',
 
     // Common buttons and tips
     'common.loading': 'Loading...',

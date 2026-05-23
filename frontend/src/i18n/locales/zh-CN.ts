@@ -19,6 +19,7 @@ const zhCN = {
     'theme.forest': '森林',
     'theme.sunset': '日落',
     'theme.midnight': '午夜',
+    'theme.purcarte': 'PurCarte',
 
     // 通用按钮和提示
     'common.loading': '加载中...',

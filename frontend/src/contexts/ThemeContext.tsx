@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 
 type Theme = 'dark' | 'light';
-export type ThemeName = 'frost' | 'ocean' | 'forest' | 'sunset' | 'midnight';
+export type ThemeName = 'frost' | 'ocean' | 'forest' | 'sunset' | 'midnight' | 'purcarte';
 
 export const THEME_LIST: { name: ThemeName; color: string }[] = [
   { name: 'frost',    color: '#3b82f6' },
@@ -9,6 +9,7 @@ export const THEME_LIST: { name: ThemeName; color: string }[] = [
   { name: 'forest',   color: '#10b981' },
   { name: 'sunset',   color: '#f97316' },
   { name: 'midnight', color: '#818cf8' },
+  { name: 'purcarte', color: '#8b5cf6' },
 ];
 
 interface ThemeContextType {
