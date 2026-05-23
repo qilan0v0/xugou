@@ -3,10 +3,10 @@ import { Agent } from '../api/agents';
 import ResourceBar from './ResourceBar';
 import CountryFlag from './CountryFlag';
 import { useTranslation } from 'react-i18next';
+import { getOSImage } from '../utils/osImageHelper';
 import {
   LayersIcon, Component1Icon, StackIcon, TimerIcon, CalendarIcon,
   DownloadIcon, UploadIcon, ArrowDownIcon, ArrowUpIcon, ActivityLogIcon,
-  DesktopIcon,
 } from '@radix-ui/react-icons';
 
 interface AgentCardProps {
@@ -70,19 +70,6 @@ const AgentCard = React.memo(({ agent, onClick }: AgentCardProps) => {
   const memTotalStr = formatBytes((agent.memory_total || 0) * 1024);
   const diskUsedStr = formatBytes((agent.disk_used || 0) * 1024);
   const diskTotalStr = formatBytes((agent.disk_total || 0) * 1024);
-  const osIconColor = (agent.os || '').toLowerCase().includes('debian') ? 'bg-rose-500/10' :
-                       (agent.os || '').toLowerCase().includes('ubuntu') ? 'bg-orange-500/10' :
-                       (agent.os || '').toLowerCase().includes('alpine') ? 'bg-sky-500/10' :
-                       (agent.os || '').toLowerCase().includes('arch') ? 'bg-cyan-500/10' :
-                       (agent.os || '').toLowerCase().includes('centos') ? 'bg-amber-500/10' :
-                       'bg-slate-500/10';
-  const osIconText = (agent.os || '').toLowerCase().includes('debian') ? 'text-rose-600' :
-                      (agent.os || '').toLowerCase().includes('ubuntu') ? 'text-orange-600' :
-                      (agent.os || '').toLowerCase().includes('alpine') ? 'text-sky-600' :
-                      (agent.os || '').toLowerCase().includes('arch') ? 'text-cyan-600' :
-                      (agent.os || '').toLowerCase().includes('centos') ? 'text-amber-600' :
-                      'text-slate-600';
-  const osLabel = agent.os ? agent.os.split(' ')[0] : '';
 
   const IconWrap = ({ children, color }: { children: React.ReactNode; color: string }) => (
     <span className={`w-4 h-4 flex items-center justify-center rounded ${color}`}>{children}</span>
@@ -116,9 +103,7 @@ const AgentCard = React.memo(({ agent, onClick }: AgentCardProps) => {
         <CountryFlag code={agent.country} />
         <span className="font-semibold text-sm text-slate-900 dark:text-white truncate">{agent.name}</span>
         {agent.os && (
-          <span className={`w-5 h-5 rounded flex items-center justify-center flex-shrink-0 ${osIconColor} ${osIconText}`} title={osLabel}>
-            <DesktopIcon className="w-3 h-3" />
-          </span>
+          <img src={getOSImage(agent.os)} alt={agent.os.split(' ')[0]} className="w-5 h-5 object-contain flex-shrink-0" title={agent.os} />
         )}
         <span className="ml-auto flex items-center gap-1 flex-shrink-0">
           <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse-dot shadow-[0_0_6px_rgba(34,197,94,0.6)]' : 'bg-slate-400'}`} />
