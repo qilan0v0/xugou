@@ -231,10 +231,25 @@ const listener = getRequestListener(app.fetch);
 
 // SSE clients (ServerResponse objects kept open for streaming)
 const sseClients = new Set<any>();
+const MAX_SSE_CLIENTS = 50;
+
+// Heartbeat every 30s to detect dead connections
+const HEARTBEAT_MS = 30000;
+const heartbeat = setInterval(() => {
+  for (const res of sseClients) {
+    try { res.write('event: heartbeat\ndata: {}\n\n'); }
+    catch { sseClients.delete(res); }
+  }
+}, HEARTBEAT_MS);
 
 const server = createServer((req, res) => {
   // SSE endpoint — works through any proxy, no special upgrade needed
   if (req.url === '/api/events' && req.method === 'GET') {
+    if (sseClients.size >= MAX_SSE_CLIENTS) {
+      res.writeHead(503, { 'Content-Type': 'text/plain' });
+      res.end('Too many SSE connections');
+      return;
+    }
     res.writeHead(200, {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
@@ -279,5 +294,5 @@ setInterval(async () => {
   catch (e) { console.error('Scheduled task error:', e); }
 }, 60 * 1000);
 
-process.on('SIGINT', () => { closeDb(); process.exit(0); });
-process.on('SIGTERM', () => { closeDb(); process.exit(0); });
+process.on('SIGINT', () => { clearInterval(heartbeat); closeDb(); process.exit(0); });
+process.on('SIGTERM', () => { clearInterval(heartbeat); closeDb(); process.exit(0); });
