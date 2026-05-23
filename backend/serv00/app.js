@@ -28,9 +28,13 @@ function startBackend() {
   });
 }
 
-function isBackendRunning() {
+function killTsx() {
+  exec('pkill -f "tsx src/index.node" 2>/dev/null; pkill -f "node.*index.node" 2>/dev/null');
+}
+
+function portInUse() {
   return new Promise((resolve) => {
-    exec('pgrep -f "tsx src/index.node"', (err, stdout) => {
+    exec(`fuser ${PORT}/tcp 2>/dev/null`, (err, stdout) => {
       resolve(!!stdout.trim());
     });
   });
@@ -38,8 +42,8 @@ function isBackendRunning() {
 
 // Check & restart every 15 seconds
 async function keepAlive() {
-  const running = await isBackendRunning();
-  if (!running) startBackend();
+  const portBusy = await portInUse();
+  if (!portBusy) startBackend();
 }
 setInterval(keepAlive, 15000);
 
@@ -61,8 +65,8 @@ const server = http.createServer(async (req, res) => {
     backendRes.pipe(res);
   });
   proxy.on('error', async () => {
-    const running = await isBackendRunning();
-    if (!running) startBackend();
+    const portBusy = await portInUse();
+    if (!portBusy) startBackend();
     res.writeHead(502, { 'Content-Type': 'text/plain' });
     res.end('Backend starting, retry...');
   });
