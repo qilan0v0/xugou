@@ -265,7 +265,7 @@ const enUS = {
     'agent.status.connecting': 'Connecting',
     'agent.status.offline': 'Offline',
     'agent.lastSeen': 'Last Seen',
-    'agent.uptime': 'Uptime',
+    'agent.uptime': 'Up',
     'agent.lastUpdated': 'Last Updated',
     'agent.systemInfo': 'System Info',
     'agent.systemResources': 'System Resources',

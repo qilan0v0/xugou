@@ -265,7 +265,7 @@ const zhCN = {
     'agent.status.connecting': '连接中',
     'agent.status.offline': '离线',
     'agent.lastSeen': '上次在线',
-    'agent.uptime': '运行时间',
+    'agent.uptime': '运行',
     'agent.lastUpdated': '上次更新',
     'agent.systemInfo': '系统信息',
     'agent.systemResources': '系统资源',

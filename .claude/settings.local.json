@@ -6,7 +6,12 @@
       "Bash(yarn add *)",
       "Bash(npx tsc *)",
       "Bash(npx vite *)",
-      "Bash(wrangler pages *)"
+      "Bash(wrangler pages *)",
+      "Bash(git *)",
+      "Bash(npm run *)",
+      "Bash(npx wrangler *)",
+      "Read(//e/A/github/**)",
+      "Bash(npm install *)"
     ]
   }
 }
