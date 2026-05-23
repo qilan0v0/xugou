@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import LanguageSelector from './LanguageSelector';
+import ThemePicker from './ThemePicker';
 import {
   ActivityLogIcon, CubeIcon, PieChartIcon, StackIcon,
   ExitIcon, PersonIcon, ChevronDownIcon,
@@ -91,6 +92,7 @@ const Navbar = () => {
           {/* Right side */}
           <div className="flex items-center gap-2">
             <LanguageSelector />
+            <ThemePicker />
             <button onClick={toggleTheme}
               className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-all"
               title={theme === 'dark' ? t('navbar.lightMode') || 'Light mode' : t('navbar.darkMode') || 'Dark mode'}

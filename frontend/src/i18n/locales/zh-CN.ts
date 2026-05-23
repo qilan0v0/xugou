@@ -10,7 +10,16 @@ const zhCN = {
     'navbar.logout': '退出登录',
     'navbar.login': '登录',
     'navbar.loggedInAs': '已登录为',
-    
+    'navbar.lightMode': '亮色模式',
+    'navbar.darkMode': '暗色模式',
+
+    // 主题
+    'theme.frost': '冰霜',
+    'theme.ocean': '海洋',
+    'theme.forest': '森林',
+    'theme.sunset': '日落',
+    'theme.midnight': '午夜',
+
     // 通用按钮和提示
     'common.loading': '加载中...',
     'common.save': '保存',

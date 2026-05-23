@@ -10,7 +10,16 @@ const enUS = {
     'navbar.logout': 'Logout',
     'navbar.login': 'Login',
     'navbar.loggedInAs': 'Logged in as',
-    
+    'navbar.lightMode': 'Light mode',
+    'navbar.darkMode': 'Dark mode',
+
+    // Themes
+    'theme.frost': 'Frost',
+    'theme.ocean': 'Ocean',
+    'theme.forest': 'Forest',
+    'theme.sunset': 'Sunset',
+    'theme.midnight': 'Midnight',
+
     // Common buttons and tips
     'common.loading': 'Loading...',
     'common.save': 'Save',
