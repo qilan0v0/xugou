@@ -34,9 +34,12 @@ function killTsx() {
 
 function portInUse() {
   return new Promise((resolve) => {
-    exec(`fuser ${PORT}/tcp 2>/dev/null`, (err, stdout) => {
-      resolve(!!stdout.trim());
-    });
+    const sock = new net.Socket();
+    sock.setTimeout(2000);
+    sock.on('connect', () => { sock.destroy(); resolve(true); });
+    sock.on('error', () => { sock.destroy(); resolve(false); });
+    sock.on('timeout', () => { sock.destroy(); resolve(false); });
+    sock.connect(PORT, '127.0.0.1');
   });
 }
 
