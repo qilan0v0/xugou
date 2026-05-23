@@ -91,7 +91,7 @@ agents.post('/', async (c) => {
     ).run();
     
     if (!result.success) {
-      throw new Error('创建客户端失败');
+      throw new Error('创建客户端失败: ' + (result.error || 'unknown'));
     }
     
     // 获取新创建的客户端
@@ -207,7 +207,7 @@ agents.delete('/groups/:id', async (c) => {
     await c.env.DB.prepare("UPDATE agents SET category = NULL WHERE category = ?").bind(group.name).run();
     // Delete the group
     const result = await c.env.DB.prepare('DELETE FROM agent_groups WHERE id = ?').bind(id).run();
-    if (!result.success) throw new Error('删除失败');
+    if (!result.success) throw new Error('删除失败: ' + (result.error || 'unknown'));
     return c.json({ success: true, message: '分组已删除，关联客户端已移出' });
   } catch (e: any) {
     return c.json({ success: false, message: '删除分组失败' }, 500);
@@ -450,7 +450,7 @@ agents.put('/:id', async (c) => {
     const result = await c.env.DB.prepare(updateSql).bind(...values).run();
     
     if (!result.success) {
-      throw new Error('更新客户端失败');
+      throw new Error('更新客户端失败: ' + (result.error || 'unknown'));
     }
     
     // 获取更新后的客户端数据
@@ -522,7 +522,7 @@ agents.post('/:id/status', async (c) => {
     ).run();
     
     if (!result.success) {
-      throw new Error('更新客户端状态失败');
+      throw new Error('更新客户端状态失败: ' + (result.error || 'unknown'));
     }
 
     // 自动续期：如果 agent 在线且已过期，自动延长有效期
@@ -575,7 +575,7 @@ agents.delete('/:id', async (c) => {
     ).bind(agent.id).run();
     
     if (!result.success) {
-      throw new Error('删除客户端失败');
+      throw new Error('删除客户端失败: ' + (result.error || 'unknown'));
     }
     
     return c.json({ 
@@ -621,7 +621,7 @@ agents.post('/:id/token', async (c) => {
     ).run();
     
     if (!result.success) {
-      throw new Error('更新客户端令牌失败');
+      throw new Error('更新客户端令牌失败: ' + (result.error || 'unknown'));
     }
     
     return c.json({ 
@@ -705,7 +705,7 @@ agents.post('/register', async (c) => {
       ).run();
 
       if (!updateResult.success) {
-        throw new Error('更新客户端信息失败');
+        throw new Error('更新客户端信息失败: ' + (updateResult.error || 'unknown'));
       }
 
       return c.json({
@@ -723,7 +723,7 @@ agents.post('/register', async (c) => {
     ).bind(autoName, token, adminUser.id, hostname || null, ip_address || null, os || null, version || null, now, now).run();
 
     if (!insertResult.success) {
-      throw new Error('自动创建客户端失败');
+      throw new Error('自动创建客户端失败: ' + (insertResult.error || 'unknown'));
     }
 
     const created = await c.env.DB.prepare('SELECT * FROM agents WHERE rowid = last_insert_rowid()').first<Agent>();
@@ -809,7 +809,7 @@ agents.post('/status', async (c) => {
     ).run();
 
     if (!result.success) {
-      throw new Error('更新客户端状态失败');
+      throw new Error('更新客户端状态失败: ' + (result.error || 'unknown'));
     }
 
     // 自动续期：如果 agent 在线且已过期，自动延长有效期

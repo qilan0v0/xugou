@@ -199,7 +199,7 @@ monitors.post('/', async (c) => {
     ).run();
     
     if (!result.success) {
-      throw new Error('创建监控失败');
+      throw new Error('创建监控失败: ' + (result.error || 'unknown'));
     }
     
     // 获取新创建的监控
@@ -326,7 +326,7 @@ monitors.put('/:id', async (c) => {
     ).bind(...values).run();
     
     if (!result.success) {
-      throw new Error('更新监控失败');
+      throw new Error('更新监控失败: ' + (result.error || 'unknown'));
     }
     
     // 获取更新后的监控
@@ -376,7 +376,7 @@ monitors.delete('/:id', async (c) => {
     ).bind(id).run();
     
     if (!result.success) {
-      throw new Error('删除监控失败');
+      throw new Error('删除监控失败: ' + (result.error || 'unknown'));
     }
     
     return c.json({ success: true, message: '监控已删除' });
