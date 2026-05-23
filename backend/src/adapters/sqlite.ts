@@ -133,6 +133,8 @@ export async function createDb(path?: string): Promise<SqliteAdapter> {
 
   db.run('PRAGMA journal_mode = WAL');
   db.run('PRAGMA foreign_keys = ON');
+  db.run('PRAGMA cache_size = -4000');   // 4MB page cache max
+  db.run('PRAGMA optimize');             // compact on startup
   saveDb();
 
   return {

@@ -16,8 +16,9 @@ import { monitorTask, runScheduledTasks, checkAgentsStatus, sendAgentNotificatio
 import { toD1Primitive, generateAgentName, addDuration } from './utils/jwt';
 import { rateLimit } from './utils/ratelimit';
 
-// GeoIP cache (module-level)
+// GeoIP cache (module-level, max 500 entries to limit memory)
 const countryCache = new Map<string, string>();
+const MAX_CACHE_SIZE = 500;
 
 const app = new Hono<{ Bindings: Bindings }>();
 
@@ -107,7 +108,14 @@ app.post('/api/agents/status', async (c) => {
           if (res.ok) {
             const data = await res.json() as any;
             country = data?.countryCode || null;
-            if (country) countryCache.set(clientIp, country);
+            if (country) {
+              if (countryCache.size >= MAX_CACHE_SIZE) {
+                // evict oldest entry (Map preserves insertion order)
+                const firstKey = countryCache.keys().next().value;
+                if (firstKey) countryCache.delete(firstKey);
+              }
+              countryCache.set(clientIp, country);
+            }
           }
         } catch (e) { /* ignore */ }
       }

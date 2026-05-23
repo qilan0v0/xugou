@@ -1,38 +1,118 @@
-// Serv00 watchdog - keeps Xugou backend alive
-const { exec } = require("child_process");
+// Serv00 watchdog — keeps Xugou backend alive with memory limits
+const { exec, spawn } = require("child_process");
 const http = require("http");
 const net = require("net");
 const path = require("path");
 const fs = require("fs");
 
 const PORT = process.env.PORT || 5411;
-const BACKEND_DIR = path.join(__dirname, 'xugou', 'backend');
+const RESTART_MINUTES = parseInt(process.env.RESTART_MINUTES) || 40;
+const BACKEND_DIR = path.join(__dirname, '..');
 const LOG_FILE = path.join(BACKEND_DIR, 'data', 'backend.log');
+const MAX_MEMORY_MB = 192;
 
-// Use Serv00 config
+// Copy serv00 config to backend config.json
 const configPath = path.join(BACKEND_DIR, 'config.serv00.json');
 if (fs.existsSync(configPath)) {
   const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-  // Copy to backend's config.json
   fs.writeFileSync(path.join(BACKEND_DIR, 'config.json'), JSON.stringify({...config, port: PORT, hostname: '0.0.0.0'}, null, 2));
 }
 
 function log(msg) { console.log(`[${new Date().toLocaleString()}] ${msg}`); }
 
+let backendProcess = null;
+
 function startBackend() {
-  // Kill any old backend processes first
-  exec('pkill -9 -f "tsx.*index.node" 2>/dev/null; pkill -9 -f "node.*index.node" 2>/dev/null; sleep 1', () => {
-    const cmd = `cd ${BACKEND_DIR} && nohup npx tsx src/index.node.ts >> ${LOG_FILE} 2>&1 &`;
-    log('Starting backend...');
-    exec(cmd, (err) => {
-      if (err) log('Start error: ' + err.message);
-      else log('Backend spawned');
-    });
+  // Kill any old processes first
+  exec('pkill -9 -f "tsx.*index.node" 2>/dev/null; pkill -9 -f "node.*dist/index.node" 2>/dev/null; sleep 1', () => {
+    // Build TypeScript first (skip if dist already exists and src hasn't changed)
+    const distFile = path.join(BACKEND_DIR, 'dist', 'index.node.js');
+    const shouldBuild = !fs.existsSync(distFile) || needsRebuild();
+
+    function launch() {
+      const nodeBin = 'node';
+      const args = [
+        `--max-old-space-size=${MAX_MEMORY_MB}`,
+        '--expose-gc',
+        path.join('dist', 'index.node.js')
+      ];
+      const opts = {
+        cwd: BACKEND_DIR,
+        env: { ...process.env, PORT: String(PORT), NODE_ENV: 'production' },
+        stdio: ['ignore', fs.openSync(LOG_FILE, 'a'), fs.openSync(LOG_FILE, 'a')]
+      };
+
+      log(`Starting backend (max ${MAX_MEMORY_MB}MB heap)...`);
+      backendProcess = spawn(nodeBin, args, opts);
+      backendProcess.on('exit', (code) => {
+        log(`Backend exited (code ${code}), will restart on next check`);
+        backendProcess = null;
+      });
+      backendProcess.on('error', (err) => {
+        log('Backend spawn error: ' + err.message);
+        backendProcess = null;
+      });
+    }
+
+    if (shouldBuild) {
+      log('Building TypeScript...');
+      exec(`cd ${BACKEND_DIR} && npx tsc -p tsconfig.node.json`, (err) => {
+        if (err) {
+          log('Build failed: ' + err.message);
+          // Fallback: try tsx directly
+          log('Falling back to tsx...');
+          fallbackTsx();
+        } else {
+          log('Build OK');
+          launch();
+        }
+      });
+    } else {
+      launch();
+    }
   });
 }
 
-function killTsx() {
-  exec('pkill -f "tsx src/index.node" 2>/dev/null; pkill -f "node.*index.node" 2>/dev/null');
+function needsRebuild() {
+  try {
+    const distStat = fs.statSync(path.join(BACKEND_DIR, 'dist', 'index.node.js'));
+    const distTime = distStat.mtimeMs;
+    // Check if any .ts file is newer than dist
+    function checkDir(dir) {
+      const entries = fs.readdirSync(dir, { withFileTypes: true });
+      for (const e of entries) {
+        const fp = path.join(dir, e.name);
+        if (e.isDirectory()) {
+          if (checkDir(fp)) return true;
+        } else if (e.name.endsWith('.ts') && fs.statSync(fp).mtimeMs > distTime) {
+          return true;
+        }
+      }
+      return false;
+    }
+    return checkDir(path.join(BACKEND_DIR, 'src'));
+  } catch { return true; }
+}
+
+function fallbackTsx() {
+  const args = [
+    `--max-old-space-size=${MAX_MEMORY_MB}`,
+    '--expose-gc',
+    'node_modules/.bin/tsx',
+    'src/index.node.ts'
+  ];
+  const opts = {
+    cwd: BACKEND_DIR,
+    env: { ...process.env, PORT: String(PORT), NODE_ENV: 'production' },
+    stdio: ['ignore', fs.openSync(LOG_FILE, 'a'), fs.openSync(LOG_FILE, 'a')]
+  };
+  log('Starting backend via tsx (fallback)...');
+  backendProcess = spawn('node', args, opts);
+  backendProcess.on('exit', () => { backendProcess = null; });
+  backendProcess.on('error', (err) => {
+    log('TSX fallback error: ' + err.message);
+    backendProcess = null;
+  });
 }
 
 function portInUse() {
@@ -46,19 +126,39 @@ function portInUse() {
   });
 }
 
-// Check & restart every 15 seconds
+// Check & restart every 30 seconds (less aggressive)
 async function keepAlive() {
   const portBusy = await portInUse();
   if (!portBusy) startBackend();
 }
-setInterval(keepAlive, 15000);
+setInterval(keepAlive, 30000);
+
+// Scheduled restart — release accumulated memory every N minutes
+function scheduledRestart() {
+  if (!backendProcess) {
+    log('Scheduled restart skipped (no backend running)');
+    return;
+  }
+  log(`Scheduled restart (every ${RESTART_MINUTES}min) — killing backend...`);
+  try { backendProcess.kill('SIGTERM'); } catch {}
+  // Give it 3 seconds to exit gracefully, then force kill
+  setTimeout(() => {
+    if (backendProcess) {
+      try { backendProcess.kill('SIGKILL'); } catch {}
+      backendProcess = null;
+    }
+    exec('pkill -9 -f "node.*dist/index.node" 2>/dev/null; sleep 1', () => {
+      log('Restarting after scheduled kill...');
+      startBackend();
+    });
+  }, 3000);
+}
+setInterval(scheduledRestart, RESTART_MINUTES * 60 * 1000);
 
 // Health check HTTP server
 const server = http.createServer(async (req, res) => {
-  // Let WebSocket upgrades be handled by the 'upgrade' event
   if ((req.headers.upgrade || '').toLowerCase() === 'websocket') return;
 
-  // Try proxy to backend
   const options = {
     hostname: '127.0.0.1', port: PORT,
     path: req.url, method: req.method,
@@ -79,12 +179,11 @@ const server = http.createServer(async (req, res) => {
   req.pipe(proxy);
 });
 
-// WebSocket upgrade proxy — raw TCP bridging preserves all headers
+// WebSocket upgrade proxy
 server.on('upgrade', (req, clientSocket, head) => {
   log('WS upgrade: ' + req.url);
 
   const backendSocket = net.connect(PORT, '127.0.0.1', () => {
-    // Forward the raw HTTP upgrade request
     const headers = [`Host: 127.0.0.1:${PORT}`];
     for (const [k, v] of Object.entries(req.headers)) {
       if (k.toLowerCase() !== 'host') headers.push(`${k}: ${v}`);
@@ -97,7 +196,6 @@ server.on('upgrade', (req, clientSocket, head) => {
 
     if (head.length > 0) backendSocket.write(head);
 
-    // Bidirectional pipe
     backendSocket.pipe(clientSocket);
     clientSocket.pipe(backendSocket);
   });
