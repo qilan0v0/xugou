@@ -6,8 +6,8 @@ const path = require("path");
 const fs = require("fs");
 
 const PORT = process.env.PORT || 5411;
-const BACKEND_DIR = path.join(__dirname, '..');
-const LOG_FILE = path.join(BACKEND_DIR, 'data/backend.log');
+const BACKEND_DIR = path.join(__dirname, 'xugou', 'backend');
+const LOG_FILE = path.join(BACKEND_DIR, 'data', 'backend.log');
 
 // Use Serv00 config
 const configPath = path.join(BACKEND_DIR, 'config.serv00.json');
