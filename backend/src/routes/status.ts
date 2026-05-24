@@ -96,29 +96,25 @@ interface DbAgentItem {
 // 创建 Hono 路由
 const app = new Hono<{ Bindings: Bindings }>();
 
-// 保护管理员路由
-const adminRoutes = new Hono<{ Bindings: Bindings }>()
-  .use('*', async (c, next) => {
-    try {
-      const jwtMiddleware = jwt({ alg: "HS256", 
-        secret: getJwtSecret(c)
-      });
-      await jwtMiddleware(c, next);
-      
-      const payload = c.get('jwtPayload');
-      if (!payload || !payload.id) {
-        return c.json({ error: '未授权' }, 401);
-      }
-      
-      // 这里不再调用next()，防止重复调用
-    } catch (error) {
-      console.error('JWT认证错误:', error);
-      return c.json({ error: '认证失败' }, 401);
+// JWT auth middleware (applied per-route, not globally)
+const requireAuth = async (c: any, next: any) => {
+  try {
+    const jwtMiddleware = jwt({ alg: "HS256", secret: getJwtSecret(c) });
+    await jwtMiddleware(c, next);
+    const payload = c.get('jwtPayload');
+    if (!payload || !payload.id) {
+      return c.json({ error: '未授权' }, 401);
     }
-  });
+  } catch (error) {
+    return c.json({ error: '认证失败' }, 401);
+  }
+};
+
+// Admin routes (each protected by requireAuth)
+const adminRoutes = new Hono<{ Bindings: Bindings }>();
 
 // 获取状态页配置
-adminRoutes.get('/config', async (c) => {
+adminRoutes.get('/config', requireAuth, async (c) => {
   const payload = c.get('jwtPayload');
   const userId = payload.id;
   
@@ -175,7 +171,7 @@ adminRoutes.get('/config', async (c) => {
 });
 
 // 保存状态页配置
-adminRoutes.post('/config', async (c) => {
+adminRoutes.post('/config', requireAuth, async (c) => {
   const payload = c.get('jwtPayload');
   const userId = payload.id;
   const data = await c.req.json() as StatusPageConfig;
@@ -291,7 +287,7 @@ adminRoutes.post('/config', async (c) => {
 });
 
 // 获取 webhook 通知配置
-adminRoutes.get('/webhook', async (c) => {
+adminRoutes.get('/webhook', requireAuth, async (c) => {
   const payload = c.get('jwtPayload');
   try {
     let cfg = await c.env.DB.prepare('SELECT * FROM webhook_config WHERE user_id = ?').bind(payload.id).first<any>();
@@ -307,7 +303,7 @@ adminRoutes.get('/webhook', async (c) => {
 });
 
 // 保存 webhook 通知配置
-adminRoutes.post('/webhook', async (c) => {
+adminRoutes.post('/webhook', requireAuth, async (c) => {
   const payload = c.get('jwtPayload');
   try {
     const data = await c.req.json();
