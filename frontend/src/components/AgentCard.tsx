@@ -129,11 +129,11 @@ const AgentCard = React.memo(({ agent, onClick, size = 'large' }: AgentCardProps
         {isOnline ? (
           <div className="p-3 space-y-2.5">
             {/* Top: dot + flag + name (centered) */}
-            <div className="flex items-center justify-center gap-2">
+            <div className="relative flex items-center justify-center gap-2">
               <span className="h-2 w-2 shrink-0 rounded-full bg-green-500" />
               <CountryFlag code={agent.country} />
               <span className="text-xs font-bold text-slate-900 dark:text-white truncate">{agent.name}</span>
-              {uptimeStr && <span className="ml-auto text-[10px] text-slate-400 whitespace-nowrap">⏱ {uptimeStr}</span>}
+              {uptimeStr && <span className="absolute right-0 text-[10px] text-slate-400 whitespace-nowrap">⏱ {uptimeStr}</span>}
             </div>
 
             {/* Middle: OS + metrics columns */}
