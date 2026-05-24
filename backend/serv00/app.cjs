@@ -25,16 +25,28 @@ fs.writeFileSync(path.join(BACKEND_DIR, 'config.json'), JSON.stringify({...fileC
 function log(msg) { console.log(`[${new Date().toLocaleString()}] ${msg}`); }
 
 let backendProcess = null;
+let starting = false;  // mutex: prevent concurrent startBackend() calls
+
+function killOldBackends() {
+  exec('pkill -9 -f "tsx.*index.node" 2>/dev/null; pkill -9 -f "node.*dist/index.node" 2>/dev/null');
+}
 
 function startBackend() {
-  // Kill any old processes first
-  exec('pkill -9 -f "tsx.*index.node" 2>/dev/null; pkill -9 -f "node.*dist/index.node" 2>/dev/null; sleep 1', () => {
-    // Build TypeScript first (skip if dist already exists and src hasn't changed)
+  if (starting) { log('Already starting, skip'); return; }
+  starting = true;
+
+  // Kill old processes and existing orphan before launching
+  if (backendProcess) {
+    try { backendProcess.kill('SIGKILL'); } catch {}
+    backendProcess = null;
+  }
+  killOldBackends();
+
+  setTimeout(() => {
     const distFile = path.join(BACKEND_DIR, 'dist', 'index.node.js');
     const shouldBuild = !fs.existsSync(distFile) || needsRebuild();
 
     function launch() {
-      const nodeBin = 'node';
       const args = [
         `--max-old-space-size=${MAX_MEMORY_MB}`,
         '--expose-gc',
@@ -47,31 +59,29 @@ function startBackend() {
       };
 
       log(`Starting backend (max ${MAX_MEMORY_MB}MB heap)...`);
-      backendProcess = spawn(nodeBin, args, opts);
+      backendProcess = spawn('node', args, opts);
       backendProcess.on('exit', (code) => {
-        log(`Backend exited (code ${code}), will restart on next check`);
+        log(`Backend exited (code ${code})`);
         backendProcess = null;
       });
       backendProcess.on('error', (err) => {
         log('Backend spawn error: ' + err.message);
         backendProcess = null;
       });
+      setTimeout(() => { starting = false; }, 3000);  // release mutex after startup
     }
 
     if (shouldBuild) {
       log('Building TypeScript...');
       exec(`cd ${BACKEND_DIR} && npx tsc -p tsconfig.node.json && echo '{"type":"commonjs"}' > dist/package.json`, (err) => {
-        if (err) {
-          log('Build failed: ' + err.message);
-        } else {
-          log('Build OK');
-        }
+        if (err) log('Build failed: ' + err.message);
+        else log('Build OK');
         launch();
       });
     } else {
       launch();
     }
-  });
+  }, 1500);  // wait for old processes to die
 }
 
 function needsRebuild() {
@@ -115,23 +125,15 @@ setInterval(keepAlive, 30000);
 
 // Scheduled restart — release accumulated memory every N minutes
 function scheduledRestart() {
-  if (!backendProcess) {
-    log('Scheduled restart skipped (no backend running)');
+  if (!backendProcess && !(starting)) {
+    log('Scheduled restart skipped (no backend)');
     return;
   }
   log(`Scheduled restart (every ${RESTART_MINUTES}min) — killing backend...`);
-  try { backendProcess.kill('SIGTERM'); } catch {}
-  // Give it 3 seconds to exit gracefully, then force kill
-  setTimeout(() => {
-    if (backendProcess) {
-      try { backendProcess.kill('SIGKILL'); } catch {}
-      backendProcess = null;
-    }
-    exec('pkill -9 -f "node.*dist/index.node" 2>/dev/null; sleep 1', () => {
-      log('Restarting after scheduled kill...');
-      startBackend();
-    });
-  }, 3000);
+  try { backendProcess && backendProcess.kill('SIGTERM'); } catch {}
+  killOldBackends();
+  backendProcess = null;
+  // keepAlive will detect port down and restart within 30s
 }
 setInterval(scheduledRestart, RESTART_MINUTES * 60 * 1000);
 
