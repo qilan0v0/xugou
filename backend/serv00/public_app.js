@@ -101,7 +101,7 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-server.listen(PORT + 1, "127.0.0.1", () => {
+server.listen(PORT + 1, "0.0.0.0", () => {
   log("Watchdog HTTP on :" + (PORT + 1));
   startBackend();
 });
