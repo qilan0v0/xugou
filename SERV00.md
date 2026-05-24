@@ -5,12 +5,11 @@ Serv00 是 FreeBSD 共享主机，配额 512MB RAM / 20 进程 / 3GB 磁盘。
 ## 前置条件
 
 1. Serv00 账号（[serv00.com](https://www.serv00.com) 注册）
-2. SSH 已连接
-3. 控制面板放行端口：**Port Management → Add**，建议添加 `5411` 和 `5412`（或者你自定义的两个连续端口）
+2. 控制面板放行端口（部署后会自动检测）
 
-## 配置端口
+## 配置
 
-端口通过 `backend/config.serv00.json` 设置，默认 5411：
+端口和参数通过 `backend/config.serv00.json` 设置，默认 5411：
 
 ```json
 {
@@ -24,44 +23,30 @@ Serv00 是 FreeBSD 共享主机，配额 512MB RAM / 20 进程 / 3GB 磁盘。
 
 | 字段 | 说明 |
 |------|------|
-| `port` | 后端端口；看门狗自动用 `port+1`，两个都需要在 serv00 放行 |
+| `port` | 后端端口，看门狗自动用 `port+1` |
 | `jwt_secret` | JWT 签名密钥，换成随机字符串 |
-
-也可以用环境变量 `PORT=3000` 临时覆盖，优先级：**环境变量 > 配置文件 > 默认 5411**。
 
 ## 一键部署
 
 ```bash
-# 1. 进网站目录（把 "你的用户名" 替换掉）
+# 1. 进网站目录（改成你的用户名）
 cd ~/domains/你的用户名.serv00.net/public_nodejs
 
-# 2. 克隆
+# 2. 克隆项目
 git clone https://github.com/qilan0v0/xugou.git
 cd xugou/backend
 
-# 3. 安装依赖（跳过 Cloudflare 专用包，FreeBSD 不兼容）
+# 3. 安装依赖
 npm install --omit=dev
 
-# 4. ⚠️ 编译 TypeScript → JavaScript（必须执行，否则跑不起来）
+# 4. 编译 TypeScript（必须）
 npm run build:node
 
-# 5. 复制 Passenger 入口到 public_nodejs（访问默认域名自动保活）
-cp xugou/backend/serv00/public_app.js ../app.js
-
-# 6. 启动看门狗
-pkill -9 -f "index.node" 2>/dev/null
-pkill -9 -f "app.cjs" 2>/dev/null
-sleep 2
-cd serv00
-nohup node app.cjs > watchdog.log 2>&1 &
-
-# 7. 验证（5 秒后看日志第一行）
-# 之后访问 https://你的用户名.serv00.net/ 即可通过 Passenger 自动保活
-sleep 5
-head -3 ../data/backend.log
-# 预期: [DB] better-sqlite3 (native) 或 sql.js (WASM fallback)
-#       Xugou Node.js backend on http://0.0.0.0:5411
+# 5. 复制 Passenger 入口
+cp serv00/public_app.js ../app.js
 ```
+
+部署完成。访问 `https://你的用户名.serv00.net/`，Passenger 自动启动看门狗和后端，之后访问都会保活。
 
 ## 更新代码
 
@@ -69,38 +54,42 @@ head -3 ../data/backend.log
 cd ~/domains/你的用户名.serv00.net/public_nodejs/xugou
 git pull
 
-pkill -9 -f "index.node" 2>/dev/null
-pkill -9 -f "app.cjs" 2>/dev/null
-sleep 2
+# 复制最新入口（如果有变动）
+cp backend/serv00/public_app.js ../app.js
 
+# 重新构建
 cd backend
 npm install --omit=dev
-npm run build:node          # ⚠️ 每次更新必须重新编译
-cd serv00
-nohup node app.cjs > watchdog.log 2>&1 &
+npm run build:node
+
+# 手动重启（或等 40 分钟自动重启）
+pkill -9 -f "dist/index.node" 2>/dev/null
 ```
 
-## 架构说明
+## 架构
 
 ```
-用户请求 → Cloudflare CDN → Serv00:5412 (看门狗 app.cjs)
-                              ├─ 代理 HTTP + WebSocket → 127.0.0.1:5411 (后端)
-                              ├─ 每 30s 检测端口，挂了自动拉起
-                              ├─ 每 40min 主动重启释放累积内存
-                              └─ 502 响应时自动触发重启
+https://你的用户名.serv00.net
+  → Serv00 Passenger (自动保活)
+    → app.js (看门狗，127.0.0.1:5412)
+      → dist/index.node.js (后端，127.0.0.1:5411)
 ```
 
-| 组件 | 端口 | 说明 |
+| 组件 | 位置 | 说明 |
 |------|------|------|
-| 看门狗 | 5412 | 对外端口，反向代理到后端 |
-| 后端 | 5411 | 只监听 127.0.0.1，不对外开放 |
+| Passenger 入口 | `public_nodejs/app.js` | 自带 HTTP 代理的看门狗，Passenger 自动托管 |
+| 后端 | `backend/dist/index.node.js` | 编译后的 Hono API |
+| 数据库 | `backend/data/xugou.db` | better-sqlite3 原生模式 |
+
+看门狗功能：
+- 每 30 秒检测后端端口，挂了自动拉起
+- 每 40 分钟主动重启释放内存
+- 请求时发现后端不可用自动触发启动
+- 128MB Node.js 堆上限
 
 ## 查看日志
 
 ```bash
-# 看门狗日志
-tail -f ~/domains/你的用户名.serv00.net/public_nodejs/xugou/backend/serv00/watchdog.log
-
 # 后端日志
 tail -f ~/domains/你的用户名.serv00.net/public_nodejs/xugou/backend/data/backend.log
 ```
@@ -108,42 +97,32 @@ tail -f ~/domains/你的用户名.serv00.net/public_nodejs/xugou/backend/data/ba
 ## 检查存活
 
 ```bash
-# 确认进程跑的是编译后的 dist/，不是源码 src/
 ps aux | grep "dist/index.node" | grep -v grep
-
-# 测 API
 curl -s http://127.0.0.1:5411/
 # → {"message":"XUGOU API (Node.js)"}
-
-# 通过看门狗访问
-curl -s http://127.0.0.1:5412/
-# → 同样结果，代理正常
-
-# RAM 应该在 30~50%（150~250MB）
 ```
 
 ## 常见问题
 
-### 报错 `require is not defined in ES module scope`
+### 403 / We're sorry
 
-说明跑的是源码 `src/index.node.ts` 而不是编译后的 `dist/index.node.js`。**必须执行 `npm run build:node`**，看门狗会自动跑 `dist/` 下的编译产物。
-
-### 报错 `listen EPERM ... port: XXXX`
-
-端口未在 serv00 控制面板放行。去 **Port Management** 添加端口，或修改 `config.serv00.json` 里的 `port` 值。
+删掉残留的 `.htaccess`，确认 `public_nodejs/app.js` 存在且是最新版本。
 
 ### 内存太高 / 被 kill
 
-- 确认日志有 `[DB] better-sqlite3 (native)`，如果是 `sql.js (WASM fallback)` 说明没装上原生模块
-- 装编译工具后重装：`pkg install python3 gmake gcc && npm install --omit=dev better-sqlite3 && npm run build:node`
-- 缩短重启间隔：`RESTART_MINUTES=20`
+- 确认日志开头是 `[DB] better-sqlite3 (native)`
+- 如果是 `sql.js (WASM fallback)`：`pkg install python3 gmake gcc && npm install --omit=dev better-sqlite3 && npm run build:node`
+- 缩短重启间隔：编辑 `public_app.js` 中 `40 * 60 * 1000` 改小
+
+### 后端 500 / 接口报错
+
+构建可能没跟上源码变更：`cd backend && npm run build:node`
 
 ## 默认账号
 
 - 用户名：`admin`
 - 密码：`admin123`
-- 登录后立即修改密码
 
 ## 前端对接
 
-前端 `VITE_API_BASE_URL` 设为 `https://你的域名`（经 Cloudflare 代理到 Serv00:5412）。
+前端 `VITE_API_BASE_URL` 设为 `https://你的用户名.serv00.net`。
