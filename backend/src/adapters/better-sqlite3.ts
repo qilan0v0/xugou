@@ -20,7 +20,12 @@ class D1PreparedStatement {
   }
 
   bind(...values: any[]): this {
-    (this as any)._params = values.map(v => v === undefined ? null : v);
+    (this as any)._params = values.map(v => {
+      if (v === undefined) return null;
+      if (typeof v === 'boolean') return v ? 1 : 0;
+      if (v instanceof Date) return v.toISOString();
+      return v;
+    });
     return this;
   }
 
