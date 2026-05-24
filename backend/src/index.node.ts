@@ -4,8 +4,6 @@ import { cors } from 'hono/cors';
 import { prettyJSON } from 'hono/pretty-json';
 import { Bindings } from './models/db';
 
-import { createDb, closeDb } from './adapters/sqlite';
-
 import authRoutes from './routes/auth';
 import monitorRoutes from './routes/monitors';
 import agentRoutes from './routes/agents';
@@ -29,7 +27,19 @@ if (existsSync(configPath)) {
   try { config = { ...config, ...JSON.parse(readFileSync(configPath, 'utf-8')) }; } catch(e) {}
 }
 
-const db = await createDb(config.db_path);
+// DB adapter — prefer native better-sqlite3, fall back to sql.js (WASM)
+let createDb: any, closeDb: any;
+try {
+  const m = require('./adapters/better-sqlite3');
+  createDb = m.createDb; closeDb = m.closeDb;
+  console.log('[DB] better-sqlite3 (native, disk-based)');
+} catch (e) {
+  const m = require('./adapters/sqlite');
+  createDb = m.createDb; closeDb = m.closeDb;
+  console.log('[DB] sql.js (WASM fallback) — pkg install python3 gmake gcc for native');
+}
+
+const db = createDb(config.db_path);
 
 const env: any = {
   DB: db,

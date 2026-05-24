@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 5411;
 const RESTART_MINUTES = parseInt(process.env.RESTART_MINUTES) || 40;
 const BACKEND_DIR = path.join(__dirname, '..');
 const LOG_FILE = path.join(BACKEND_DIR, 'data', 'backend.log');
-const MAX_MEMORY_MB = 192;
+const MAX_MEMORY_MB = 128;
 
 // Copy serv00 config to backend config.json
 const configPath = path.join(BACKEND_DIR, 'config.serv00.json');
@@ -56,16 +56,13 @@ function startBackend() {
 
     if (shouldBuild) {
       log('Building TypeScript...');
-      exec(`cd ${BACKEND_DIR} && npx tsc -p tsconfig.node.json`, (err) => {
+      exec(`cd ${BACKEND_DIR} && npx tsc -p tsconfig.node.json && echo '{"type":"commonjs"}' > dist/package.json`, (err) => {
         if (err) {
           log('Build failed: ' + err.message);
-          // Fallback: try tsx directly
-          log('Falling back to tsx...');
-          fallbackTsx();
         } else {
           log('Build OK');
-          launch();
         }
+        launch();
       });
     } else {
       launch();
@@ -92,27 +89,6 @@ function needsRebuild() {
     }
     return checkDir(path.join(BACKEND_DIR, 'src'));
   } catch { return true; }
-}
-
-function fallbackTsx() {
-  const args = [
-    `--max-old-space-size=${MAX_MEMORY_MB}`,
-    '--expose-gc',
-    'node_modules/.bin/tsx',
-    'src/index.node.ts'
-  ];
-  const opts = {
-    cwd: BACKEND_DIR,
-    env: { ...process.env, PORT: String(PORT), NODE_ENV: 'production' },
-    stdio: ['ignore', fs.openSync(LOG_FILE, 'a'), fs.openSync(LOG_FILE, 'a')]
-  };
-  log('Starting backend via tsx (fallback)...');
-  backendProcess = spawn('node', args, opts);
-  backendProcess.on('exit', () => { backendProcess = null; });
-  backendProcess.on('error', (err) => {
-    log('TSX fallback error: ' + err.message);
-    backendProcess = null;
-  });
 }
 
 function portInUse() {
