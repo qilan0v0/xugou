@@ -237,7 +237,7 @@ const StatusPage = () => {
                 {filtered.length === 0 ? (
                   <div className="glass p-8 text-center"><p className="text-sm text-slate-500">没有匹配的客户端</p></div>
                 ) : (
-                  <div className={`grid gap-4 ${cardSize === 'medium' ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
+                  <div className={`grid gap-2 ${cardSize === 'large' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' : 'grid-cols-1 lg:grid-cols-2'}`}>
                     {filtered.map(agent => (
                       <AgentCard key={agent.id} agent={agent} size={cardSize} onClick={() => setSelectedAgent(agent)} />
                     ))}

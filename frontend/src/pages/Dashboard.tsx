@@ -140,7 +140,7 @@ const Dashboard = () => {
             <Link to="/agents/create" className="btn-gradient px-4 py-2 text-sm inline-block">{t('agents.create')}</Link>
           </div>
         ) : (
-          <div className={`grid gap-4 ${cardSize === 'medium' ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'}`}>
+          <div className={`grid gap-2 ${cardSize === 'large' ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4' : 'grid-cols-1 lg:grid-cols-2'}`}>
             {agents.slice(0, cardSize === 'medium' ? 10 : 3).map(a => <AgentCard key={a.id} agent={a} size={cardSize} />)}
           </div>
         )}
