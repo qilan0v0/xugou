@@ -119,7 +119,7 @@ const AgentCard = React.memo(({ agent, onClick, size = 'large' }: AgentCardProps
     const netUp = netTx >= 1024 ? `${(netTx / 1024).toFixed(2)}M/s` : `${netTx.toFixed(1)}K/s`;
     const netDown = netRx >= 1024 ? `${(netRx / 1024).toFixed(2)}M/s` : `${netRx.toFixed(1)}K/s`;
     const osParts = (agent.os || '').split(' ');
-    const osName = osParts[0] === 'Linux' ? (osParts[1] || 'Linux') : (osParts[0] || '');
+    const osName = osParts[0].toLowerCase() === 'linux' ? (osParts[1] || 'Linux') : (osParts[0] || '');
 
     // Use pre-computed txTotalStr/rxTotalStr from component top
     return (
