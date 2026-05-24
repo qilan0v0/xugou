@@ -32,6 +32,6 @@ echo "==> Build complete"
 
 echo ""
 echo "==> Setup done. Start with:"
-echo "    cd $BACKEND_DIR/serv00 && node app.js"
+echo "    cd $BACKEND_DIR/serv00 && node app.cjs"
 echo ""
-echo "    RESTART_MINUTES=30 PORT=5411 node app.js   (custom settings)"
+echo "    RESTART_MINUTES=30 PORT=5411 node app.cjs   (custom settings)"
