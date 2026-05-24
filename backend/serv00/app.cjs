@@ -5,18 +5,22 @@ const net = require("net");
 const path = require("path");
 const fs = require("fs");
 
-const PORT = process.env.PORT || 5411;
-const RESTART_MINUTES = parseInt(process.env.RESTART_MINUTES) || 40;
 const BACKEND_DIR = path.join(__dirname, '..');
 const LOG_FILE = path.join(BACKEND_DIR, 'data', 'backend.log');
-const MAX_MEMORY_MB = 128;
+const MAX_MEMORY_MB = parseInt(process.env.MAX_MEMORY_MB) || 128;
 
-// Copy serv00 config to backend config.json
+// Read config file first, then env var overrides
 const configPath = path.join(BACKEND_DIR, 'config.serv00.json');
+let fileConfig = { port: 5411, hostname: '0.0.0.0' };
 if (fs.existsSync(configPath)) {
-  const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-  fs.writeFileSync(path.join(BACKEND_DIR, 'config.json'), JSON.stringify({...config, port: PORT, hostname: '0.0.0.0'}, null, 2));
+  fileConfig = { ...fileConfig, ...JSON.parse(fs.readFileSync(configPath, 'utf-8')) };
 }
+
+const PORT = process.env.PORT || fileConfig.port || 5411;
+const RESTART_MINUTES = parseInt(process.env.RESTART_MINUTES) || 40;
+
+// Write merged config to backend
+fs.writeFileSync(path.join(BACKEND_DIR, 'config.json'), JSON.stringify({...fileConfig, port: PORT, hostname: '0.0.0.0'}, null, 2));
 
 function log(msg) { console.log(`[${new Date().toLocaleString()}] ${msg}`); }
 
