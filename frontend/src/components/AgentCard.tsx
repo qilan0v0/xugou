@@ -10,6 +10,7 @@ import { Cpu, MemoryStick, HardDrive, ArrowDown, ArrowUp, Download, Upload, Acti
 interface AgentCardProps {
   agent: Agent;
   onClick?: () => void;
+  size?: 'medium' | 'large';
 }
 
 const formatBytes = (bytes: number): string => {
@@ -30,7 +31,7 @@ const formatDuration = (ms: number): string => {
   return `${m}分`;
 };
 
-const AgentCard = React.memo(({ agent, onClick }: AgentCardProps) => {
+const AgentCard = React.memo(({ agent, onClick, size = 'large' }: AgentCardProps) => {
   const { t } = useTranslation();
 
   let cpu = 0, memPct = 0, diskPct = 0;
@@ -91,11 +92,60 @@ const AgentCard = React.memo(({ agent, onClick }: AgentCardProps) => {
     </div>
   );};
 
+  const commonCardProps = {
+    onClick,
+    className: `glass rounded-xl hover:shadow-lg transition-shadow duration-200 ${onClick ? 'cursor-pointer' : ''} ${!isOnline ? 'offline-striped ring-2 ring-red-500/50' : ''}`,
+  };
+
+  // ── Medium (compact) card ──
+  if (size === 'medium') {
+    return (
+      <div {...commonCardProps} className={`${commonCardProps.className} p-3`}>
+        {/* Row 1: flag + OS + name + status */}
+        <div className="flex items-center gap-1.5 mb-2">
+          <CountryFlag code={agent.country} />
+          {agent.os && (
+            <img src={getOSImage((agent.os || '') + ' ' + (agent.version || ''))} alt={agent.os.split(' ')[0]} className="w-3.5 h-3.5 object-contain flex-shrink-0" title={`${agent.os} · ${agent.version || ''}`} />
+          )}
+          <span className="font-medium text-xs text-slate-900 dark:text-white truncate">{agent.name}</span>
+          <span className="ml-auto flex items-center gap-1 flex-shrink-0">
+            <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-500 shadow-[0_0_4px_rgba(34,197,94,0.6)]' : 'bg-slate-400'}`} />
+            <span className={`text-[10px] ${isOnline ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500'}`}>
+              {isOnline ? t('agent.status.online') : t('agent.status.offline')}
+            </span>
+          </span>
+        </div>
+
+        {/* CPU + Memory bars */}
+        <div className="space-y-1.5">
+          {[
+            { icon: <Cpu size={11} />, label: 'CPU', value: cpu.toFixed(1) + '%', bar: cpu, color: 'bg-blue-500' },
+            { icon: <MemoryStick size={11} />, label: t('agent.memory'), value: memPct.toFixed(1) + '%', bar: memPct, color: 'bg-green-500' },
+            { icon: <HardDrive size={11} />, label: t('agent.disk'), value: diskPct.toFixed(1) + '%', bar: diskPct, color: 'bg-red-500' },
+          ].map((m, i) => (
+            <div key={i} className="flex items-center gap-1.5">
+              <span className="text-slate-400 w-3.5 flex justify-center flex-shrink-0">{m.icon}</span>
+              <span className="text-[10px] text-slate-500 w-6 flex-shrink-0">{m.label}</span>
+              <div className="flex-1 h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                <div className={`h-full rounded-full transition-all duration-500 ${m.color}`} style={{ width: `${Math.min(m.bar, 100)}%` }} />
+              </div>
+              <span className="text-[10px] font-mono text-slate-600 dark:text-slate-400 w-10 text-right flex-shrink-0">{m.value}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Network + Uptime */}
+        <div className="flex items-center justify-between mt-2 text-[10px] text-slate-400">
+          <span>↓{(netRx / 1024).toFixed(1)} ↑{(netTx / 1024).toFixed(1)} KB/s</span>
+          <span>{uptimeStr && `⏱ ${uptimeStr}`}</span>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Large (full detail) card ──
   return (
-    <div
-      onClick={onClick}
-      className={`glass rounded-xl p-4 hover:shadow-lg transition-shadow duration-200 ${onClick ? 'cursor-pointer' : ''} ${!isOnline ? 'offline-striped ring-2 ring-red-500/50' : ''}`}
-    >
+    <div {...commonCardProps} className={`${commonCardProps.className} p-4`}>
       {/* Header: flag + OS + name + status */}
       <div className="flex items-center gap-2 mb-3">
         <CountryFlag code={agent.country} />

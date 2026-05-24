@@ -8,13 +8,24 @@ import MonitorCard from '../components/MonitorCard';
 import AgentCard from '../components/AgentCard';
 import { useTranslation } from 'react-i18next';
 import { CheckCircledIcon, CrossCircledIcon, ClockIcon, GlobeIcon, ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import { LayoutGrid, Rows3 } from 'lucide-react';
+
+const CARD_SIZE_KEY = 'xugou_agent_card_size';
 
 const Dashboard = () => {
   const [monitors, setMonitors] = useState<Monitor[]>([]);
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [cardSize, setCardSize] = useState<'medium' | 'large'>(
+    () => (localStorage.getItem(CARD_SIZE_KEY) as 'medium' | 'large') || 'large'
+  );
   const { t } = useTranslation();
+
+  const toggleCardSize = (size: 'medium' | 'large') => {
+    setCardSize(size);
+    localStorage.setItem(CARD_SIZE_KEY, size);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -102,7 +113,26 @@ const Dashboard = () => {
       <div>
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-bold text-slate-900 dark:text-white section-heading">{t('navbar.agentMonitors')}</h3>
-          <Link to="/agents" className="text-sm text-blue-500 hover:text-blue-400 font-medium transition-colors">{t('agents.title')} →</Link>
+          <div className="flex items-center gap-2">
+            {/* Card size toggle */}
+            <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg p-0.5">
+              <button
+                onClick={() => toggleCardSize('medium')}
+                className={`p-1.5 rounded-md transition-colors ${cardSize === 'medium' ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
+                title="中卡片"
+              >
+                <Rows3 size={15} />
+              </button>
+              <button
+                onClick={() => toggleCardSize('large')}
+                className={`p-1.5 rounded-md transition-colors ${cardSize === 'large' ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
+                title="大卡片"
+              >
+                <LayoutGrid size={15} />
+              </button>
+            </div>
+            <Link to="/agents" className="text-sm text-blue-500 hover:text-blue-400 font-medium transition-colors">{t('agents.title')} →</Link>
+          </div>
         </div>
         {agents.length === 0 ? (
           <div className="glass p-8 text-center border-dashed">
@@ -110,8 +140,8 @@ const Dashboard = () => {
             <Link to="/agents/create" className="btn-gradient px-4 py-2 text-sm inline-block">{t('agents.create')}</Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {agents.slice(0, 3).map(a => <AgentCard key={a.id} agent={a} />)}
+          <div className={`grid gap-4 ${cardSize === 'medium' ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'}`}>
+            {agents.slice(0, cardSize === 'medium' ? 10 : 3).map(a => <AgentCard key={a.id} agent={a} size={cardSize} />)}
           </div>
         )}
       </div>
