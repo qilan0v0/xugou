@@ -138,7 +138,7 @@ function scheduledRestart() {
 setInterval(scheduledRestart, RESTART_MINUTES * 60 * 1000);
 
 // Health check HTTP server
-const server = http.createServer(async (req, res) => {
+const server = http.createServer((req, res) => {
   if ((req.headers.upgrade || '').toLowerCase() === 'websocket') return;
 
   const options = {
@@ -152,13 +152,15 @@ const server = http.createServer(async (req, res) => {
     res.writeHead(backendRes.statusCode, backendRes.headers);
     backendRes.pipe(res);
   });
-  proxy.on('error', async () => {
-    const portBusy = await portInUse();
-    if (!portBusy) startBackend();
+  proxy.on('error', () => {
+    proxy.destroy();
+    req.destroy();
+    if (!backendProcess && !starting) startBackend();
     res.writeHead(502, { 'Content-Type': 'text/plain' });
     res.end('Backend starting, retry...');
   });
   req.pipe(proxy);
+  proxy.setTimeout(5000, () => { proxy.destroy(); });
 });
 
 // WebSocket upgrade proxy
