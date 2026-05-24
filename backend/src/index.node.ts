@@ -28,6 +28,7 @@ if (existsSync(configPath)) {
 }
 
 // DB adapter — prefer native better-sqlite3, fall back to sql.js (WASM)
+import type { SqliteAdapter } from './adapters/better-sqlite3';
 declare var require: any;
 let createDb: any, closeDb: any;
 try {
@@ -40,9 +41,9 @@ try {
   console.log('[DB] sql.js (WASM fallback) — pkg install python3 gmake gcc for native');
 }
 
-const db = createDb(config.db_path);
+const db: SqliteAdapter = createDb(config.db_path);
 
-const env: any = {
+const env = {
   DB: db,
   JWT_SECRET: config.jwt_secret || 'change-me',
   ENABLE_DB_INIT: config.enable_db_init ? 'true' : 'false',
