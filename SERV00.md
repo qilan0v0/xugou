@@ -45,14 +45,18 @@ npm install --omit=dev
 # 4. ⚠️ 编译 TypeScript → JavaScript（必须执行，否则跑不起来）
 npm run build:node
 
-# 5. 启动看门狗
+# 5. 复制 Passenger 入口到 public_nodejs（访问默认域名自动保活）
+cp xugou/backend/serv00/public_app.js ../app.js
+
+# 6. 启动看门狗
 pkill -9 -f "index.node" 2>/dev/null
 pkill -9 -f "app.cjs" 2>/dev/null
 sleep 2
 cd serv00
 nohup node app.cjs > watchdog.log 2>&1 &
 
-# 6. 验证（5 秒后看日志第一行）
+# 7. 验证（5 秒后看日志第一行）
+# 之后访问 https://你的用户名.serv00.net/ 即可通过 Passenger 自动保活
 sleep 5
 head -3 ../data/backend.log
 # 预期: [DB] better-sqlite3 (native) 或 sql.js (WASM fallback)
