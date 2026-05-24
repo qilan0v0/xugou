@@ -28,6 +28,7 @@ if (existsSync(configPath)) {
 }
 
 // DB adapter — prefer native better-sqlite3, fall back to sql.js (WASM)
+declare var require: any;
 let createDb: any, closeDb: any;
 try {
   const m = require('./adapters/better-sqlite3');

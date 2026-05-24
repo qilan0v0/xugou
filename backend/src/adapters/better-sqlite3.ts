@@ -1,7 +1,9 @@
 // SQLite adapter using better-sqlite3 (native C, disk-based, not WASM)
-import Database, { Statement as BStatement, RunResult } from 'better-sqlite3';
-import { existsSync, mkdirSync } from 'fs';
-import { dirname } from 'path';
+// Uses dynamic require: if better-sqlite3 is not installed, import will throw (caught by caller)
+const BetterSqlite3 = require('better-sqlite3');
+const Database = BetterSqlite3.default || BetterSqlite3;
+const { existsSync, mkdirSync } = require('fs');
+const { dirname } = require('path');
 
 interface D1Result<T = unknown> {
   results?: T[];
@@ -11,15 +13,13 @@ interface D1Result<T = unknown> {
 }
 
 class D1PreparedStatement {
-  private stmt: BStatement;
+  private stmt: any;
 
-  constructor(stmt: BStatement) {
+  constructor(stmt: any) {
     this.stmt = stmt;
   }
 
   bind(...values: any[]): this {
-    this.stmt.raw(true);  // ensure params mode
-    // params will be passed to all/get/run directly
     (this as any)._params = values.map(v => v === undefined ? null : v);
     return this;
   }
@@ -48,7 +48,7 @@ class D1PreparedStatement {
   run<T = unknown>(): D1Result<T> {
     try {
       const params = (this as any)._params || [];
-      const result: RunResult = this.stmt.run(...params);
+      const result: any = this.stmt.run(...params);
       return { success: true, meta: { changes: result.changes } };
     } catch (e: any) {
       console.error('[better-sqlite3] run() error:', e.message);
@@ -68,7 +68,7 @@ export interface SqliteAdapter {
   batch<T = unknown>(statements: D1PreparedStatement[]): Promise<D1Result<T>[]>;
 }
 
-let db: Database.Database | null = null;
+let db: any = null;
 
 export function createDb(path?: string): SqliteAdapter {
   const dbPath = path || process.env.DB_PATH || './data/xugou.db';
@@ -81,7 +81,7 @@ export function createDb(path?: string): SqliteAdapter {
   db = new Database(dbPath);
   db.pragma('journal_mode = WAL');
   db.pragma('foreign_keys = ON');
-  db.pragma('cache_size = -4000');  // 4MB page cache max
+  db.pragma('cache_size = -4000');
   db.pragma('synchronous = NORMAL');
 
   return {
@@ -113,7 +113,7 @@ export function createDb(path?: string): SqliteAdapter {
   };
 }
 
-export function getRawDb(): Database.Database | null {
+export function getRawDb(): any {
   return db;
 }
 
