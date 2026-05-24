@@ -128,8 +128,8 @@ const AgentCard = React.memo(({ agent, onClick, size = 'large' }: AgentCardProps
       >
         {isOnline ? (
           <div className="p-3 space-y-2.5">
-            {/* Top: dot + flag + name */}
-            <div className="flex items-center gap-2">
+            {/* Top: dot + flag + name (centered) */}
+            <div className="flex items-center justify-center gap-2">
               <span className="h-2 w-2 shrink-0 rounded-full bg-green-500" />
               <CountryFlag code={agent.country} />
               <span className="text-xs font-bold text-slate-900 dark:text-white truncate">{agent.name}</span>
@@ -148,8 +148,8 @@ const AgentCard = React.memo(({ agent, onClick, size = 'large' }: AgentCardProps
                 <MetricCol label="CPU" value={`${cpu.toFixed(1)}%`} bar={cpu} />
                 <MetricCol label={t('agent.memory')} value={`${memPct.toFixed(1)}%`} bar={memPct} />
                 <MetricCol label={t('agent.disk')} value={`${diskPct.toFixed(1)}%`} bar={diskPct} />
-                <MetricCol label="↓DL" value={netDown} bar={netRx > 1024 ? Math.min((netRx / 1024 / 10) * 100, 100) : 0} />
-                <MetricCol label="↑UL" value={netUp} bar={netTx > 1024 ? Math.min((netTx / 1024 / 10) * 100, 100) : 0} />
+                <MetricCol label={t('clientResource.download')} value={netDown} bar={netRx > 1024 ? Math.min((netRx / 1024 / 10) * 100, 100) : 0} />
+                <MetricCol label={t('clientResource.upload')} value={netUp} bar={netTx > 1024 ? Math.min((netTx / 1024 / 10) * 100, 100) : 0} />
               </div>
             </div>
 
