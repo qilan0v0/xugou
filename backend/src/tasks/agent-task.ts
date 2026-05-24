@@ -39,7 +39,7 @@ export const checkAgentsStatus = async (env: any) => {
 // ── Agent Webhook 通知 ────────────────────────────────────
 export async function sendAgentNotification(env: any, agent: any, event: 'down' | 'up') {
   try {
-    const cfg = await env.DB.prepare('SELECT * FROM webhook_config WHERE user_id = ?').bind(agent.created_by).first<any>();
+    const cfg = await env.DB.prepare('SELECT * FROM webhook_config WHERE user_id = ?').bind(agent.created_by).first() as any;
     if (!cfg || !cfg.webhook_url) {
       if (event === 'up') console.log(`[通知] ${agent.name} 上线但未配置 webhook URL，跳过通知`);
       return;

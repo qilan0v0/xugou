@@ -28,7 +28,6 @@ if (existsSync(configPath)) {
 }
 
 // DB adapter — prefer native better-sqlite3, fall back to sql.js (WASM)
-import type { SqliteAdapter } from './adapters/better-sqlite3';
 declare var require: any;
 let createDb: any, closeDb: any;
 try {
@@ -41,9 +40,9 @@ try {
   console.log('[DB] sql.js (WASM fallback) — pkg install python3 gmake gcc for native');
 }
 
-const db: SqliteAdapter = createDb(config.db_path);
+const db: any = createDb(config.db_path);
 
-const env = {
+const env: any = {
   DB: db,
   JWT_SECRET: config.jwt_secret || 'change-me',
   ENABLE_DB_INIT: config.enable_db_init ? 'true' : 'false',
@@ -134,9 +133,9 @@ app.post('/api/agents/status', async (c) => {
     }
 
     let isNewAgent = false;
-    let agent = await env.DB.prepare('SELECT id FROM agents WHERE token = ?').bind(token).first<{id: number}>();
+    let agent = await env.DB.prepare('SELECT id FROM agents WHERE token = ?').bind(token).first() as {id: number} | null;
     if (!agent) {
-      const adminUser = env.DB.prepare('SELECT id FROM users WHERE role = ?').bind('admin').first<{id: number}>();
+      const adminUser = env.DB.prepare('SELECT id FROM users WHERE role = ?').bind('admin').first() as {id: number} | null;
       if (!adminUser) return c.json({ success: false, message: 'no admin user' }, 500);
       const autoName = generateAgentName(country);
       const now2 = new Date().toISOString();
@@ -144,14 +143,14 @@ app.post('/api/agents/status', async (c) => {
         `INSERT INTO agents (name, token, created_by, status, created_at, updated_at, connected_at)
          VALUES (?, ?, ?, 'active', ?, ?, ?)`
       ).bind(autoName, token, adminUser.id, now2, now2, now2).run();
-      agent = env.DB.prepare('SELECT id FROM agents WHERE token = ?').bind(token).first<{id: number}>();
+      agent = env.DB.prepare('SELECT id FROM agents WHERE token = ?').bind(token).first() as {id: number} | null;
       if (!agent) return c.json({ success: false, message: 'auto-create failed' }, 500);
       isNewAgent = true;
     }
 
     // Recalc network rate from cumulative byte delta if agent reports 0
     if ((netRx == null || netRx === 0) && netRxTotal != null) {
-      const prev = env.DB.prepare('SELECT network_rx_total, network_tx_total, updated_at FROM agents WHERE id = ?').bind(agent.id).first<any>();
+      const prev = env.DB.prepare('SELECT network_rx_total, network_tx_total, updated_at FROM agents WHERE id = ?').bind(agent.id).first() as any;
       if (prev && prev.network_rx_total != null) {
         const elapsed = (Date.now() - new Date(prev.updated_at).getTime()) / 1000;
         if (elapsed > 0 && elapsed < 3600) {
@@ -162,7 +161,7 @@ app.post('/api/agents/status', async (c) => {
     }
 
     const now = new Date().toISOString();
-    const prev = await env.DB.prepare('SELECT status, updated_at, connected_at FROM agents WHERE id = ?').bind(agent.id).first<{status: string; updated_at: string; connected_at: string | null}>();
+    const prev = await env.DB.prepare('SELECT status, updated_at, connected_at FROM agents WHERE id = ?').bind(agent.id).first() as {status: string; updated_at: string; connected_at: string | null} | null;
     const currentStatus = prev?.status;
     // Also detect reconnect: if agent hasn't reported for > 120s, treat as coming back online
     const gapMs = prev?.updated_at ? Date.now() - new Date(prev.updated_at).getTime() : 0;
@@ -192,7 +191,7 @@ app.post('/api/agents/status', async (c) => {
     // 自动续期：已过期但在线的 agent 自动续期
     const agentForRenew = env.DB.prepare(
       'SELECT expiry_time, duration_value, duration_unit FROM agents WHERE id = ?'
-    ).bind(agent.id).first<{expiry_time: string | null; duration_value: number | null; duration_unit: string | null}>();
+    ).bind(agent.id).first() as {expiry_time: string | null; duration_value: number | null; duration_unit: string | null} | null;
     if (agentForRenew?.expiry_time && agentForRenew?.duration_value && agentForRenew?.duration_unit) {
       if (new Date() > new Date(agentForRenew.expiry_time)) {
         const newExpiry = addDuration(new Date(), agentForRenew.duration_value, agentForRenew.duration_unit);
@@ -205,7 +204,7 @@ app.post('/api/agents/status', async (c) => {
 
     // 首次上线通知 (wasInactive → active)
     if (wasInactive) {
-      const fullAgent = await env.DB.prepare('SELECT * FROM agents WHERE id = ?').bind(agent.id).first<any>();
+      const fullAgent = await env.DB.prepare('SELECT * FROM agents WHERE id = ?').bind(agent.id).first() as any;
       if (fullAgent) {
         console.log(`[上线] ${fullAgent.hostname || fullAgent.name || agent.id} 已上线 (IP: ${fullAgent.ip_address || '?'}, OS: ${fullAgent.os || '?'})`);
         sendAgentNotification(env, fullAgent, 'up').catch(e => console.error('[通知] 上线通知失败:', e.message));

@@ -8,7 +8,7 @@ const monitorTask = new Hono<{ Bindings: Bindings }>();
 async function sendNotification(env: any, monitor: Monitor, event: 'down' | 'up') {
   try {
     console.log(`[Webhook] 查找用户 ${monitor.created_by} 的通知配置...`);
-    const cfg = await env.DB.prepare('SELECT * FROM webhook_config WHERE user_id = ?').bind(monitor.created_by).first<any>();
+    const cfg = await env.DB.prepare('SELECT * FROM webhook_config WHERE user_id = ?').bind(monitor.created_by).first() as any;
     if (!cfg) {
       console.log(`[Webhook] 用户 ${monitor.created_by} 无通知配置，跳过`);
       return;

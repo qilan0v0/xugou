@@ -366,7 +366,7 @@ app.get('/monitor/:id/checks', async (c) => {
 // ── Webhook 发送函数 ──────────────────────────────────────
 async function sendWebhookNotification(env: any, userId: number, event: 'down' | 'up', vars: Record<string, string>) {
   try {
-    const cfg = await env.DB.prepare('SELECT * FROM webhook_config WHERE user_id = ?').bind(userId).first<any>();
+    const cfg = await env.DB.prepare('SELECT * FROM webhook_config WHERE user_id = ?').bind(userId).first() as any;
     if (!cfg || !cfg.webhook_url) return;
     if (event === 'down' && !cfg.notify_down) return;
     if (event === 'up' && !cfg.notify_up) return;
