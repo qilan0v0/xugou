@@ -12,14 +12,20 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import LanguageSelector from "../../components/LanguageSelector";
 import { SunIcon, MoonIcon, CubeIcon, CheckCircledIcon, CrossCircledIcon, GlobeIcon, ArrowUpIcon } from '@radix-ui/react-icons';
+import { LayoutGrid, Rows3 } from 'lucide-react';
 import { ENV_API_BASE_URL } from '../../config';
 import { useTranslation } from 'react-i18next';
+
+const CARD_SIZE_KEY = 'xugou_agent_card_size';
 
 const StatusPage = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { isAuthenticated } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const [cardSize, setCardSize] = useState<'medium' | 'large'>(
+    () => (localStorage.getItem(CARD_SIZE_KEY) as 'medium' | 'large') || 'large'
+  );
   const [data, setData] = useState<{ title: string; description: string; logoUrl: string; customCss: string; monitors: Monitor[]; agents: StatusAgent[] }>({ title: '系统状态', description: '', logoUrl: '', customCss: '', monitors: [], agents: [] });
   const [error, setError] = useState<string | null>(null);
   const [fetched, setFetched] = useState(false);
@@ -182,7 +188,26 @@ const StatusPage = () => {
           }
           return (
             <section>
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white section-heading mb-4">{t('statusPage.agentStatus')}</h2>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white section-heading">{t('statusPage.agentStatus')}</h2>
+                {/* Card size toggle */}
+                <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg p-0.5">
+                  <button
+                    onClick={() => { setCardSize('medium'); localStorage.setItem(CARD_SIZE_KEY, 'medium'); }}
+                    className={`p-1.5 rounded-md transition-colors ${cardSize === 'medium' ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
+                    title="中卡片"
+                  >
+                    <Rows3 size={14} />
+                  </button>
+                  <button
+                    onClick={() => { setCardSize('large'); localStorage.setItem(CARD_SIZE_KEY, 'large'); }}
+                    className={`p-1.5 rounded-md transition-colors ${cardSize === 'large' ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
+                    title="大卡片"
+                  >
+                    <LayoutGrid size={14} />
+                  </button>
+                </div>
+              </div>
               {/* Search */}
               <div className="mb-3 relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
@@ -211,9 +236,9 @@ const StatusPage = () => {
               {filtered.length === 0 ? (
                 <div className="glass p-8 text-center"><p className="text-sm text-slate-500">没有匹配的客户端</p></div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className={`grid gap-4 ${cardSize === 'medium' ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
                   {filtered.map(agent => (
-                    <AgentCard key={agent.id} agent={agent} onClick={() => setSelectedAgent(agent)} />
+                    <AgentCard key={agent.id} agent={agent} size={cardSize} onClick={() => setSelectedAgent(agent)} />
                   ))}
                 </div>
               )}
