@@ -34,14 +34,6 @@ const formatDuration = (ms: number): string => {
 const AgentCard = React.memo(({ agent, onClick, size = 'large' }: AgentCardProps) => {
   const { t } = useTranslation();
 
-  // Toggle state for medium card traffic badges (5s cycle)
-  const [cycleIdx, setCycleIdx] = React.useState(0);
-  React.useEffect(() => {
-    if (size !== 'medium') return;
-    const timer = setInterval(() => setCycleIdx(i => i + 1), 5000);
-    return () => clearInterval(timer);
-  }, [size]);
-
   let cpu = 0, memPct = 0, diskPct = 0;
   try {
     if (agent.cpu_usage != null) cpu = Math.round(agent.cpu_usage * 10) / 10;
@@ -128,10 +120,7 @@ const AgentCard = React.memo(({ agent, onClick, size = 'large' }: AgentCardProps
     const netDown = netRx >= 1024 ? `${(netRx / 1024).toFixed(2)}M/s` : `${netRx.toFixed(1)}K/s`;
     const osName = (agent.os || '').split(' ')[0] || '';
 
-    const totalTxVal = formatBytes(agent.network_tx_total || 0);
-    const totalRxVal = formatBytes(agent.network_rx_total || 0);
-    const cycle = isOnline ? cycleIdx % 2 : 0; // 0=totals, 1=speeds
-
+    // Use pre-computed txTotalStr/rxTotalStr from component top
     return (
       <div
         onClick={onClick}
@@ -164,19 +153,17 @@ const AgentCard = React.memo(({ agent, onClick, size = 'large' }: AgentCardProps
               </div>
             </div>
 
-            {/* Bottom: dual badges — toggles between totals and speeds every 5s */}
+            {/* Bottom: dual badges — total upload / total download */}
             <div className="flex gap-2">
-              <div className="relative flex-1 flex items-center justify-center rounded-md bg-slate-50 dark:bg-slate-800/50 py-1.5 overflow-hidden">
-                <Download size={11} className="text-slate-400 mr-1" />
-                <span className="text-[10px] text-slate-500 mr-0.5">↓</span>
-                <span className={`text-[10px] font-semibold text-slate-600 dark:text-slate-300 transition-opacity duration-500 ${cycle === 0 ? 'opacity-100' : 'opacity-0 absolute'}`}>{totalRxVal}</span>
-                <span className={`text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 transition-opacity duration-500 ${cycle === 1 ? 'opacity-100' : 'opacity-0 absolute'}`}>{netDown}</span>
+              <div className="flex-1 flex items-center justify-center gap-1.5 rounded-md bg-slate-50 dark:bg-slate-800/50 py-1.5">
+                <Download size={11} className="text-slate-400" />
+                <span className="text-[10px] text-slate-500">↓</span>
+                <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-300">{rxTotalStr}</span>
               </div>
-              <div className="relative flex-1 flex items-center justify-center rounded-md bg-slate-50 dark:bg-slate-800/50 py-1.5 overflow-hidden">
-                <Upload size={11} className="text-slate-400 mr-1" />
-                <span className="text-[10px] text-slate-500 mr-0.5">↑</span>
-                <span className={`text-[10px] font-semibold text-slate-600 dark:text-slate-300 transition-opacity duration-500 ${cycle === 0 ? 'opacity-100' : 'opacity-0 absolute'}`}>{totalTxVal}</span>
-                <span className={`text-[10px] font-semibold text-orange-600 dark:text-orange-400 transition-opacity duration-500 ${cycle === 1 ? 'opacity-100' : 'opacity-0 absolute'}`}>{netUp}</span>
+              <div className="flex-1 flex items-center justify-center gap-1.5 rounded-md bg-slate-50 dark:bg-slate-800/50 py-1.5">
+                <Upload size={11} className="text-slate-400" />
+                <span className="text-[10px] text-slate-500">↑</span>
+                <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-300">{txTotalStr}</span>
               </div>
               {trafficLimit > 0 && (
                 <div className="flex-1 flex items-center justify-center gap-1 rounded-md bg-slate-50 dark:bg-slate-800/50 py-1.5">
