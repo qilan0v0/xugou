@@ -102,59 +102,82 @@ const AgentCard = React.memo(({ agent, onClick, size = 'large' }: AgentCardProps
     const barColor = (v: number) =>
       v > 90 ? 'bg-red-500' : v > 70 ? 'bg-orange-400' : 'bg-green-500';
 
+    const ThinBar = ({ value }: { value: number }) => (
+      <div className="mt-0.5 h-[3px] w-full rounded-sm bg-slate-100 dark:bg-slate-800 overflow-hidden">
+        <div className={`h-full rounded-sm transition-all duration-500 ${barColor(value)}`} style={{ width: `${Math.min(Math.max(value, 0), 100)}%` }} />
+      </div>
+    );
+
     const MetricCol = ({ label, value, bar }: { label: string; value: string; bar: number }) => (
       <div className="flex w-14 flex-col">
         <p className="text-[10px] text-slate-400 dark:text-slate-500">{label}</p>
         <div className="flex items-center text-[11px] font-semibold text-slate-700 dark:text-slate-300">{value}</div>
-        <div className="mt-0.5 h-[3px] w-full rounded-sm bg-slate-100 dark:bg-slate-800 overflow-hidden">
-          <div className={`h-full rounded-sm transition-all duration-500 ${barColor(bar)}`} style={{ width: `${Math.min(Math.max(bar, 0), 100)}%` }} />
-        </div>
+        <ThinBar value={bar} />
       </div>
     );
 
     const netUp = netTx >= 1024 ? `${(netTx / 1024).toFixed(2)}M/s` : `${netTx.toFixed(1)}K/s`;
     const netDown = netRx >= 1024 ? `${(netRx / 1024).toFixed(2)}M/s` : `${netRx.toFixed(1)}K/s`;
+    const osName = (agent.os || '').split(' ')[0] || '';
 
     return (
       <div
         onClick={onClick}
-        className={`rounded-lg border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-lg shadow-slate-200/40 dark:shadow-none hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors ${onClick ? 'cursor-pointer' : ''} ${!isOnline ? 'opacity-70' : ''}`}
+        className={`rounded-lg border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-lg shadow-slate-200/40 dark:shadow-none hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors ${onClick ? 'cursor-pointer' : ''} ${!isOnline ? 'opacity-60' : ''}`}
       >
         {isOnline ? (
-          <div className="flex items-center gap-3 p-3">
-            {/* Left: dot + flag + OS + name */}
-            <div className="grid items-center gap-1.5 shrink-0" style={{ gridTemplateColumns: 'auto auto auto 1fr' }}>
-              <span className="h-2 w-2 shrink-0 rounded-full bg-green-500 self-center" />
-              <div className="min-w-[16px] flex justify-center"><CountryFlag code={agent.country} /></div>
-              {agent.os && (
-                <img src={getOSImage((agent.os || '') + ' ' + (agent.version || ''))} alt="" className="w-3.5 h-3.5 object-contain flex-shrink-0" title={`${agent.os} · ${agent.version || ''}`} />
-              )}
-              <span className="text-xs font-bold text-slate-900 dark:text-white truncate max-w-[120px] ml-0.5">{agent.name}</span>
+          <div className="p-3 space-y-2.5">
+            {/* Top: dot + flag + name */}
+            <div className="flex items-center gap-2">
+              <span className="h-2 w-2 shrink-0 rounded-full bg-green-500" />
+              <CountryFlag code={agent.country} />
+              <span className="text-xs font-bold text-slate-900 dark:text-white truncate">{agent.name}</span>
+              {uptimeStr && <span className="ml-auto text-[10px] text-slate-400 whitespace-nowrap">⏱ {uptimeStr}</span>}
             </div>
 
-            {/* Right: 5-column metrics */}
-            <div className="flex-1 flex items-center justify-end gap-1 min-w-0">
-              <div className="grid grid-cols-5 items-center gap-2">
+            {/* Middle: OS + metrics columns */}
+            <div className="flex items-center gap-3">
+              {agent.os && (
+                <div className="flex items-center gap-1.5 shrink-0 min-w-[60px]">
+                  <img src={getOSImage((agent.os || '') + ' ' + (agent.version || ''))} alt="" className="w-4 h-4 object-contain" title={`${agent.os} · ${agent.version || ''}`} />
+                  <span className="text-[10px] text-slate-500 truncate">{osName}</span>
+                </div>
+              )}
+              <div className="flex-1 grid grid-cols-5 items-start gap-2 min-w-0">
                 <MetricCol label="CPU" value={`${cpu.toFixed(1)}%`} bar={cpu} />
                 <MetricCol label={t('agent.memory')} value={`${memPct.toFixed(1)}%`} bar={memPct} />
                 <MetricCol label={t('agent.disk')} value={`${diskPct.toFixed(1)}%`} bar={diskPct} />
-                <MetricCol label={t('clientResource.download')} value={netDown} bar={netRx > 1024 ? Math.min((netRx / 1024 / 10) * 100, 100) : 0} />
-                <MetricCol label={t('clientResource.upload')} value={netUp} bar={netTx > 1024 ? Math.min((netTx / 1024 / 10) * 100, 100) : 0} />
+                <MetricCol label="↓DL" value={netDown} bar={netRx > 1024 ? Math.min((netRx / 1024 / 10) * 100, 100) : 0} />
+                <MetricCol label="↑UL" value={netUp} bar={netTx > 1024 ? Math.min((netTx / 1024 / 10) * 100, 100) : 0} />
               </div>
+            </div>
+
+            {/* Bottom: two badges — total upload / total download */}
+            <div className="flex gap-2">
+              <div className="flex-1 flex items-center justify-center gap-1.5 rounded-md bg-slate-50 dark:bg-slate-800/50 py-1.5">
+                <Upload size={12} className="text-slate-400" />
+                <span className="text-[10px] text-slate-500">↑</span>
+                <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-300">{txTotalStr}</span>
+              </div>
+              <div className="flex-1 flex items-center justify-center gap-1.5 rounded-md bg-slate-50 dark:bg-slate-800/50 py-1.5">
+                <Download size={12} className="text-slate-400" />
+                <span className="text-[10px] text-slate-500">↓</span>
+                <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-300">{rxTotalStr}</span>
+              </div>
+              {trafficLimit > 0 && (
+                <div className="flex-1 flex items-center justify-center gap-1.5 rounded-md bg-slate-50 dark:bg-slate-800/50 py-1.5">
+                  <Activity size={12} className="text-slate-400" />
+                  <span className="text-[10px] font-semibold text-slate-500">{trafficPct.toFixed(0)}%</span>
+                </div>
+              )}
             </div>
           </div>
         ) : (
-          <div className="flex items-center gap-3 p-3">
-            <div className="grid items-center gap-1.5" style={{ gridTemplateColumns: 'auto auto auto 1fr' }}>
-              <span className="h-2 w-2 shrink-0 rounded-full bg-slate-400 self-center" />
-              <div className="min-w-[16px] flex justify-center"><CountryFlag code={agent.country} /></div>
-              {agent.os && (
-                <img src={getOSImage((agent.os || '') + ' ' + (agent.version || ''))} alt="" className="w-3.5 h-3.5 object-contain flex-shrink-0 grayscale" title={`${agent.os} · ${agent.version || ''}`} />
-              )}
-              <span className="text-xs font-bold text-slate-400 dark:text-slate-500 truncate max-w-[140px] ml-0.5">{agent.name}</span>
-            </div>
-            <div className="flex-1" />
-            <span className="text-[10px] text-slate-400 shrink-0">{t('agent.status.offline')}</span>
+          <div className="flex items-center gap-2 p-3">
+            <span className="h-2 w-2 shrink-0 rounded-full bg-slate-400" />
+            <CountryFlag code={agent.country} />
+            <span className="text-xs font-bold text-slate-400 dark:text-slate-500 truncate">{agent.name}</span>
+            <span className="ml-auto text-[10px] text-slate-400">{t('agent.status.offline')}</span>
           </div>
         )}
       </div>
