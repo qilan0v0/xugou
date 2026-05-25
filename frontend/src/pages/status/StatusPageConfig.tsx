@@ -38,6 +38,8 @@ const StatusPageConfig = () => {
   const [webhookTls, setWebhookTls] = useState(true);
   const [notifyDown, setNotifyDown] = useState(true);
   const [notifyUp, setNotifyUp] = useState(true);
+  const [agentNotifyDown, setAgentNotifyDown] = useState(true);
+  const [agentNotifyUp, setAgentNotifyUp] = useState(true);
   const [adminCss, setAdminCss] = useState('');
   const hasInit = useRef(false);
   const { t } = useTranslation();
@@ -68,6 +70,8 @@ const StatusPageConfig = () => {
         if (c.webhook_tls_verify != null) setWebhookTls(!!c.webhook_tls_verify);
         if (c.notify_down != null) setNotifyDown(!!c.notify_down);
         if (c.notify_up != null) setNotifyUp(!!c.notify_up);
+        if (c.agent_notify_down != null) setAgentNotifyDown(!!c.agent_notify_down);
+        if (c.agent_notify_up != null) setAgentNotifyUp(!!c.agent_notify_up);
       }
     }).catch(() => {});
     setLoading(true);
@@ -116,7 +120,7 @@ const StatusPageConfig = () => {
         api.post('/api/status/webhook', {
           webhookUrl, webhookMethod, webhookContentType,
           webhookBodyDown, webhookBodyUp, webhookHeaders,
-          webhookTlsVerify: webhookTls, notifyDown, notifyUp,
+          webhookTlsVerify: webhookTls, notifyDown, notifyUp, agentNotifyDown, agentNotifyUp,
         }).catch(() => {});
         // Cache to localStorage for fast next load
         localStorage.setItem('xugou_page_config', JSON.stringify({
@@ -193,7 +197,7 @@ const StatusPageConfig = () => {
           {tab === 'notifications' && (
             <div className="flex flex-col gap-5">
               <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1.5">通知开关</label>
+                <label className="block text-xs font-medium text-slate-500 mb-1.5">API 监控通知</label>
                 <div className="flex gap-4">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" checked={notifyDown} onChange={() => setNotifyDown(!notifyDown)} className="chk-box" />
@@ -202,6 +206,20 @@ const StatusPageConfig = () => {
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" checked={notifyUp} onChange={() => setNotifyUp(!notifyUp)} className="chk-box" />
                     <span className="text-sm text-slate-700 dark:text-slate-300">恢复时通知</span>
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-slate-500 mb-1.5">客户端监控通知</label>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" checked={agentNotifyDown} onChange={() => setAgentNotifyDown(!agentNotifyDown)} className="chk-box" />
+                    <span className="text-sm text-slate-700 dark:text-slate-300">离线时通知</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" checked={agentNotifyUp} onChange={() => setAgentNotifyUp(!agentNotifyUp)} className="chk-box" />
+                    <span className="text-sm text-slate-700 dark:text-slate-300">上线时通知</span>
                   </label>
                 </div>
               </div>

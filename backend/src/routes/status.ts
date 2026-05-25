@@ -310,11 +310,11 @@ adminRoutes.post('/webhook', requireAuth, async (c) => {
     const now = new Date().toISOString();
     const existing = await c.env.DB.prepare('SELECT id FROM webhook_config WHERE user_id = ?').bind(payload.id).first<{id:number}>();
     if (existing) {
-      await c.env.DB.prepare(`UPDATE webhook_config SET webhook_url=?, webhook_method=?, webhook_content_type=?, webhook_body_down=?, webhook_body_up=?, webhook_headers=?, webhook_tls_verify=?, notify_down=?, notify_up=?, updated_at=? WHERE user_id=?`)
-        .bind(data.webhookUrl||'', data.webhookMethod||'POST', data.webhookContentType||'json', data.webhookBodyDown||'', data.webhookBodyUp||'', data.webhookHeaders||'', data.webhookTlsVerify?1:0, data.notifyDown?1:0, data.notifyUp?1:0, now, payload.id).run();
+      await c.env.DB.prepare(`UPDATE webhook_config SET webhook_url=?, webhook_method=?, webhook_content_type=?, webhook_body_down=?, webhook_body_up=?, webhook_headers=?, webhook_tls_verify=?, notify_down=?, notify_up=?, agent_notify_down=?, agent_notify_up=?, updated_at=? WHERE user_id=?`)
+        .bind(data.webhookUrl||'', data.webhookMethod||'POST', data.webhookContentType||'json', data.webhookBodyDown||'', data.webhookBodyUp||'', data.webhookHeaders||'', data.webhookTlsVerify?1:0, data.notifyDown?1:0, data.notifyUp?1:0, data.agentNotifyDown?1:0, data.agentNotifyUp?1:0, now, payload.id).run();
     } else {
-      await c.env.DB.prepare(`INSERT INTO webhook_config (user_id, webhook_url, webhook_method, webhook_content_type, webhook_body_down, webhook_body_up, webhook_headers, webhook_tls_verify, notify_down, notify_up, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`)
-        .bind(payload.id, data.webhookUrl||'', data.webhookMethod||'POST', data.webhookContentType||'json', data.webhookBodyDown||'', data.webhookBodyUp||'', data.webhookHeaders||'', data.webhookTlsVerify?1:0, data.notifyDown?1:0, data.notifyUp?1:0, now, now).run();
+      await c.env.DB.prepare(`INSERT INTO webhook_config (user_id, webhook_url, webhook_method, webhook_content_type, webhook_body_down, webhook_body_up, webhook_headers, webhook_tls_verify, notify_down, notify_up, agent_notify_down, agent_notify_up, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`)
+        .bind(payload.id, data.webhookUrl||'', data.webhookMethod||'POST', data.webhookContentType||'json', data.webhookBodyDown||'', data.webhookBodyUp||'', data.webhookHeaders||'', data.webhookTlsVerify?1:0, data.notifyDown?1:0, data.notifyUp?1:0, data.agentNotifyDown?1:0, data.agentNotifyUp?1:0, now, now).run();
     }
     return c.json({ success: true, message: '通知配置已保存' });
   } catch (e: any) {

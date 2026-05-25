@@ -44,9 +44,9 @@ export async function sendAgentNotification(env: any, agent: any, event: 'down' 
       if (event === 'up') console.log(`[通知] ${agent.name} 上线但未配置 webhook URL，跳过通知`);
       return;
     }
-    if (event === 'down' && !cfg.notify_down) return;
-    if (event === 'up' && !cfg.notify_up) {
-      console.log(`[通知] ${agent.name} 上线但 notify_up 已关闭，跳过通知`);
+    if (event === 'down' && !cfg.agent_notify_down) return;
+    if (event === 'up' && !cfg.agent_notify_up) {
+      console.log(`[通知] ${agent.name} 上线但 agent_notify_up 已关闭，跳过通知`);
       return;
     }
 
