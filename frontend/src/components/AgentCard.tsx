@@ -127,7 +127,7 @@ const AgentCard = React.memo(({ agent, onClick, size = 'large' }: AgentCardProps
           <div className="w-px h-8 bg-slate-200 dark:bg-slate-700 shrink-0" />
 
           {/* Right: metrics grid */}
-          <div className="flex-1 grid grid-cols-8 items-center gap-2">
+          <div className="flex-1 grid grid-cols-8 items-center gap-1.5 sm:gap-2">
             <div className="flex flex-1 min-w-[56px] flex-col">
                 <p className="text-xs text-slate-400 dark:text-slate-500">{t('agent.uptime')}</p>
                 <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{uptimeStr || '--'}</div>
