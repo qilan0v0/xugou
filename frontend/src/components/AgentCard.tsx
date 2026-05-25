@@ -97,24 +97,10 @@ const AgentCard = React.memo(({ agent, onClick, size = 'large' }: AgentCardProps
     className: `glass rounded-xl hover:shadow-lg transition-shadow duration-200 ${onClick ? 'cursor-pointer' : ''} ${!isOnline ? 'offline-striped ring-2 ring-red-500/50' : ''}`,
   };
 
-  // ── Medium card (nezha-dash-v2 style) ──
+  // ── Medium card (nezha-dash-v2 ServerCard style) ──
   if (size === 'medium') {
     const barColor = (v: number) =>
       v > 90 ? 'bg-red-500' : v > 70 ? 'bg-orange-400' : 'bg-green-500';
-
-    const BarSlot = ({ value }: { value?: number }) => (
-      <div className="mt-0.5 h-[2px] w-full rounded-sm bg-slate-100 dark:bg-slate-800 overflow-hidden">
-        {value != null && <div className={`h-full rounded-sm transition-all duration-500 ${barColor(value)}`} style={{ width: `${Math.min(Math.max(value, 0), 100)}%` }} />}
-      </div>
-    );
-
-    const MetricCol = ({ label, value, bar, noBar }: { label: string; value: string; bar?: number; noBar?: boolean }) => (
-      <div className="flex flex-col items-center">
-        <p className="text-[10px] text-slate-400 dark:text-slate-500">{label}</p>
-        <div className="text-[11px] font-semibold text-slate-700 dark:text-slate-300">{value}</div>
-        <BarSlot value={noBar ? undefined : bar} />
-      </div>
-    );
 
     const netUp = netTx >= 1024 ? `${(netTx / 1024).toFixed(2)}M/s` : `${netTx.toFixed(1)}K/s`;
     const netDown = netRx >= 1024 ? `${(netRx / 1024).toFixed(2)}M/s` : `${netRx.toFixed(1)}K/s`;
@@ -122,57 +108,70 @@ const AgentCard = React.memo(({ agent, onClick, size = 'large' }: AgentCardProps
     const verBase = (agent.version || '').split(' ')[0];
     const osName = osBase === 'linux' ? (verBase || 'Linux') : (osBase || '');
 
-    // Use pre-computed txTotalStr/rxTotalStr from component top
     return (
       <div
         onClick={onClick}
         className={`rounded-lg border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-lg shadow-slate-200/40 dark:shadow-none hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors ${onClick ? 'cursor-pointer' : ''} ${!isOnline ? 'opacity-60' : ''}`}
       >
         {isOnline ? (
-          <div className="p-3 space-y-2.5">
-            {/* Top: dot + flag + name (centered) */}
-            <div className="relative flex items-center justify-center gap-2">
+          <div className="flex flex-col items-center justify-start gap-3 p-3 md:px-5">
+            {/* Top: dot + flag + name */}
+            <div className="relative w-full flex items-center justify-center gap-2 min-h-[20px]">
               <span className="h-2 w-2 shrink-0 rounded-full bg-green-500" />
               <CountryFlag code={agent.country} />
               <span className="text-xs font-bold text-slate-900 dark:text-white truncate">{agent.name}</span>
               {uptimeStr && <span className="absolute right-0 text-[10px] text-slate-400 whitespace-nowrap">⏱ {uptimeStr}</span>}
             </div>
 
-            {/* Middle: OS + metrics columns */}
-            <div className="flex items-center gap-3">
+            {/* Middle: OS + metrics grid */}
+            <div className="flex flex-col lg:flex-row items-center lg:items-start gap-2 w-full">
               {agent.os && (
-                <div className="hidden sm:flex items-center gap-1.5 shrink-0 min-w-[60px]">
+                <div className="hidden lg:flex items-center gap-1.5 shrink-0 lg:w-20">
                   <img src={getOSImage((agent.os || '') + ' ' + (agent.version || ''))} alt="" className="w-4 h-4 object-contain" title={`${agent.os} · ${agent.version || ''}`} />
-                  <span className="text-[10px] text-slate-500 truncate">{osName}</span>
+                  <span className="text-[10px] text-slate-400 truncate">{osName}</span>
                 </div>
               )}
-              <div className="flex-1 grid grid-cols-3 sm:grid-cols-5 items-end gap-1 sm:gap-3 min-w-0">
-                <MetricCol label="CPU" value={`${cpu.toFixed(1)}%`} bar={cpu} />
-                <MetricCol label={t('agent.memory')} value={`${memPct.toFixed(1)}%`} bar={memPct} />
-                <MetricCol label={t('agent.disk')} value={`${diskPct.toFixed(1)}%`} bar={diskPct} />
-                <MetricCol label={t('clientResource.download')} value={netDown} noBar />
-                <MetricCol label={t('clientResource.upload')} value={netUp} noBar />
-              </div>
+              <section className="grid grid-cols-3 sm:grid-cols-5 items-center gap-3 flex-1 min-w-0">
+                <div className="flex w-14 flex-col">
+                  <p className="text-xs text-slate-400 dark:text-slate-500">CPU</p>
+                  <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{cpu.toFixed(1)}%</div>
+                  <div className="mt-0.5 h-[3px] w-full rounded-sm bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                    <div className={`h-full rounded-sm transition-all duration-500 ${barColor(cpu)}`} style={{ width: `${Math.min(Math.max(cpu, 0), 100)}%` }} />
+                  </div>
+                </div>
+                <div className="flex w-14 flex-col">
+                  <p className="text-xs text-slate-400 dark:text-slate-500">{t('agent.memory')}</p>
+                  <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{memPct.toFixed(1)}%</div>
+                  <div className="mt-0.5 h-[3px] w-full rounded-sm bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                    <div className={`h-full rounded-sm transition-all duration-500 ${barColor(memPct)}`} style={{ width: `${Math.min(Math.max(memPct, 0), 100)}%` }} />
+                  </div>
+                </div>
+                <div className="flex w-14 flex-col">
+                  <p className="text-xs text-slate-400 dark:text-slate-500">{t('agent.disk')}</p>
+                  <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{diskPct.toFixed(1)}%</div>
+                  <div className="mt-0.5 h-[3px] w-full rounded-sm bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                    <div className={`h-full rounded-sm transition-all duration-500 ${barColor(diskPct)}`} style={{ width: `${Math.min(Math.max(diskPct, 0), 100)}%` }} />
+                  </div>
+                </div>
+                <div className="flex w-14 flex-col">
+                  <p className="text-xs text-slate-400 dark:text-slate-500">{t('clientResource.download')}</p>
+                  <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{netDown}</div>
+                </div>
+                <div className="flex w-14 flex-col">
+                  <p className="text-xs text-slate-400 dark:text-slate-500">{t('clientResource.upload')}</p>
+                  <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{netUp}</div>
+                </div>
+              </section>
             </div>
 
-            {/* Bottom: dual badges — total upload / total download */}
-            <div className="flex gap-1.5 sm:gap-2 flex-wrap">
-              <div className="flex-1 flex items-center justify-center gap-1.5 rounded-md bg-slate-50 dark:bg-slate-800/50 py-1.5">
-                <Download size={11} className="text-slate-400" />
-                <span className="text-[10px] text-slate-500">↓</span>
-                <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-300">{rxTotalStr}</span>
-              </div>
-              <div className="flex-1 flex items-center justify-center gap-1.5 rounded-md bg-slate-50 dark:bg-slate-800/50 py-1.5">
-                <Upload size={11} className="text-slate-400" />
-                <span className="text-[10px] text-slate-500">↑</span>
-                <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-300">{txTotalStr}</span>
-              </div>
-              {trafficLimit > 0 && (
-                <div className="flex-1 flex items-center justify-center gap-1 rounded-md bg-slate-50 dark:bg-slate-800/50 py-1.5">
-                  <Activity size={11} className="text-slate-400" />
-                  <span className="text-[10px] font-semibold text-slate-500">{trafficPct.toFixed(0)}%</span>
-                </div>
-              )}
+            {/* Bottom: totals */}
+            <div className="flex items-center w-full justify-between gap-1">
+              <span className="flex-1 text-center rounded-[8px] text-nowrap text-[11px] py-1 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 shadow-sm">
+                ↓ {rxTotalStr}
+              </span>
+              <span className="flex-1 text-center rounded-[8px] text-nowrap text-[11px] py-1 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 shadow-sm">
+                ↑ {txTotalStr}
+              </span>
             </div>
           </div>
         ) : (
