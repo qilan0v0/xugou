@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Agent } from '../api/agents';
 import CountryFlag from './CountryFlag';
 import ClientResourceSection from './ClientResourceSection';
+import AgentCharts from './AgentCharts';
 import { ENV_API_BASE_URL } from '../config';
 
 function CopyStartCmd({ token }: { token: string }) {
@@ -140,6 +141,9 @@ export default function AgentDetailModal({ agent, onClose, showToken }: AgentDet
                 </div>
               )}
             </div>
+
+            {/* Agent metrics history charts */}
+            {agent.id && <AgentCharts agentId={agent.id} />}
           </div>
         </div>
       </div>

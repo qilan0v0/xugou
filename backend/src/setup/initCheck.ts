@@ -26,6 +26,8 @@ export async function runMigrations(env: Bindings): Promise<void> {
   try { await env.DB.exec('ALTER TABLE agents ADD COLUMN sort_order INTEGER DEFAULT 0'); } catch (e) { /* skip */ }
   try { await env.DB.exec('ALTER TABLE monitors ADD COLUMN sort_order INTEGER DEFAULT 0'); } catch (e) { /* skip */ }
   try { await env.DB.exec("CREATE TABLE IF NOT EXISTS webhook_config (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL UNIQUE, webhook_url TEXT DEFAULT '', webhook_method TEXT DEFAULT 'POST', webhook_content_type TEXT DEFAULT 'json', webhook_body_down TEXT DEFAULT '{\"name\":\"{name}\",\"status\":\"故障\"}', webhook_body_up TEXT DEFAULT '{\"name\":\"{name}\",\"status\":\"已恢复\"}', webhook_headers TEXT DEFAULT '', webhook_tls_verify INTEGER DEFAULT 1, notify_down INTEGER DEFAULT 1, notify_up INTEGER DEFAULT 1, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, FOREIGN KEY (user_id) REFERENCES users(id))"); } catch (e) { /* skip */ }
+  try { await env.DB.exec("CREATE TABLE IF NOT EXISTS agent_metrics_history (id INTEGER PRIMARY KEY AUTOINCREMENT, agent_id INTEGER NOT NULL, timestamp TEXT NOT NULL, cpu REAL, mem_pct REAL, disk_pct REAL, net_rx REAL, net_tx REAL, FOREIGN KEY (agent_id) REFERENCES agents(id))"); } catch (e) { /* skip */ }
+  try { await env.DB.exec("CREATE INDEX IF NOT EXISTS idx_agent_metrics_agent_ts ON agent_metrics_history(agent_id, timestamp)"); } catch (e) { /* skip */ }
 
   const newColumns = [
     'cpu_arch TEXT',

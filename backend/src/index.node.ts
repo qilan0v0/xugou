@@ -188,6 +188,19 @@ app.post('/api/agents/status', async (c) => {
       return c.json({ success: false, message: 'update failed' }, 500);
     }
 
+    // Insert metrics history record
+    try {
+      const memPctVal = (memTotal && memUsed) ? (memUsed / memTotal * 100) : null;
+      const diskPctVal = (diskTotal && diskUsed) ? (diskUsed / diskTotal * 100) : null;
+      env.DB.prepare(
+        'INSERT INTO agent_metrics_history (agent_id, timestamp, cpu, mem_pct, disk_pct, net_rx, net_tx) VALUES (?, ?, ?, ?, ?, ?, ?)'
+      ).bind(agent.id, now, cpu, memPctVal, diskPctVal, netRx, netTx).run();
+      // Keep only the last 2880 records per agent (24h at 30s intervals)
+      env.DB.prepare(
+        'DELETE FROM agent_metrics_history WHERE agent_id = ? AND id NOT IN (SELECT id FROM agent_metrics_history WHERE agent_id = ? ORDER BY id DESC LIMIT 2880)'
+      ).bind(agent.id, agent.id).run();
+    } catch (e) { /* non-critical */ }
+
     // 自动续期：已过期但在线的 agent 自动续期
     const agentForRenew = env.DB.prepare(
       'SELECT expiry_time, duration_value, duration_unit FROM agents WHERE id = ?'

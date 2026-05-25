@@ -312,6 +312,37 @@ agents.get('/:id', async (c) => {
   }
 });
 
+// 获取客户端指标历史（用于图表）
+agents.get('/:id/metrics', async (c) => {
+  try {
+    const agentId = Number(c.req.param('id'));
+    // Verify agent exists
+    const agent = c.env.DB.prepare('SELECT id FROM agents WHERE id = ?').bind(agentId).first();
+    if (!agent) return c.json({ success: false, message: '客户端不存在' }, 404);
+
+    const hours = Math.min(Number(c.req.query('hours') || '24'), 168); // max 7 days
+    const since = new Date(Date.now() - hours * 3600000).toISOString();
+    const rows = c.env.DB.prepare(
+      'SELECT timestamp, cpu, mem_pct, disk_pct, net_rx, net_tx FROM agent_metrics_history WHERE agent_id = ? AND timestamp >= ? ORDER BY timestamp ASC'
+    ).bind(agentId, since).all();
+
+    return c.json({
+      success: true,
+      metrics: (rows.results || []).map((r: any) => ({
+        ts: r.timestamp,
+        cpu: r.cpu ?? 0,
+        mem: r.mem_pct ?? 0,
+        disk: r.disk_pct ?? 0,
+        net_rx: r.net_rx ?? 0,
+        net_tx: r.net_tx ?? 0,
+      })),
+    });
+  } catch (e: any) {
+    console.error('获取指标历史错误:', e.message);
+    return c.json({ success: false, message: '获取指标历史失败' }, 500);
+  }
+});
+
 // 更新客户端信息
 agents.put('/:id', async (c) => {
   try {

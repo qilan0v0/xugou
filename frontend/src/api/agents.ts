@@ -140,4 +140,23 @@ export const updateAgent = async (id: number, data: {
       message: '更新客户端失败'
     };
   }
+};
+
+export interface AgentMetric {
+  ts: string;
+  cpu: number;
+  mem: number;
+  disk: number;
+  net_rx: number;
+  net_tx: number;
+}
+
+export const getAgentMetrics = async (id: number, hours = 24) => {
+  try {
+    const response = await api.get(`/api/agents/${id}/metrics?hours=${hours}`);
+    return response.data as { success: boolean; metrics: AgentMetric[] };
+  } catch (error) {
+    console.error(`获取客户端 ${id} 指标失败:`, error);
+    return { success: false, metrics: [] as AgentMetric[] };
+  }
 }; 
