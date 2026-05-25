@@ -141,10 +141,10 @@ export default function AgentDetailModal({ agent, onClose, showToken }: AgentDet
                 </div>
               )}
             </div>
-
-            {/* Agent metrics history charts */}
-            {agent.id && <AgentCharts agentId={agent.id} />}
           </div>
+
+          {/* Agent metrics history charts — full width below */}
+          {agent.id && <AgentCharts agentId={agent.id} />}
         </div>
       </div>
     </div>
