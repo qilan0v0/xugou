@@ -25,15 +25,15 @@ const HeartbeatGrid = ({ uptime, history = [] }: { uptime: number, history?: (Mo
 
   return (
     <div>
-      <div className="flex gap-1.5 flex-wrap">
+      <div className="flex gap-1 sm:gap-1.5">
         {displayHistory.map((item, i) => (
           <div key={i}
-            className={`w-2.5 h-2.5 rounded-full ${getColor(item.status)} transition-all hover:scale-125 cursor-pointer`}
+            className={`w-[7px] h-[7px] sm:w-2.5 sm:h-2.5 rounded-full shrink-0 ${getColor(item.status)} transition-all hover:scale-125 cursor-pointer`}
             title={`${item.timestamp ? new Date(item.timestamp).toLocaleString() : t('heartbeatGrid.unknownTime')}: ${item.status}`}
           />
         ))}
         {Array.from({ length: emptyCount }).map((_, i) => (
-          <div key={`e-${i}`} className="w-2.5 h-2.5 rounded-full bg-slate-200 dark:bg-white/5" />
+          <div key={`e-${i}`} className="w-[7px] h-[7px] sm:w-2.5 sm:h-2.5 rounded-full shrink-0 bg-slate-200 dark:bg-white/5" />
         ))}
       </div>
       <div className="flex justify-between items-center mt-3">
