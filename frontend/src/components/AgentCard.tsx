@@ -109,7 +109,7 @@ const AgentCard = React.memo(({ agent, onClick, size = 'large' }: AgentCardProps
     );
 
     const MetricCol = ({ label, value, bar }: { label: string; value: string; bar: number }) => (
-      <div className="flex w-14 flex-col">
+      <div className="flex w-12 sm:w-14 flex-col">
         <p className="text-[10px] text-slate-400 dark:text-slate-500">{label}</p>
         <div className="flex items-center text-[11px] font-semibold text-slate-700 dark:text-slate-300">{value}</div>
         <ThinBar value={bar} />
@@ -146,7 +146,7 @@ const AgentCard = React.memo(({ agent, onClick, size = 'large' }: AgentCardProps
                   <span className="text-[10px] text-slate-500 truncate">{osName}</span>
                 </div>
               )}
-              <div className="flex-1 grid grid-cols-5 items-start gap-2 min-w-0">
+              <div className="flex-1 grid grid-cols-3 sm:grid-cols-5 items-start gap-1.5 sm:gap-2 min-w-0">
                 <MetricCol label="CPU" value={`${cpu.toFixed(1)}%`} bar={cpu} />
                 <MetricCol label={t('agent.memory')} value={`${memPct.toFixed(1)}%`} bar={memPct} />
                 <MetricCol label={t('agent.disk')} value={`${diskPct.toFixed(1)}%`} bar={diskPct} />
@@ -156,7 +156,7 @@ const AgentCard = React.memo(({ agent, onClick, size = 'large' }: AgentCardProps
             </div>
 
             {/* Bottom: dual badges — total upload / total download */}
-            <div className="flex gap-2">
+            <div className="flex gap-1.5 sm:gap-2 flex-wrap">
               <div className="flex-1 flex items-center justify-center gap-1.5 rounded-md bg-slate-50 dark:bg-slate-800/50 py-1.5">
                 <Download size={11} className="text-slate-400" />
                 <span className="text-[10px] text-slate-500">↓</span>
