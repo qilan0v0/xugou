@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 
@@ -56,10 +56,6 @@ const Login = () => {
             {isLoading ? t('common.loading') : t('login.button')}
           </button>
         </form>
-
-        <p className="text-center text-sm text-slate-500 mt-5">
-          {t('register.loginLink')} <Link to="/register" className="text-blue-500 hover:text-blue-400 font-semibold">{t('register.title')}</Link>
-        </p>
       </div>
     </div>
   );
