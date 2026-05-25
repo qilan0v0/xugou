@@ -7,12 +7,12 @@ import ClientResourceSection from './ClientResourceSection';
 import AgentCharts from './AgentCharts';
 import { ENV_API_BASE_URL } from '../config';
 
-const COUNTRY_NAMES: Record<string, string> = {
-  US: '美国', CN: '中国', HK: '香港', TW: '台湾', JP: '日本', KR: '韩国',
-  DE: '德国', FR: '法国', GB: '英国', RU: '俄罗斯', SG: '新加坡',
-  CA: '加拿大', AU: '澳大利亚', NL: '荷兰', IN: '印度', BR: '巴西',
+const toCountryName = (code: string) => {
+  if (!code) return '--';
+  try {
+    return new Intl.DisplayNames(['zh-CN'], { type: 'region' }).of(code.toUpperCase()) || code;
+  } catch { return code; }
 };
-const toCountryName = (code: string) => COUNTRY_NAMES[code?.toUpperCase()] || code || '--';
 
 function CopyStartCmd({ token }: { token: string }) {
   const [copied, setCopied] = useState(false);
