@@ -111,7 +111,7 @@ export default function TagInput({ value, onChange, placeholder, poolUrl = '/api
   return (
     <div ref={wrapperRef} className="relative">
       <div
-        className="flex flex-wrap items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 transition-all cursor-text min-h-[42px]"
+        className="flex flex-wrap items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 transition-all cursor-text min-h-[42px]"
         onClick={() => inputRef.current?.focus()}
       >
         {value.map(tag => (

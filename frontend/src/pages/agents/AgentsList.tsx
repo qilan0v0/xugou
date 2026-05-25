@@ -78,7 +78,7 @@ function EditModal({ agent, onClose, onSaved }: { agent: Agent; onClose: () => v
     finally { setSaving(false); }
   };
 
-  const inputC = "w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 transition-all";
+  const inputC = "w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 transition-all";
   const labelC = "block text-xs font-medium text-slate-500 mb-1.5";
 
   return (
@@ -100,7 +100,7 @@ function EditModal({ agent, onClose, onSaved }: { agent: Agent; onClose: () => v
             <label className={labelC}>总流量上限</label>
             <div className="flex gap-2">
               <input type="number" step="0.1" min="0" value={trafficVal} onChange={e => setTrafficVal(e.target.value)} placeholder="1" className={`${inputC} flex-1`} />
-              <select value={trafficUnit} onChange={e => setTrafficUnit(e.target.value)} className="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-300 w-20 flex-shrink-0">
+              <select value={trafficUnit} onChange={e => setTrafficUnit(e.target.value)} className="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-700 dark:text-slate-300 w-20 flex-shrink-0">
                 {(['GB','TB'] as const).map(u => <option key={u} value={u}>{u}</option>)}
               </select>
             </div>
@@ -113,7 +113,7 @@ function EditModal({ agent, onClose, onSaved }: { agent: Agent; onClose: () => v
             <label className={labelC}>使用时长</label>
             <div className="flex gap-2">
               <input type="number" min="1" step="1" value={durationVal} onChange={e => setDurationVal(e.target.value)} className={`${inputC} flex-1`} />
-              <select value={durationUnit} onChange={e => setDurationUnit(e.target.value)} className="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-300 w-24 flex-shrink-0">
+              <select value={durationUnit} onChange={e => setDurationUnit(e.target.value)} className="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-700 dark:text-slate-300 w-24 flex-shrink-0">
                 {(['day','month','year'] as const).map(u => <option key={u} value={u}>{u === 'day' ? '天' : u === 'month' ? '月' : '年'}</option>)}
               </select>
             </div>

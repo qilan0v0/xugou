@@ -154,7 +154,7 @@ export default function GroupsList() {
         <div className="flex gap-2">
           <input value={newName} onChange={e => { setNewName(e.target.value); setError(''); }}
             onKeyDown={e => e.key === 'Enter' && handleAdd()}
-            placeholder="输入分组名称，回车添加" className="flex-1 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 transition-all" />
+            placeholder="输入分组名称，回车添加" className="flex-1 px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 transition-all" />
           <button onClick={handleAdd} disabled={adding || !newName.trim()}
             className="btn-gradient flex items-center gap-1.5 px-4 py-2 text-sm disabled:opacity-50">
             <PlusIcon />{adding ? '...' : '添加'}
