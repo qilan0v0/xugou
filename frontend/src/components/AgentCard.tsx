@@ -110,7 +110,7 @@ const AgentCard = React.memo(({ agent, onClick, size = 'large' }: AgentCardProps
     return isOnline ? (
       <div
         onClick={onClick}
-        className={`rounded-lg border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-lg shadow-neutral-200/40 dark:shadow-none hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer`}
+        className={`rounded-lg border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-lg shadow-neutral-200/40 dark:shadow-none hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer max-w-5xl w-full self-center`}
       >
         <div className="flex items-center justify-start gap-3 p-3 md:px-5 min-w-[620px] w-full">
           {/* Left: dot + flag + name */}
@@ -171,7 +171,7 @@ const AgentCard = React.memo(({ agent, onClick, size = 'large' }: AgentCardProps
     ) : (
       <div
         onClick={onClick}
-        className={`rounded-lg border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-lg shadow-neutral-200/40 dark:shadow-none hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer`}
+        className={`rounded-lg border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-lg shadow-neutral-200/40 dark:shadow-none hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer max-w-5xl w-full self-center`}
       >
         <div className="flex items-center justify-start gap-3 p-3 md:px-5 min-w-[620px] w-full">
           <section className="grid items-center gap-2 shrink-0 lg:w-28" style={{ gridTemplateColumns: 'auto auto 1fr' }}>
