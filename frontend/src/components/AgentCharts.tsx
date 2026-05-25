@@ -17,9 +17,10 @@ const formatTime = (ts: string) => {
 
 const round = (v: number) => Math.round(v * 10) / 10;
 
-function ChartCard({ title, dataKey, data, color, icon, current, unit = '%' }: {
-  title: string; dataKey: string; data: AgentMetric[]; color: string; icon: React.ReactNode; current: number; unit?: string;
+function ChartCard({ title, dataKey, dataKey2, data, color, color2, icon, current, current2, unit = '%' }: {
+  title: string; dataKey: string; dataKey2?: string; data: AgentMetric[]; color: string; color2?: string; icon: React.ReactNode; current: number; current2?: number; unit?: string;
 }) {
+  const hasLine2 = !!dataKey2 && !!color2;
   return (
     <div className="glass rounded-xl p-4">
       <div className="flex items-center justify-between mb-2">
@@ -27,9 +28,10 @@ function ChartCard({ title, dataKey, data, color, icon, current, unit = '%' }: {
           <span className="text-slate-400">{icon}</span>
           <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{title}</span>
         </div>
-        <span className="text-sm font-semibold text-slate-900 dark:text-white">
-          {round(current)}{unit}
-        </span>
+        <div className="flex items-center gap-2 text-xs">
+          <span style={{ color }}>● {round(current)}{unit}</span>
+          {hasLine2 && current2 != null && <span style={{ color: color2 }}>● {round(current2)}{unit}</span>}
+        </div>
       </div>
       <div className="aspect-video w-full max-h-[220px]">
         <ResponsiveContainer width="100%" height="100%">
@@ -39,23 +41,30 @@ function ChartCard({ title, dataKey, data, color, icon, current, unit = '%' }: {
                 <stop offset="0%" stopColor={color} stopOpacity={0.2} />
                 <stop offset="100%" stopColor={color} stopOpacity={0} />
               </linearGradient>
+              {hasLine2 && (
+                <linearGradient id={`fill-${dataKey2}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={color2} stopOpacity={0.2} />
+                  <stop offset="100%" stopColor={color2} stopOpacity={0} />
+                </linearGradient>
+              )}
             </defs>
             <XAxis dataKey="ts" tickFormatter={formatTime} tick={{ fontSize: 9 }} interval="preserveStartEnd" hide />
             <YAxis tick={{ fontSize: 9 }} width={28} axisLine={false} tickLine={false} />
             <Tooltip
               contentStyle={{ borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 12, padding: '4px 8px' }}
               labelFormatter={(v) => new Date(v as string).toLocaleString()}
-              formatter={(v: number) => [`${round(v)}${unit}`, title]}
+              formatter={(v: number, name: string) => [`${round(v)}${unit}`, name === dataKey2 ? (dataKey2 || '') : title]}
             />
             <Area
-              type="monotone"
-              dataKey={dataKey}
-              stroke={color}
-              fill={`url(#fill-${dataKey})`}
-              strokeWidth={1.5}
-              dot={false}
-              activeDot={{ r: 3, strokeWidth: 0 }}
+              type="monotone" dataKey={dataKey} stroke={color}
+              fill={`url(#fill-${dataKey})`} strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }}
             />
+            {hasLine2 && (
+              <Area
+                type="monotone" dataKey={dataKey2} stroke={color2}
+                fill={`url(#fill-${dataKey2})`} strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }}
+              />
+            )}
           </AreaChart>
         </ResponsiveContainer>
       </div>
@@ -103,8 +112,7 @@ export default function AgentCharts({ agentId }: Props) {
           <ChartCard title={t('agent.disk')} dataKey="disk" data={metrics} color={COLORS.disk} icon={<HardDrive size={14} />} current={latest.disk} />
           <ChartCard title={t('agent.traffic')} dataKey="net_rx" data={metrics} color={COLORS.net_rx} icon={<Activity size={14} />} current={latest.net_rx} unit=" KB/s" />
           <ChartCard title={t('agent.processes')} dataKey="process_count" data={metrics} color="#f97316" icon={<Cpu size={14} />} current={latest.process_count} unit="" />
-          <ChartCard title={t('agent.tcp')} dataKey="tcp_count" data={metrics} color="#3b82f6" icon={<Activity size={14} />} current={latest.tcp_count} unit="" />
-          <ChartCard title={t('agent.udp')} dataKey="udp_count" data={metrics} color="#8b5cf6" icon={<Activity size={14} />} current={latest.udp_count} unit="" />
+          <ChartCard title="TCP / UDP" dataKey="tcp_count" dataKey2="udp_count" data={metrics} color="#3b82f6" color2="#8b5cf6" icon={<Activity size={14} />} current={latest.tcp_count} current2={latest.udp_count} unit="" />
         </div>
       )}
     </div>
