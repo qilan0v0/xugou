@@ -41,8 +41,8 @@ const UserProfile = () => {
     finally { setLoading(false); }
   };
 
-  const inputClass = "w-full px-3 py-2 rounded-lg border border-white/[0.08] bg-white/5 text-sm text-slate-700 dark:text-slate-300 placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 transition-all";
-  const labelClass = "block text-xs font-medium text-slate-500 mb-1.5";
+  const inputClass = "w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-300 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 transition-all";
+  const labelClass = "block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5";
 
   return (
     <div className="max-w-xl mx-auto px-4 py-8 animate-slide-up">
