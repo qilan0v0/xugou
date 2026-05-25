@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { Cross2Icon, CopyIcon, ClockIcon, DesktopIcon, GlobeIcon, LaptopIcon, Component1Icon, StackIcon, ActivityLogIcon, TimerIcon, CodeIcon, CrumpledPaperIcon, CheckIcon, DashboardIcon, LayersIcon, RulerSquareIcon, TargetIcon, ArrowDownIcon, ArrowUpIcon } from '@radix-ui/react-icons';
+import { Cross2Icon, CopyIcon, ClockIcon, DesktopIcon, GlobeIcon, LaptopIcon, Component1Icon, StackIcon, ActivityLogIcon, TimerIcon, CodeIcon, CrumpledPaperIcon, CheckIcon, DashboardIcon, LayersIcon, TargetIcon, ArrowDownIcon, ArrowUpIcon } from '@radix-ui/react-icons';
+import { HardDrive } from 'lucide-react';
 import { useState } from 'react';
 import { Agent } from '../api/agents';
 import CountryFlag from './CountryFlag';
@@ -114,25 +115,36 @@ export default function AgentDetailModal({ agent, onClose, showToken }: AgentDet
           <div className="glass rounded-xl p-4">
             <h3 className="font-semibold text-sm text-slate-900 dark:text-white mb-3">系统信息</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-1.5 text-xs">
+              {/* System */}
               <div className="flex items-center gap-2"><DesktopIcon className="text-indigo-500 w-3.5 h-3.5 shrink-0" /><span className="text-slate-500">OS:</span><span className="text-slate-700 dark:text-slate-300 truncate">{agent.os || '--'}</span></div>
               <div className="flex items-center gap-2"><LaptopIcon className="text-violet-500 w-3.5 h-3.5 shrink-0" /><span className="text-slate-500">版本:</span><span className="text-slate-700 dark:text-slate-300 truncate">{agent.version || '--'}</span></div>
+              {agent.boot_time && <div className="flex items-center gap-2"><TimerIcon className="text-amber-500 w-3.5 h-3.5 shrink-0" /><span className="text-slate-500">启动:</span><span className="text-slate-700 dark:text-slate-300 truncate">{formatDateTime(agent.boot_time)}</span></div>}
+              {uptimeStr && <div className="flex items-center gap-2"><TimerIcon className="text-teal-500 w-3.5 h-3.5 shrink-0" /><span className="text-slate-500">运行:</span><span className="text-slate-700 dark:text-slate-300">{uptimeStr}</span></div>}
+              {connectStr && <div className="flex items-center gap-2"><ActivityLogIcon className="text-cyan-500 w-3.5 h-3.5 shrink-0" /><span className="text-slate-500">连接:</span><span className="text-slate-700 dark:text-slate-300">{connectStr}</span></div>}
+
+              {/* CPU */}
               {agent.cpu_arch && <div className="flex items-center gap-2"><Component1Icon className="text-emerald-500 w-3.5 h-3.5 shrink-0" /><span className="text-slate-500">CPU架构:</span><span className="text-slate-700 dark:text-slate-300">{agent.cpu_arch}</span></div>}
               {agent.cpu_model_name && <div className="flex items-center gap-2"><CrumpledPaperIcon className="text-orange-500 w-3.5 h-3.5 shrink-0" /><span className="text-slate-500">CPU型号:</span><span className="text-slate-700 dark:text-slate-300 truncate">{agent.cpu_model_name}</span></div>}
               {agent.cpu_cores != null && <div className="flex items-center gap-2"><Component1Icon className="text-emerald-500 w-3.5 h-3.5 shrink-0" /><span className="text-slate-500">CPU核心:</span><span className="text-slate-700 dark:text-slate-300">{agent.cpu_cores}</span></div>}
-              {agent.memory_total != null && <div className="flex items-center gap-2"><StackIcon className="text-blue-500 w-3.5 h-3.5 shrink-0" /><span className="text-slate-500">内存:</span><span className="text-slate-700 dark:text-slate-300">{`${(agent.memory_total / 1073741824).toFixed(1)} GiB`}</span></div>}
               {(agent.load1 != null) && <div className="flex items-center gap-2"><ActivityLogIcon className="text-rose-500 w-3.5 h-3.5 shrink-0" /><span className="text-slate-500">负载:</span><span className="text-slate-700 dark:text-slate-300 truncate">{[agent.load1, agent.load5, agent.load15].map(v => v?.toFixed(2) ?? '-').join(' / ')}</span></div>}
-              {agent.boot_time && <div className="flex items-center gap-2"><TimerIcon className="text-amber-500 w-3.5 h-3.5 shrink-0" /><span className="text-slate-500">启动:</span><span className="text-slate-700 dark:text-slate-300 truncate">{formatDateTime(agent.boot_time)}</span></div>}
-              {connectStr && <div className="flex items-center gap-2"><ActivityLogIcon className="text-cyan-500 w-3.5 h-3.5 shrink-0" /><span className="text-slate-500">连接:</span><span className="text-slate-700 dark:text-slate-300">{connectStr}</span></div>}
-              {uptimeStr && <div className="flex items-center gap-2"><TimerIcon className="text-teal-500 w-3.5 h-3.5 shrink-0" /><span className="text-slate-500">运行:</span><span className="text-slate-700 dark:text-slate-300">{uptimeStr}</span></div>}
-              {agent.agent_version && <div className="flex items-center gap-2"><CodeIcon className="text-purple-500 w-3.5 h-3.5 shrink-0" /><span className="text-slate-500">Agent:</span><span className="text-slate-700 dark:text-slate-300">{agent.agent_version}</span></div>}
               <div className="flex items-center gap-2"><DashboardIcon className="text-cyan-500 w-3.5 h-3.5 shrink-0" /><span className="text-slate-500">CPU:</span><span className="text-slate-700 dark:text-slate-300">{(agent.cpu_usage || 0).toFixed(1)}%</span></div>
+
+              {/* Memory / Disk */}
+              {agent.memory_total != null && <div className="flex items-center gap-2"><StackIcon className="text-blue-500 w-3.5 h-3.5 shrink-0" /><span className="text-slate-500">总内存:</span><span className="text-slate-700 dark:text-slate-300">{`${(agent.memory_total / 1073741824).toFixed(1)} GiB`}</span></div>}
               <div className="flex items-center gap-2"><LayersIcon className="text-green-500 w-3.5 h-3.5 shrink-0" /><span className="text-slate-500">内存:</span><span className="text-slate-700 dark:text-slate-300">{mem}%</span></div>
-              <div className="flex items-center gap-2"><RulerSquareIcon className="text-red-500 w-3.5 h-3.5 shrink-0" /><span className="text-slate-500">磁盘:</span><span className="text-slate-700 dark:text-slate-300">{disk}%</span></div>
+              <div className="flex items-center gap-2"><HardDrive size={14} className="text-red-500 shrink-0" /><span className="text-slate-500">磁盘:</span><span className="text-slate-700 dark:text-slate-300">{disk}%</span></div>
+
+              {/* Network */}
+              {agent.network_rx != null && <div className="flex items-center gap-2"><ArrowDownIcon className="text-cyan-500 w-3.5 h-3.5 shrink-0" /><span className="text-slate-500">↓下载:</span><span className="text-slate-700 dark:text-slate-300">{agent.network_rx.toFixed(0)} KB/s</span></div>}
+              {agent.network_tx != null && <div className="flex items-center gap-2"><ArrowUpIcon className="text-indigo-500 w-3.5 h-3.5 shrink-0" /><span className="text-slate-500">↑上传:</span><span className="text-slate-700 dark:text-slate-300">{agent.network_tx.toFixed(0)} KB/s</span></div>}
+
+              {/* Process / Connections */}
               {agent.process_count != null && <div className="flex items-center gap-2"><TargetIcon className="text-orange-500 w-3.5 h-3.5 shrink-0" /><span className="text-slate-500">进程:</span><span className="text-slate-700 dark:text-slate-300">{agent.process_count}</span></div>}
               {agent.tcp_count != null && <div className="flex items-center gap-2"><ArrowDownIcon className="text-blue-500 w-3.5 h-3.5 shrink-0" /><span className="text-slate-500">TCP:</span><span className="text-slate-700 dark:text-slate-300">{agent.tcp_count}</span></div>}
               {agent.udp_count != null && <div className="flex items-center gap-2"><ArrowUpIcon className="text-sky-500 w-3.5 h-3.5 shrink-0" /><span className="text-slate-500">UDP:</span><span className="text-slate-700 dark:text-slate-300">{agent.udp_count}</span></div>}
-              {agent.network_rx != null && <div className="flex items-center gap-2"><ArrowDownIcon className="text-cyan-500 w-3.5 h-3.5 shrink-0" /><span className="text-slate-500">↓下载:</span><span className="text-slate-700 dark:text-slate-300">{agent.network_rx.toFixed(0)} KB/s</span></div>}
-              {agent.network_tx != null && <div className="flex items-center gap-2"><ArrowUpIcon className="text-indigo-500 w-3.5 h-3.5 shrink-0" /><span className="text-slate-500">↑上传:</span><span className="text-slate-700 dark:text-slate-300">{agent.network_tx.toFixed(0)} KB/s</span></div>}
+
+              {/* Agent */}
+              {agent.agent_version && <div className="flex items-center gap-2"><CodeIcon className="text-purple-500 w-3.5 h-3.5 shrink-0" /><span className="text-slate-500">Agent:</span><span className="text-slate-700 dark:text-slate-300">{agent.agent_version}</span></div>}
             </div>
             {(agent.network_rx_total != null || agent.network_tx_total != null) && (
               <div className="mt-3 pt-3 border-t border-slate-200 dark:border-white/5 text-[11px] text-slate-500 flex gap-4">
