@@ -110,7 +110,7 @@ export default function AgentCharts({ agentId }: Props) {
           <ChartCard title="CPU" dataKey="cpu" data={metrics} color={COLORS.cpu} icon={<Cpu size={14} />} current={latest.cpu} />
           <ChartCard title={t('agent.memory')} dataKey="mem" data={metrics} color={COLORS.mem} icon={<MemoryStick size={14} />} current={latest.mem} />
           <ChartCard title={t('agent.disk')} dataKey="disk" data={metrics} color={COLORS.disk} icon={<HardDrive size={14} />} current={latest.disk} />
-          <ChartCard title={t('agent.traffic')} dataKey="net_rx" data={metrics} color={COLORS.net_rx} icon={<Activity size={14} />} current={latest.net_rx} unit=" KB/s" />
+          <ChartCard title={t('agent.traffic')} dataKey="net_rx" dataKey2="net_tx" data={metrics} color={COLORS.net_rx} color2={COLORS.net_tx} icon={<Activity size={14} />} current={latest.net_rx} current2={latest.net_tx} unit=" KB/s" />
           <ChartCard title={t('agent.processes')} dataKey="process_count" data={metrics} color="#f97316" icon={<Cpu size={14} />} current={latest.process_count} unit="" />
           <ChartCard title="TCP / UDP" dataKey="tcp_count" dataKey2="udp_count" data={metrics} color="#3b82f6" color2="#8b5cf6" icon={<Activity size={14} />} current={latest.tcp_count} current2={latest.udp_count} unit="" />
         </div>
