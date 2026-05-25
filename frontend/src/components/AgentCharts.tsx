@@ -31,7 +31,7 @@ function ChartCard({ title, dataKey, data, color, icon, current, unit = '%' }: {
           {round(current)}{unit}
         </span>
       </div>
-      <div className="h-[150px] sm:h-[180px] w-full">
+      <div className="aspect-video w-full max-h-[220px]">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} syncId="agent-charts" margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
             <defs>

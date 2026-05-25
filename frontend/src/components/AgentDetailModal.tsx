@@ -57,7 +57,7 @@ export default function AgentDetailModal({ agent, onClose, showToken }: AgentDet
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
 
       {/* card */}
-      <div className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto glass rounded-2xl shadow-2xl" onClick={e => e.stopPropagation()}>
+      <div className="relative w-full max-w-3xl max-h-[85vh] overflow-y-auto glass rounded-2xl shadow-2xl" onClick={e => e.stopPropagation()}>
         {/* close button */}
         <button onClick={onClose} className="absolute top-4 right-4 p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors z-10">
           <Cross2Icon className="w-5 h-5" />
