@@ -7,6 +7,13 @@ import ClientResourceSection from './ClientResourceSection';
 import AgentCharts from './AgentCharts';
 import { ENV_API_BASE_URL } from '../config';
 
+const COUNTRY_NAMES: Record<string, string> = {
+  US: '美国', CN: '中国', HK: '香港', TW: '台湾', JP: '日本', KR: '韩国',
+  DE: '德国', FR: '法国', GB: '英国', RU: '俄罗斯', SG: '新加坡',
+  CA: '加拿大', AU: '澳大利亚', NL: '荷兰', IN: '印度', BR: '巴西',
+};
+const toCountryName = (code: string) => COUNTRY_NAMES[code?.toUpperCase()] || code || '--';
+
 function CopyStartCmd({ token }: { token: string }) {
   const [copied, setCopied] = useState(false);
   const cmd = `./xugou-agent start --server ${ENV_API_BASE_URL || window.location.origin} --uuid ${token} --interval 60`;
@@ -73,7 +80,7 @@ export default function AgentDetailModal({ agent, onClose, showToken }: AgentDet
               <h2 className="text-lg font-bold text-slate-900 dark:text-white truncate">{agent.name}</h2>
               <p className="text-xs text-slate-500">
                 {agent.hostname || '--'}
-                {agent.country && <> · <CountryFlag code={agent.country} className="inline-block w-4 h-3 align-middle rounded-sm" /> {agent.country}</>}
+                {agent.country && <> · <CountryFlag code={agent.country} className="inline-block w-4 h-3 align-middle rounded-sm" /> {toCountryName(agent.country)}</>}
               </p>
             </div>
             <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium flex-shrink-0 ${
@@ -87,7 +94,7 @@ export default function AgentDetailModal({ agent, onClose, showToken }: AgentDet
           {/* quick info */}
           <div className="grid grid-cols-2 gap-2 mb-5 text-xs">
             <div className="flex items-center gap-2"><ClockIcon className="text-teal-500 w-3.5 h-3.5" /><span className="text-slate-500">最后更新:</span><span className="text-slate-700 dark:text-slate-300">{formatDateTime(agent.updated_at)}</span></div>
-            <div className="flex items-center gap-2"><GlobeIcon className="text-blue-500 w-3.5 h-3.5" /><span className="text-slate-500">地区:</span><span className="text-slate-700 dark:text-slate-300">{agent.country || '--'}</span></div>
+            <div className="flex items-center gap-2"><GlobeIcon className="text-blue-500 w-3.5 h-3.5" /><span className="text-slate-500">地区:</span><span className="text-slate-700 dark:text-slate-300">{toCountryName(agent.country || '')}</span></div>
           </div>
 
           {/* UUID — admin only */}
