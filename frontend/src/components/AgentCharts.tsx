@@ -104,6 +104,7 @@ export default function AgentCharts({ agentId }: Props) {
           <ChartCard title={t('agent.traffic')} dataKey="net_rx" data={metrics} color={COLORS.net_rx} icon={<Activity size={14} />} current={latest.net_rx} unit=" KB/s" />
           <ChartCard title={t('agent.processes')} dataKey="process_count" data={metrics} color="#f97316" icon={<Cpu size={14} />} current={latest.process_count} unit="" />
           <ChartCard title={t('agent.tcp')} dataKey="tcp_count" data={metrics} color="#3b82f6" icon={<Activity size={14} />} current={latest.tcp_count} unit="" />
+          <ChartCard title={t('agent.udp')} dataKey="udp_count" data={metrics} color="#8b5cf6" icon={<Activity size={14} />} current={latest.udp_count} unit="" />
         </div>
       )}
     </div>
