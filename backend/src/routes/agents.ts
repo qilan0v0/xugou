@@ -462,9 +462,9 @@ agents.put('/:id', async (c) => {
       values.push(isPublic ? 1 : 0);
     }
 
-    if (data.remark !== undefined) {
+    if (updateData.remark !== undefined) {
       fieldsToUpdate.push('remark = ?');
-      values.push(data.remark);
+      values.push(updateData.remark);
     }
 
     fieldsToUpdate.push('updated_at = ?');
