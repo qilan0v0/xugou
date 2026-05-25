@@ -305,7 +305,8 @@ agents.get('/:id', async (c) => {
         duration_unit: agent.duration_unit || null,
         category: agent.category || null,
         tags: agent.tags || null,
-        public: agent.public ?? 1
+        public: agent.public ?? 1,
+        remark: agent.remark || '',
       }
     });
   } catch (error) {
@@ -459,6 +460,11 @@ agents.put('/:id', async (c) => {
     if (isPublic !== undefined) {
       fieldsToUpdate.push('public = ?');
       values.push(isPublic ? 1 : 0);
+    }
+
+    if (data.remark !== undefined) {
+      fieldsToUpdate.push('remark = ?');
+      values.push(data.remark);
     }
 
     fieldsToUpdate.push('updated_at = ?');

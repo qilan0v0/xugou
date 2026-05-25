@@ -35,6 +35,7 @@ export async function runMigrations(env: Bindings): Promise<void> {
   try { await env.DB.exec("ALTER TABLE agent_metrics_history ADD COLUMN process_count INTEGER DEFAULT 0"); } catch (e) { /* skip */ }
   try { await env.DB.exec("ALTER TABLE agent_metrics_history ADD COLUMN tcp_count INTEGER DEFAULT 0"); } catch (e) { /* skip */ }
   try { await env.DB.exec("ALTER TABLE agent_metrics_history ADD COLUMN udp_count INTEGER DEFAULT 0"); } catch (e) { /* skip */ }
+  try { await env.DB.exec("ALTER TABLE agents ADD COLUMN remark TEXT DEFAULT ''"); } catch (e) { /* skip */ }
 
   const newColumns = [
     'cpu_arch TEXT',

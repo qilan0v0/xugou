@@ -506,7 +506,7 @@ app.get('/data', async (c) => {
       'cpu_cores','load1','load5','load15','boot_time','agent_version',
       'country','connected_at','traffic_limit','expiry_time','start_time',
       'duration_value','duration_unit','category','tags','public',
-      'process_count','tcp_count','udp_count'];
+      'process_count','tcp_count','udp_count','remark'];
     const enrichedAgents = (agents.results || []).map((agent: any) => {
       const picked: any = {};
       for (const k of agentFields) picked[k] = agent[k];

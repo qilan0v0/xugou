@@ -42,6 +42,7 @@ export interface Agent {
   category?: string;
   tags?: string;
   public?: number;
+  remark?: string;
 }
 
 export const generateToken = async () => {

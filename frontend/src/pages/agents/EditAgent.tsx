@@ -23,6 +23,7 @@ const EditAgent = () => {
   const [startTime, setStartTime] = useState('');
   const [durationVal, setDurationVal] = useState('1');
   const [durationUnit, setDurationUnit] = useState('month');
+  const [remark, setRemark] = useState('');
   const [toastOpen, setToastOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
   const [toastType, setToastType] = useState<'success'|'error'>('success');
@@ -44,6 +45,7 @@ const EditAgent = () => {
         setStartTime(res.agent.start_time ? new Date(res.agent.start_time).toISOString().slice(0, 16) : '');
         setDurationVal(res.agent.duration_value ? String(res.agent.duration_value) : '1');
         setDurationUnit(res.agent.duration_unit || 'month');
+        setRemark(res.agent.remark || '');
       }
       setFetching(false);
     }).catch(() => setFetching(false));
@@ -73,6 +75,7 @@ const EditAgent = () => {
       if (category) data.category = category; else data.category = null;
       if (tags.length > 0) data.tags = tags.join(','); else data.tags = null;
       data.public = isPublic;
+      data.remark = remark;
       const res = await updateAgent(parseInt(id), data);
       if (res.success) { setToastMsg(t('agent.updateSuccess')); setToastType('success'); setToastOpen(true); setTimeout(() => navigate('/agents'), 1500); }
       else { setToastMsg(res.message || t('agent.updateFailed')); setToastType('error'); setToastOpen(true); }
@@ -104,6 +107,10 @@ const EditAgent = () => {
           <div>
             <label className="block text-xs font-medium text-slate-500 mb-1.5">标签</label>
             <TagInput value={tags} onChange={setTags} placeholder="输入标签，回车添加" />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-500 mb-1.5">备注</label>
+            <textarea value={remark} onChange={e => setRemark(e.target.value)} placeholder="管理员备注，仅后台可见" rows={3} className={inputClass} />
           </div>
           <div>
             <label className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors cursor-pointer">
