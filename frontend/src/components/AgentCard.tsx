@@ -112,7 +112,7 @@ const AgentCard = React.memo(({ agent, onClick, size = 'large' }: AgentCardProps
         onClick={onClick}
         className={`rounded-lg border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-lg shadow-neutral-200/40 dark:shadow-none hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer`}
       >
-        <div className="flex items-center justify-start gap-3 p-3 md:px-5 min-w-[780px] w-full">
+        <div className="flex items-center justify-start gap-3 p-3 md:px-5 min-w-[680px] w-full">
           {/* Left: dot + flag + name */}
           <section className="grid items-center gap-2 shrink-0 lg:w-28" style={{ gridTemplateColumns: 'auto auto 1fr' }}>
             <span className="h-2 w-2 shrink-0 rounded-full bg-green-500 self-center" />
@@ -127,9 +127,9 @@ const AgentCard = React.memo(({ agent, onClick, size = 'large' }: AgentCardProps
           <div className="w-px h-8 bg-slate-200 dark:bg-slate-700 shrink-0" />
 
           {/* Right: metrics grid */}
-          <div className="flex-1 grid grid-cols-8 items-center gap-3">
-            <div className="flex w-16 flex-col">
-              <p className="text-xs text-slate-400 dark:text-slate-500">⏱ {t('agent.uptime')}</p>
+          <div className="flex-1 grid grid-cols-7 items-center gap-2">
+            <div className="flex w-14 flex-col">
+              <p className="text-xs text-slate-400 dark:text-slate-500">{t('agent.uptime')}</p>
               <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{uptimeStr || '--'}</div>
             </div>
             <div className="flex w-14 flex-col">
@@ -153,21 +153,17 @@ const AgentCard = React.memo(({ agent, onClick, size = 'large' }: AgentCardProps
                 <div className={`h-full rounded-sm transition-all duration-500 ${barColor(diskPct)}`} style={{ width: `${Math.min(Math.max(diskPct, 0), 100)}%` }} />
               </div>
             </div>
-            <div className="flex w-16 flex-col">
+            <div className="flex w-14 flex-col">
               <p className="text-xs text-slate-400 dark:text-slate-500">{t('clientResource.download')}</p>
               <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{netDown}</div>
             </div>
-            <div className="flex w-16 flex-col">
+            <div className="flex w-14 flex-col">
               <p className="text-xs text-slate-400 dark:text-slate-500">{t('clientResource.upload')}</p>
               <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{netUp}</div>
             </div>
             <div className="flex w-20 flex-col">
-              <p className="text-xs text-slate-400 dark:text-slate-500">↓ {t('agent.networkTotalRx')}</p>
-              <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{rxTotalStr}</div>
-            </div>
-            <div className="flex w-20 flex-col">
-              <p className="text-xs text-slate-400 dark:text-slate-500">↑ {t('agent.networkTotalTx')}</p>
-              <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{txTotalStr}</div>
+              <p className="text-xs text-slate-400 dark:text-slate-500">{t('agent.networkTotal')} / {t('agent.traffic')}</p>
+              <div className="flex items-center text-[10px] font-semibold text-slate-700 dark:text-slate-300">↓{rxTotalStr} ↑{txTotalStr}</div>
             </div>
           </div>
         </div>
@@ -177,7 +173,7 @@ const AgentCard = React.memo(({ agent, onClick, size = 'large' }: AgentCardProps
         onClick={onClick}
         className={`rounded-lg border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-lg shadow-neutral-200/40 dark:shadow-none hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer`}
       >
-        <div className="flex items-center justify-start gap-3 p-3 md:px-5 min-w-[780px]">
+        <div className="flex items-center justify-start gap-3 p-3 md:px-5 min-w-[680px]">
           <section className="grid items-center gap-2 shrink-0 lg:w-28" style={{ gridTemplateColumns: 'auto auto 1fr' }}>
             <span className="h-2 w-2 shrink-0 rounded-full bg-slate-400 self-center" />
             <div className="flex items-center justify-center min-w-[16px]"><CountryFlag code={agent.country} /></div>
