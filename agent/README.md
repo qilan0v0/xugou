@@ -1,128 +1,150 @@
 # Xugou Agent
 
-Xugou Agent 是一个系统监控客户端，用于收集系统信息并上报到监控服务器。它可以收集 CPU、内存、磁盘、网络等系统信息，并定期上报到指定的服务器。
+Xugou Agent 是轻量化系统监控客户端，收集 CPU、内存、磁盘、网络、进程数、TCP/UDP 连接数等指标，定期上报到 [Xugou 监控平台](https://github.com/qilan0v0/xugou)。兼容 Nezha v0/v1 启动参数。
 
-## 功能特点
+## 采集指标
 
-- 收集系统基本信息（主机名、操作系统、平台等）
-- 监控 CPU 使用率和负载
-- 监控内存使用情况
-- 监控磁盘使用情况
-- 监控网络接口状态
-- 支持自定义收集间隔
-- 支持 HTTP 上报和控制台输出
-- 支持配置文件和环境变量配置
+| 类别 | 指标 |
+|------|------|
+| 系统 | 主机名、OS、平台版本、启动时间 |
+| CPU | 使用率、型号、架构、核心数、1/5/15 分钟负载 |
+| 内存 | 总量、已用、可用、使用率 |
+| 磁盘 | 各分区总量、已用、使用率、文件系统类型 |
+| 网络 | 各网卡收发字节/包数，累计总流量 |
+| 进程 | 系统进程总数 |
+| 连接 | TCP 连接数、UDP 连接数 |
 
 ## 安装
+
+### 预编译二进制
+
+从 [Releases](https://github.com/qilan0v0/xugou/releases) 下载对应平台的二进制文件，重命名为 `xugou-agent`（Windows 为 `xugou-agent.exe`）。
 
 ### 从源码构建
 
 ```bash
-git clone https://github.com/xugou/agent.git
-cd agent
-go build -o xugou-agent
+git clone https://github.com/qilan0v0/xugou.git
+cd xugou/agent
+go build -o xugou-agent .
 ```
 
-### 使用预编译二进制文件
-
-从 [Releases](https://github.com/xugou/agent/releases) 页面下载适合您系统的预编译二进制文件。
-
-## 使用方法
-
-### 基本命令
+## 快速开始
 
 ```bash
-# 显示帮助信息
-./xugou-agent --help
+# 通过管理后台创建客户端，获取 UUID Token
+# https://你的域名/agents
 
-# 显示版本信息
-./xugou-agent version
+# 启动 agent（使用 Xugou 原生参数）
+./xugou-agent start -s https://你的域名 -p 你的UUID令牌
 
-# 启动客户端
-./xugou-agent start
-
-# 配置客户端
-./xugou-agent config
+# 或者使用 Nezha 风格参数
+./xugou-agent start -s 你的域名:5411 --password 你的UUID令牌 --tls -d
 ```
 
-### 配置选项
+## 完整参数列表
 
-可以通过命令行参数、配置文件或环境变量来配置 Xugou Agent：
+### 原生参数
 
-#### 命令行参数
+| 参数 | 简写 | 默认值 | 说明 |
+|------|------|--------|------|
+| `--server` | `-s` | — | 服务器地址（必填） |
+| `--uuid` | — | 自动生成 | API 令牌（UUID 格式） |
+| `--config` | — | `~/.xugou-agent.yaml` | 配置文件路径 |
+| `--log-level` | — | `info` | 日志级别（debug/info/warn/error） |
+| `--agent-id` | — | 0 | 客户端 ID |
+| `--interval` | `-i` | `60` | 上报间隔（秒） |
+
+### Nezha v0 兼容参数
+
+| 参数 | 简写 | 映射到 | 说明 |
+|------|------|--------|------|
+| `-s` | — | `--server` | 服务器地址（同原生） |
+| `--password` | `-p` | `--uuid` | 认证令牌 |
+| `--debug` | `-d` | `--log-level debug` | 开启调试日志 |
+| `--tls` | — | 自动加 `https://` | TLS 连接 |
+| `--report-delay` | — | `--interval` | 上报间隔 |
+| `--skip-conn` | — | — | 跳过 TCP/UDP 连接统计 |
+| `--skip-procs` | — | — | 跳过进程数统计 |
+
+### Nezha v1 配置文件兼容
+
+Xugou Agent 可以直接读取 Nezha v1 的 `config.yaml`：
+
+```yaml
+# config.yaml — Nezha v1 格式
+client_secret: YOUR_TOKEN        # → uuid
+server: monitor.example.com:8008 # → server
+tls: true
+report_delay: 30                 # → interval
+skip_connection_count: true      # → skip_conn
+skip_procs_count: true           # → skip_procs
+insecure_tls: false
+```
 
 ```bash
-# 指定配置文件
-./xugou-agent --config /path/to/config.yaml
-
-# 指定服务器地址
-./xugou-agent --server https://monitor.example.com
-
-# 指定 API 令牌
-./xugou-agent --token YOUR_API_TOKEN
-
-# 指定日志级别
-./xugou-agent --log-level debug
-
-# 指定收集间隔（秒）
-./xugou-agent start --interval 30
+./xugou-agent start -c config.yaml
 ```
 
-#### 配置文件
+### Nezha v0 命令行示例
 
-默认配置文件位于 `$HOME/.xugou-agent.yaml`，格式如下：
+```bash
+# 最简启动
+./xugou-agent start -s 1.2.3.4:8008 -p YOUR_KEY
+
+# TLS + 调试模式，30 秒间隔，跳过连接和进程统计
+./xugou-agent start -s 1.2.3.4:8008 -p YOUR_KEY --tls -d --report-delay 30 --skip-conn --skip-procs
+```
+
+## 配置文件
+
+默认读取 `~/.xugou-agent.yaml`。首次启动自动生成并保存 UUID。
 
 ```yaml
 server: https://monitor.example.com
-token: YOUR_API_TOKEN
+uuid: 550e8400-e29b-41d4-a716-446655440000
 interval: 60
 log_level: info
 ```
 
-#### 环境变量
-
-所有配置选项也可以通过环境变量设置，环境变量名称格式为 `XUGOU_*`：
+所有参数也支持环境变量（前缀 `XUGOU_`）：
 
 ```bash
 export XUGOU_SERVER=https://monitor.example.com
-export XUGOU_TOKEN=YOUR_API_TOKEN
+export XUGOU_UUID=550e8400-e29b-41d4-a716-446655440000
 export XUGOU_INTERVAL=60
-export XUGOU_LOG_LEVEL=info
 ```
 
-### 使用控制台输出
+## 首次上报延迟
 
-如果您只想查看收集的系统信息而不上报到服务器，可以将服务器地址设置为 `console`：
+当 **未显式设置** `--interval` 或 `--report-delay` 时，agent 会在 0~59 秒内随机延迟首次上报，避免大量 agent 同时启动时冲击服务器。显式设置间隔则立即上报。
 
-```bash
-./xugou-agent --server console start
-```
+## 生成客户端启动命令
 
-## 开发
+管理后台 `/agents` 页面，点击 agent 详情卡片的 **复制** 按钮，自动生成当前 agent 的完整启动命令。
 
-### 依赖项
-
-- Go 1.18 或更高版本
-- github.com/spf13/cobra
-- github.com/spf13/viper
-- github.com/shirou/gopsutil/v3
-
-### 项目结构
+## 项目结构
 
 ```
 agent/
-├── cmd/
-│   └── agent/       # 命令行命令
-│       ├── root.go  # 根命令
-│       ├── start.go # 启动命令
-│       ├── config.go # 配置命令
-│       └── version.go # 版本命令
+├── main.go
+├── cmd/agent/
+│   ├── root.go      # 根命令、全局参数
+│   ├── start.go     # start 子命令、采集上报逻辑
+│   ├── config.go    # config 子命令
+│   └── version.go   # version 子命令
 ├── pkg/
-│   ├── collector/   # 数据收集器
-│   └── reporter/    # 数据上报器
-└── main.go          # 程序入口
+│   ├── collector/   # 系统指标采集（gopsutil）
+│   └── reporter/    # HTTP/Console 上报器
+└── go.mod
 ```
+
+## 依赖
+
+- Go 1.18+
+- [cobra](https://github.com/spf13/cobra) — CLI 框架
+- [viper](https://github.com/spf13/viper) — 配置管理
+- [gopsutil](https://github.com/shirou/gopsutil) — 系统指标采集
 
 ## 许可证
 
-MIT 
+MIT
