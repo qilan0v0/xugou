@@ -80,7 +80,7 @@ export default function AgentDetailModal({ agent, onClose, showToken }: AgentDet
               <h2 className="text-lg font-bold text-slate-900 dark:text-white truncate">{agent.name}</h2>
               <p className="text-xs text-slate-500">
                 {agent.hostname || '--'}
-                {agent.country && <> · <CountryFlag code={agent.country} className="inline-block w-4 h-3 align-middle rounded-sm" /> {toCountryName(agent.country)}</>}
+                {agent.country && <> · <CountryFlag code={agent.country} className="inline-block w-4 h-3 align-middle rounded-sm" /> {agent.country}</>}
               </p>
             </div>
             <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium flex-shrink-0 ${
