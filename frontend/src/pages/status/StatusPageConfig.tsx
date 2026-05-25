@@ -42,6 +42,8 @@ const StatusPageConfig = () => {
   const [agentNotifyUp, setAgentNotifyUp] = useState(true);
   const [agentBodyDown, setAgentBodyDown] = useState('{"chat_id":"YOUR_CHAT_ID","text":"🔴 *{name}* 离线\\n\\n主机: {hostname}\\nIP: {ip}\\n系统: {os}\\nCPU: {cpu} | 内存: {memory}\\n运行时长: {uptime}\\n地区: {country}\\n上次在线: {connected_at}","parse_mode":"Markdown"}');
   const [agentBodyUp, setAgentBodyUp] = useState('{"chat_id":"YOUR_CHAT_ID","text":"🟢 *{name}* 上线\\n\\n主机: {hostname}\\nIP: {ip}\\n系统: {os}\\nCPU: {cpu} | 内存: {memory}\\n运行时长: {uptime}\\n地区: {country}\\n上线时间: {connected_at}","parse_mode":"Markdown"}');
+  const [apiBodyDown, setApiBodyDown] = useState('{"chat_id":"YOUR_CHAT_ID","text":"⚠️ *{name}* 故障\\n\\nURL: {url}\\n状态: {status}\\n响应: {response_time}ms\\n可用率: {uptime}","parse_mode":"Markdown"}');
+  const [apiBodyUp, setApiBodyUp] = useState('{"chat_id":"YOUR_CHAT_ID","text":"✅ *{name}* 已恢复\\n\\nURL: {url}\\n状态: {status}\\n响应: {response_time}ms\\n可用率: {uptime}","parse_mode":"Markdown"}');
   const [adminCss, setAdminCss] = useState('');
   const hasInit = useRef(false);
   const { t } = useTranslation();
@@ -76,6 +78,8 @@ const StatusPageConfig = () => {
         if (c.agent_notify_up != null) setAgentNotifyUp(!!c.agent_notify_up);
         if (c.agent_webhook_body_down) setAgentBodyDown(c.agent_webhook_body_down);
         if (c.agent_webhook_body_up) setAgentBodyUp(c.agent_webhook_body_up);
+        if (c.api_webhook_body_down) setApiBodyDown(c.api_webhook_body_down);
+        if (c.api_webhook_body_up) setApiBodyUp(c.api_webhook_body_up);
       }
     }).catch(() => {});
     setLoading(true);
@@ -124,7 +128,7 @@ const StatusPageConfig = () => {
         api.post('/api/status/webhook', {
           webhookUrl, webhookMethod, webhookContentType,
           webhookBodyDown, webhookBodyUp, webhookHeaders,
-          webhookTlsVerify: webhookTls, notifyDown, notifyUp, agentNotifyDown, agentNotifyUp, agentWebhookBodyDown: agentBodyDown, agentWebhookBodyUp: agentBodyUp,
+          webhookTlsVerify: webhookTls, notifyDown, notifyUp, agentNotifyDown, agentNotifyUp, agentWebhookBodyDown: agentBodyDown, agentWebhookBodyUp: agentBodyUp, apiWebhookBodyDown: apiBodyDown, apiWebhookBodyUp: apiBodyUp,
         }).catch(() => {});
         // Cache to localStorage for fast next load
         localStorage.setItem('xugou_page_config', JSON.stringify({
@@ -226,20 +230,6 @@ const StatusPageConfig = () => {
                     <span className="text-sm text-slate-700 dark:text-slate-300">上线时通知</span>
                   </label>
                 </div>
-                {/* Agent body templates — collapsible */}
-                <details className="mt-2">
-                  <summary className="text-xs text-slate-400 cursor-pointer hover:text-slate-600">自定义客户端通知模版</summary>
-                  <div className="mt-2 flex flex-col gap-2">
-                    <div>
-                      <label className="block text-[11px] font-medium text-slate-500 mb-1">离线 Body</label>
-                      <textarea value={agentBodyDown} onChange={e => setAgentBodyDown(e.target.value)} rows={3} className={inputClass} style={{fontSize: 11, fontFamily: 'monospace'}} />
-                    </div>
-                    <div>
-                      <label className="block text-[11px] font-medium text-slate-500 mb-1">上线 Body</label>
-                      <textarea value={agentBodyUp} onChange={e => setAgentBodyUp(e.target.value)} rows={3} className={inputClass} style={{fontSize: 11, fontFamily: 'monospace'}} />
-                    </div>
-                  </div>
-                </details>
               </div>
 
               <div>
@@ -267,17 +257,34 @@ const StatusPageConfig = () => {
                 <>
                   <div>
                     <label className="block text-xs font-medium text-slate-500 mb-1.5">
-                      故障通知模板 {webhookContentType === 'json' ? '(JSON)' : '(文本)'}
+                      客户端故障通知模板 {webhookContentType === 'json' ? '(JSON)' : '(文本)'}
                     </label>
-                    <textarea value={webhookBodyDown} onChange={e => setWebhookBodyDown(e.target.value)}
+                    <textarea value={agentBodyDown} onChange={e => setAgentBodyDown(e.target.value)}
+                      placeholder={webhookContentType === 'json' ? '{"name":"{name}","status":"离线"}' : '{name} 离线'}
+                      className={`${inputClass} font-mono`} rows={3} style={{ minHeight: '60px' }} />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-500 mb-1.5">
+                      客户端恢复通知模板 {webhookContentType === 'json' ? '(JSON)' : '(文本)'}
+                    </label>
+                    <textarea value={agentBodyUp} onChange={e => setAgentBodyUp(e.target.value)}
+                      placeholder={webhookContentType === 'json' ? '{"name":"{name}","status":"上线"}' : '{name} 上线'}
+                      className={`${inputClass} font-mono`} rows={3} style={{ minHeight: '60px' }} />
+                  </div>
+
+                  <div className="mt-3 pt-3 border-t border-white/[0.06]">
+                    <label className="block text-xs font-medium text-slate-500 mb-1.5">
+                      API监控故障通知模板 {webhookContentType === 'json' ? '(JSON)' : '(文本)'}
+                    </label>
+                    <textarea value={apiBodyDown} onChange={e => setApiBodyDown(e.target.value)}
                       placeholder={webhookContentType === 'json' ? '{"name":"{name}","status":"故障"}' : '{name} 出现故障'}
                       className={`${inputClass} font-mono`} rows={3} style={{ minHeight: '60px' }} />
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-slate-500 mb-1.5">
-                      恢复通知模板 {webhookContentType === 'json' ? '(JSON)' : '(文本)'}
+                      API监控恢复通知模板 {webhookContentType === 'json' ? '(JSON)' : '(文本)'}
                     </label>
-                    <textarea value={webhookBodyUp} onChange={e => setWebhookBodyUp(e.target.value)}
+                    <textarea value={apiBodyUp} onChange={e => setApiBodyUp(e.target.value)}
                       placeholder={webhookContentType === 'json' ? '{"name":"{name}","status":"已恢复"}' : '{name} 已恢复正常'}
                       className={`${inputClass} font-mono`} rows={3} style={{ minHeight: '60px' }} />
                   </div>

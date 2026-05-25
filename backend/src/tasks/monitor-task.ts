@@ -41,7 +41,7 @@ async function sendNotification(env: any, monitor: Monitor, event: 'down' | 'up'
       network_rx_total: '', network_tx_total: '', traffic_total: '',
     };
 
-    const template = event === 'down' ? (cfg.webhook_body_down || '') : (cfg.webhook_body_up || '');
+    const template = event === 'down' ? (cfg.api_webhook_body_down || cfg.webhook_body_down || '') : (cfg.api_webhook_body_up || cfg.webhook_body_up || '');
     let body = template;
     for (const [k, v] of Object.entries(vars)) {
       body = body.replace(new RegExp(`\\{${k}\\}`, 'g'), v);

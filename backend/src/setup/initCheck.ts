@@ -40,6 +40,8 @@ export async function runMigrations(env: Bindings): Promise<void> {
   try { await env.DB.exec("ALTER TABLE webhook_config ADD COLUMN agent_notify_up INTEGER DEFAULT 1"); } catch (e) { /* skip */ }
   try { await env.DB.exec("ALTER TABLE webhook_config ADD COLUMN agent_webhook_body_down TEXT DEFAULT ''"); } catch (e) { /* skip */ }
   try { await env.DB.exec("ALTER TABLE webhook_config ADD COLUMN agent_webhook_body_up TEXT DEFAULT ''"); } catch (e) { /* skip */ }
+  try { await env.DB.exec("ALTER TABLE webhook_config ADD COLUMN api_webhook_body_down TEXT DEFAULT ''"); } catch (e) { /* skip */ }
+  try { await env.DB.exec("ALTER TABLE webhook_config ADD COLUMN api_webhook_body_up TEXT DEFAULT ''"); } catch (e) { /* skip */ }
 
   const newColumns = [
     'cpu_arch TEXT',
