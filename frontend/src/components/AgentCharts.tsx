@@ -96,7 +96,7 @@ export default function AgentCharts({ agentId }: Props) {
       {metrics.length === 0 ? (
         <div className="glass rounded-xl p-8 text-center text-xs text-slate-400">Waiting for agent data...</div>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           <ChartCard title="CPU" dataKey="cpu" data={metrics} color={COLORS.cpu} icon={<Cpu size={14} />} current={latest.cpu} />
           <ChartCard title={t('agent.memory')} dataKey="mem" data={metrics} color={COLORS.mem} icon={<MemoryStick size={14} />} current={latest.mem} />
           <ChartCard title={t('agent.disk')} dataKey="disk" data={metrics} color={COLORS.disk} icon={<HardDrive size={14} />} current={latest.disk} />
