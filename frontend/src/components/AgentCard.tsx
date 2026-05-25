@@ -102,9 +102,9 @@ const AgentCard = React.memo(({ agent, onClick, size = 'large' }: AgentCardProps
     const barColor = (v: number) =>
       v > 90 ? 'bg-red-500' : v > 70 ? 'bg-orange-400' : 'bg-green-500';
 
-    const ThinBar = ({ value }: { value: number }) => (
-      <div className="mt-0.5 h-[3px] w-full rounded-sm bg-slate-100 dark:bg-slate-800 overflow-hidden">
-        <div className={`h-full rounded-sm transition-all duration-500 ${barColor(value)}`} style={{ width: `${Math.min(Math.max(value, 0), 100)}%` }} />
+    const BarSlot = ({ value }: { value?: number }) => (
+      <div className="mt-0.5 h-[2px] w-full rounded-sm bg-slate-100 dark:bg-slate-800 overflow-hidden">
+        {value != null && <div className={`h-full rounded-sm transition-all duration-500 ${barColor(value)}`} style={{ width: `${Math.min(Math.max(value, 0), 100)}%` }} />}
       </div>
     );
 
@@ -112,7 +112,7 @@ const AgentCard = React.memo(({ agent, onClick, size = 'large' }: AgentCardProps
       <div className="flex flex-col items-center">
         <p className="text-[10px] text-slate-400 dark:text-slate-500">{label}</p>
         <div className="text-[11px] font-semibold text-slate-700 dark:text-slate-300">{value}</div>
-        {!noBar && bar != null && <ThinBar value={bar} />}
+        <BarSlot value={noBar ? undefined : bar} />
       </div>
     );
 
