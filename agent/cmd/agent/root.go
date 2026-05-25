@@ -80,4 +80,16 @@ func initConfig() {
 			fmt.Println("警告: 配置文件读取错误:", err)
 		}
 	}
+
+	// Nezha v1 config.yaml field mappings
+	alias := func(from, to string) {
+		if viper.IsSet(from) && !viper.IsSet(to) {
+			viper.Set(to, viper.Get(from))
+		}
+	}
+	alias("client_secret", "password")
+	alias("report_delay", "interval")
+	alias("skip_connection_count", "skip_conn")
+	alias("skip_procs_count", "skip_procs")
+	alias("insecure_tls", "tls_insecure")
 }
