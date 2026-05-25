@@ -78,7 +78,7 @@ function EditModal({ agent, onClose, onSaved }: { agent: Agent; onClose: () => v
     finally { setSaving(false); }
   };
 
-  const inputC = "w-full px-3 py-2 rounded-lg border border-white/[0.08] bg-white/5 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 transition-all";
+  const inputC = "w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 transition-all";
   const labelC = "block text-xs font-medium text-slate-500 mb-1.5";
 
   return (
@@ -87,7 +87,7 @@ function EditModal({ agent, onClose, onSaved }: { agent: Agent; onClose: () => v
       <div className="relative w-full max-w-xl glass rounded-2xl shadow-2xl max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between p-5 border-b border-white/[0.06]">
           <h3 className="font-semibold text-slate-900 dark:text-white">编辑客户端 · {agent.name}</h3>
-          <button onClick={onClose} className="p-1 rounded-md hover:bg-slate-100 dark:hover:bg-white/5 text-slate-400"><Cross2Icon /></button>
+          <button onClick={onClose} className="p-1 rounded-md hover:bg-slate-100 dark:hover:bg-white dark:bg-slate-900 text-slate-400"><Cross2Icon /></button>
         </div>
         <form onSubmit={handleSave} className="p-5 flex flex-col gap-4">
           <div><label className={labelC}>名称 *</label><input value={name} onChange={e => setName(e.target.value)} required className={inputC} /></div>
@@ -100,7 +100,7 @@ function EditModal({ agent, onClose, onSaved }: { agent: Agent; onClose: () => v
             <label className={labelC}>总流量上限</label>
             <div className="flex gap-2">
               <input type="number" step="0.1" min="0" value={trafficVal} onChange={e => setTrafficVal(e.target.value)} placeholder="1" className={`${inputC} flex-1`} />
-              <select value={trafficUnit} onChange={e => setTrafficUnit(e.target.value)} className="px-3 py-2 rounded-lg border border-white/[0.08] bg-white/5 text-sm text-slate-700 dark:text-slate-300 w-20 flex-shrink-0">
+              <select value={trafficUnit} onChange={e => setTrafficUnit(e.target.value)} className="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-300 w-20 flex-shrink-0">
                 {(['GB','TB'] as const).map(u => <option key={u} value={u}>{u}</option>)}
               </select>
             </div>
@@ -113,7 +113,7 @@ function EditModal({ agent, onClose, onSaved }: { agent: Agent; onClose: () => v
             <label className={labelC}>使用时长</label>
             <div className="flex gap-2">
               <input type="number" min="1" step="1" value={durationVal} onChange={e => setDurationVal(e.target.value)} className={`${inputC} flex-1`} />
-              <select value={durationUnit} onChange={e => setDurationUnit(e.target.value)} className="px-3 py-2 rounded-lg border border-white/[0.08] bg-white/5 text-sm text-slate-700 dark:text-slate-300 w-24 flex-shrink-0">
+              <select value={durationUnit} onChange={e => setDurationUnit(e.target.value)} className="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-300 w-24 flex-shrink-0">
                 {(['day','month','year'] as const).map(u => <option key={u} value={u}>{u === 'day' ? '天' : u === 'month' ? '月' : '年'}</option>)}
               </select>
             </div>
@@ -121,7 +121,7 @@ function EditModal({ agent, onClose, onSaved }: { agent: Agent; onClose: () => v
           <div><label className={labelC}>备注</label><textarea value={remark} onChange={e => setRemark(e.target.value)} placeholder="管理员备注，仅后台可见" rows={3} className={inputC} /></div>
           <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={isPublic} onChange={e => setIsPublic(e.target.checked)} className="chk-box" /><span className="text-xs text-slate-500">公开显示</span></label>
           <div className="flex justify-end gap-3 pt-2 border-t border-white/[0.06]">
-            <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5">取消</button>
+            <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm text-slate-500 hover:bg-slate-100 dark:hover:bg-white dark:bg-slate-900">取消</button>
             <button type="submit" disabled={saving} className="btn-gradient px-5 py-2 text-sm flex items-center gap-1.5"><UpdateIcon />{saving ? '保存中...' : '保存'}</button>
           </div>
         </form>
@@ -262,7 +262,7 @@ const AgentsList = () => {
           )}
         </div>
         <div className="flex items-center gap-3">
-          <button onClick={fetchAgents} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"><ReloadIcon />{t('common.refresh')}</button>
+          <button onClick={fetchAgents} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white dark:bg-slate-900 transition-colors"><ReloadIcon />{t('common.refresh')}</button>
           <button onClick={() => navigate('/agents/create')} className="btn-gradient flex items-center gap-1.5 px-4 py-2 text-sm"><PlusIcon />{t('agents.create')}</button>
         </div>
       </div>
@@ -303,8 +303,8 @@ const AgentsList = () => {
         cats.forEach(c => { counts[c] = agents.filter(a => a.category === c).length; });
         return (
           <div className="flex gap-2 mb-4 flex-wrap">
-            <button onClick={() => setCategoryFilter('')} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${!categoryFilter ? 'bg-blue-500/10 text-blue-600' : 'text-slate-500 hover:text-slate-700 bg-slate-100 dark:bg-white/5'}`}>全部 <span className="text-[10px] opacity-60">{allCount}</span></button>
-            {cats.map(cat => <button key={cat} onClick={() => setCategoryFilter(cat)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${categoryFilter === cat ? 'bg-blue-500/10 text-blue-600' : 'text-slate-500 hover:text-slate-700 bg-slate-100 dark:bg-white/5'}`}>{cat} <span className="text-[10px] opacity-60">{counts[cat]}</span></button>)}
+            <button onClick={() => setCategoryFilter('')} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${!categoryFilter ? 'bg-blue-500/10 text-blue-600' : 'text-slate-500 hover:text-slate-700 bg-slate-100 dark:bg-white dark:bg-slate-900'}`}>全部 <span className="text-[10px] opacity-60">{allCount}</span></button>
+            {cats.map(cat => <button key={cat} onClick={() => setCategoryFilter(cat)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${categoryFilter === cat ? 'bg-blue-500/10 text-blue-600' : 'text-slate-500 hover:text-slate-700 bg-slate-100 dark:bg-white dark:bg-slate-900'}`}>{cat} <span className="text-[10px] opacity-60">{counts[cat]}</span></button>)}
           </div>
         );
       })()}

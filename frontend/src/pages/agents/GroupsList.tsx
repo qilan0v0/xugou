@@ -144,7 +144,7 @@ export default function GroupsList() {
             </div>
           )}
         </div>
-        <button onClick={fetchGroups} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors">
+        <button onClick={fetchGroups} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white dark:bg-slate-900 transition-colors">
           <ReloadIcon />刷新
         </button>
       </div>
@@ -154,7 +154,7 @@ export default function GroupsList() {
         <div className="flex gap-2">
           <input value={newName} onChange={e => { setNewName(e.target.value); setError(''); }}
             onKeyDown={e => e.key === 'Enter' && handleAdd()}
-            placeholder="输入分组名称，回车添加" className="flex-1 px-3 py-2 rounded-lg border border-white/[0.08] bg-white/5 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 transition-all" />
+            placeholder="输入分组名称，回车添加" className="flex-1 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 transition-all" />
           <button onClick={handleAdd} disabled={adding || !newName.trim()}
             className="btn-gradient flex items-center gap-1.5 px-4 py-2 text-sm disabled:opacity-50">
             <PlusIcon />{adding ? '...' : '添加'}
@@ -220,7 +220,7 @@ export default function GroupsList() {
                         ) : (
                           <div className="flex flex-wrap gap-1.5">
                             {agents.map(a => (
-                              <span key={a.id} className="inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-full bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400">
+                              <span key={a.id} className="inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-full bg-slate-100 dark:bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400">
                                 <CubeIcon className="w-3 h-3" />
                                 {a.name}
                                 <button onClick={() => handleRemoveAgent(g, a.id)}
@@ -251,7 +251,7 @@ export default function GroupsList() {
             <div className="relative w-full max-w-md glass rounded-2xl shadow-2xl max-h-[70vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between p-5 border-b border-white/[0.06]">
                 <h3 className="font-semibold text-slate-900 dark:text-white">添加客户端到「{g?.name}」</h3>
-                <button onClick={() => setAssignOpen(null)} className="p-1 rounded-md hover:bg-slate-100 dark:hover:bg-white/5 text-slate-400"><Cross2Icon /></button>
+                <button onClick={() => setAssignOpen(null)} className="p-1 rounded-md hover:bg-slate-100 dark:hover:bg-white dark:bg-slate-900 text-slate-400"><Cross2Icon /></button>
               </div>
               <div className="p-5">
                 {assignLoading ? (
@@ -261,7 +261,7 @@ export default function GroupsList() {
                 ) : (
                   <div className="flex flex-col gap-1 max-h-60 overflow-y-auto">
                     {available.map(a => (
-                      <label key={a.id} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/5 cursor-pointer text-sm text-slate-700 dark:text-slate-300">
+                      <label key={a.id} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white dark:bg-slate-900 cursor-pointer text-sm text-slate-700 dark:text-slate-300">
                         <input type="checkbox" checked={selectedIds.has(a.id)} onChange={() => toggleSelect(a.id)} className="chk-box" />
                         {a.name}
                         {a.category && <span className="text-[10px] text-slate-400 ml-auto">{a.category}</span>}
@@ -270,7 +270,7 @@ export default function GroupsList() {
                   </div>
                 )}
                 <div className="flex justify-end gap-3 mt-4 pt-3 border-t border-white/[0.06]">
-                  <button onClick={() => setAssignOpen(null)} className="px-4 py-2 rounded-lg text-sm text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5">取消</button>
+                  <button onClick={() => setAssignOpen(null)} className="px-4 py-2 rounded-lg text-sm text-slate-500 hover:bg-slate-100 dark:hover:bg-white dark:bg-slate-900">取消</button>
                   <button onClick={() => handleAssign(g)} disabled={selectedIds.size === 0}
                     className="btn-gradient px-5 py-2 text-sm disabled:opacity-50">
                     添加 {selectedIds.size > 0 ? `(${selectedIds.size})` : ''}

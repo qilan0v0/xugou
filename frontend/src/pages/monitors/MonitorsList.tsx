@@ -52,7 +52,7 @@ function EditModal({ monitor, onClose, onSaved }: { monitor: Monitor; onClose: (
     finally { setSaving(false); }
   };
 
-  const inputC = "w-full px-3 py-2 rounded-lg border border-white/[0.08] bg-white/5 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 transition-all";
+  const inputC = "w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 transition-all";
   const labelC = "block text-xs font-medium text-slate-500 mb-1.5";
   const showBody = ['POST', 'PUT', 'PATCH'].includes(form.method);
 
@@ -64,7 +64,7 @@ function EditModal({ monitor, onClose, onSaved }: { monitor: Monitor; onClose: (
       <div className="relative w-full max-w-xl glass rounded-2xl shadow-2xl max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between p-5 border-b border-white/[0.06]">
           <h3 className="font-semibold text-slate-900 dark:text-white">编辑监控 · {monitor.name}</h3>
-          <button onClick={onClose} className="p-1 rounded-md hover:bg-slate-100 dark:hover:bg-white/5 text-slate-400"><Cross2Icon /></button>
+          <button onClick={onClose} className="p-1 rounded-md hover:bg-slate-100 dark:hover:bg-white dark:bg-slate-900 text-slate-400"><Cross2Icon /></button>
         </div>
         <form onSubmit={handleSave} className="p-5 flex flex-col gap-4">
           <div><label className={labelC}>名称 *</label><input value={form.name} onChange={f('name')} required className={inputC} /></div>
@@ -81,7 +81,7 @@ function EditModal({ monitor, onClose, onSaved }: { monitor: Monitor; onClose: (
           </div>
           <div>
             <label className={labelC}>请求头</label>
-            <div className="border border-white/[0.08] rounded-lg p-3 flex flex-col gap-2">
+            <div className="border border-slate-200 dark:border-slate-700 rounded-lg p-3 flex flex-col gap-2">
               {headers.map((h, i) => (
                 <div key={i} className="flex gap-2">
                   <input placeholder="名称" value={h.key} onChange={e => { const n = [...headers]; n[i] = { ...n[i], key: e.target.value }; if (i === n.length - 1 && (n[i].key || n[i].value)) n.push({ key: '', value: '' }); setHeaders(n); }} className={`${inputC} flex-1`} />
@@ -97,7 +97,7 @@ function EditModal({ monitor, onClose, onSaved }: { monitor: Monitor; onClose: (
             <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={isPublic} onChange={e => setIsPublic(e.target.checked)} className="chk-box" /><span className="text-xs text-slate-500">公开显示</span></label>
           </div>
           <div className="flex justify-end gap-3 pt-2 border-t border-white/[0.06]">
-            <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5">取消</button>
+            <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm text-slate-500 hover:bg-slate-100 dark:hover:bg-white dark:bg-slate-900">取消</button>
             <button type="submit" disabled={saving} className="btn-gradient px-5 py-2 text-sm flex items-center gap-1.5"><UpdateIcon />{saving ? '保存中...' : '保存'}</button>
           </div>
         </form>
@@ -195,7 +195,7 @@ const MonitorsList = () => {
           )}
         </div>
         <div className="flex items-center gap-3">
-          <button onClick={fetchData} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"><ReloadIcon />刷新</button>
+          <button onClick={fetchData} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white dark:bg-slate-900 transition-colors"><ReloadIcon />刷新</button>
           <button onClick={() => navigate('/monitors/create')} className="btn-gradient flex items-center gap-1.5 px-4 py-2 text-sm"><PlusIcon />{t('monitors.create')}</button>
         </div>
       </div>
@@ -241,7 +241,7 @@ const MonitorsList = () => {
                       <td className="px-3 py-2.5"><input type="checkbox" checked={sel} onChange={() => toggle(m.id)} className="chk-box" /></td>
                       <td className="px-4 py-2.5"><span className="text-sm font-medium text-slate-900 dark:text-white truncate block max-w-[150px]">{m.name}</span></td>
                       <td className="px-4 py-2.5"><div className="flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400"><GlobeIcon className="w-3 h-3 flex-shrink-0 text-slate-400" /><span className="truncate max-w-[260px]">{m.url}</span></div></td>
-                      <td className="px-4 py-2.5"><span className="text-[11px] font-mono font-medium text-slate-500 bg-slate-100 dark:bg-white/5 px-1.5 py-0.5 rounded">{m.method}</span></td>
+                      <td className="px-4 py-2.5"><span className="text-[11px] font-mono font-medium text-slate-500 bg-slate-100 dark:bg-white dark:bg-slate-900 px-1.5 py-0.5 rounded">{m.method}</span></td>
                       <td className="px-4 py-2.5"><span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[11px] font-medium ${cfg.bg} ${cfg.text}`}><span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />{m.status === 'up' ? '正常' : m.status === 'down' ? '故障' : '待检'}</span></td>
                       <td className="px-4 py-2.5"><div className="flex items-center gap-1 text-sm text-slate-600 dark:text-slate-400"><ActivityLogIcon className="w-3 h-3 text-slate-400" /><span className="font-mono text-xs">{m.response_time || 0}<span className="text-[10px]">ms</span></span></div></td>
                       <td className="px-4 py-2.5"><span className={`text-sm font-mono ${(m.uptime || 100) >= 99 ? 'text-emerald-600' : (m.uptime || 100) >= 95 ? 'text-amber-600' : 'text-red-500'}`}>{(m.uptime || 100).toFixed(1)}%</span></td>

@@ -111,7 +111,7 @@ export default function TagInput({ value, onChange, placeholder, poolUrl = '/api
   return (
     <div ref={wrapperRef} className="relative">
       <div
-        className="flex flex-wrap items-center gap-1.5 px-3 py-2 rounded-lg border border-white/[0.08] bg-white/5 transition-all cursor-text min-h-[42px]"
+        className="flex flex-wrap items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 transition-all cursor-text min-h-[42px]"
         onClick={() => inputRef.current?.focus()}
       >
         {value.map(tag => (
@@ -140,7 +140,7 @@ export default function TagInput({ value, onChange, placeholder, poolUrl = '/api
 
       {/* dropdown */}
       {showDropdown && hasDropdown && (
-        <div className="absolute top-full left-0 right-0 mt-1 z-50 rounded-lg border border-white/[0.08] bg-white dark:bg-slate-800 shadow-xl max-h-48 overflow-y-auto">
+        <div className="absolute top-full left-0 right-0 mt-1 z-50 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-xl max-h-48 overflow-y-auto">
           {candidates.map((tag, i) => (
             <button
               key={tag}
@@ -148,7 +148,7 @@ export default function TagInput({ value, onChange, placeholder, poolUrl = '/api
               className={`w-full text-left px-3 py-2 text-sm transition-colors flex items-center gap-2 ${
                 i === highlightIdx
                   ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400'
-                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5'
+                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white dark:bg-slate-900'
               }`}
               onMouseDown={e => { e.preventDefault(); addTag(tag); }}
               onMouseEnter={() => setHighlightIdx(i)}
@@ -163,7 +163,7 @@ export default function TagInput({ value, onChange, placeholder, poolUrl = '/api
               className={`w-full text-left px-3 py-2 text-sm transition-colors flex items-center gap-2 border-t border-white/[0.06] ${
                 highlightIdx === candidates.length
                   ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400'
-                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5'
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white dark:bg-slate-900'
               }`}
               onMouseDown={e => { e.preventDefault(); addTag(input.trim()); }}
               onMouseEnter={() => setHighlightIdx(candidates.length)}

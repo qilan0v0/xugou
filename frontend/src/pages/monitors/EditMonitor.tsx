@@ -70,7 +70,7 @@ const EditMonitor = () => {
     finally { setLoading(false); }
   };
 
-  const inputClass = "w-full px-3 py-2 rounded-lg border border-white/[0.08] bg-white/5 text-sm text-slate-700 dark:text-slate-300 placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 transition-all";
+  const inputClass = "w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-300 placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 transition-all";
   const labelClass = "block text-xs font-medium text-slate-500 mb-1.5";
 
   if (loadingData) return <div className="flex justify-center items-center min-h-[50vh]"><LoadingSpinner /></div>;
@@ -78,7 +78,7 @@ const EditMonitor = () => {
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 animate-slide-up">
       <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => navigate('/monitors')} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors text-slate-500"><ArrowLeftIcon /></button>
+        <button onClick={() => navigate('/monitors')} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white dark:bg-slate-900 transition-colors text-slate-500"><ArrowLeftIcon /></button>
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t('monitor.form.title.edit')}</h1>
       </div>
 
@@ -98,7 +98,7 @@ const EditMonitor = () => {
           </div>
           <div>
             <label className={labelClass}>{t('monitor.form.headers')}</label>
-            <div className="border border-white/[0.08] rounded-lg p-3">
+            <div className="border border-slate-200 dark:border-slate-700 rounded-lg p-3">
               <table className="w-full"><thead><tr><th className="text-left text-xs font-semibold text-slate-500 pb-2">{t('monitor.form.headerName')}</th><th className="text-left text-xs font-semibold text-slate-500 pb-2">{t('monitor.form.headerValue')}</th><th className="w-10"></th></tr></thead>
                 <tbody>{headers.map((h,i) => (
                   <tr key={i}><td className="pr-2 pb-2"><input value={h.key} onChange={e => handleHeaderChange(i,'key',e.target.value)} className={inputClass} /></td>
@@ -113,9 +113,9 @@ const EditMonitor = () => {
             <div><label className={labelClass}>{t('monitor.form.body')}</label><textarea name="body" value={formData.body} onChange={handleChange} className={inputClass} rows={5} /></div>
           )}
           <div className="flex justify-end gap-3 pt-2 border-t border-white/[0.06]">
-            <button type="button" onClick={() => navigate('/monitors')} className="px-4 py-2 rounded-lg text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors">{t('monitor.form.cancel')}</button>
+            <button type="button" onClick={() => navigate('/monitors')} className="px-4 py-2 rounded-lg text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white dark:bg-slate-900 transition-colors">{t('monitor.form.cancel')}</button>
           <div className="pb-2">
-            <label className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors cursor-pointer">
+            <label className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white dark:bg-slate-900 transition-colors cursor-pointer">
               <span className="text-xs font-medium text-slate-500">公开显示</span>
               <span className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${isPublic ? 'bg-blue-500 border-blue-500' : 'border-slate-400'}`}>
                 {isPublic && <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/></svg>}

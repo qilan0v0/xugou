@@ -69,13 +69,13 @@ const CreateAgent = () => {
     return `https://github.com/qilan0v0/xugou/releases/latest/download/xugou-agent-${selectedPlatform}-${selectedArch}${ext}`;
   };
 
-  const inputClass = "w-full px-3 py-2 rounded-lg border border-white/[0.08] bg-white/5 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 transition-all";
+  const inputClass = "w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 transition-all";
   const codeClass = "block p-3 rounded-lg bg-slate-900 dark:bg-black/40 text-emerald-400 text-xs font-mono whitespace-pre-wrap break-all leading-relaxed border border-white/[0.06]";
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 animate-slide-up">
       <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => navigate('/agents')} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors text-slate-500"><ArrowLeftIcon /></button>
+        <button onClick={() => navigate('/agents')} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white dark:bg-slate-900 transition-colors text-slate-500"><ArrowLeftIcon /></button>
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t('agent.form.title.create')}</h1>
       </div>
 
@@ -86,7 +86,7 @@ const CreateAgent = () => {
           <div className="flex gap-2">
             <input value={agentName} onChange={e => setAgentName(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleCreate()}
-              className="flex-1 px-3 py-2 rounded-lg border border-white/[0.08] bg-white/5 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 transition-all"
+              className="flex-1 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 transition-all"
               placeholder={t('agent.form.namePlaceholder')} />
             <button onClick={handleCreate}
               disabled={loading || !agentName.trim() || created}
@@ -111,7 +111,7 @@ const CreateAgent = () => {
           <label className="block text-xs font-semibold text-slate-500 mb-1.5">总流量上限</label>
           <div className="flex gap-2">
             <input type="number" step="0.1" min="0" value={trafficVal} onChange={e => setTrafficVal(e.target.value)} placeholder="1" className={`${inputClass} flex-1`} />
-            <select value={trafficUnit} onChange={e => setTrafficUnit(e.target.value)} className="px-3 py-2 rounded-lg border border-white/[0.08] bg-white/5 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-500 transition-all w-20 flex-shrink-0">
+            <select value={trafficUnit} onChange={e => setTrafficUnit(e.target.value)} className="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-500 transition-all w-20 flex-shrink-0">
               {(['GB','TB'] as const).map(u => <option key={u} value={u}>{u}</option>)}
             </select>
           </div>
@@ -124,7 +124,7 @@ const CreateAgent = () => {
           <label className="block text-xs font-semibold text-slate-500 mb-1.5">使用时长</label>
           <div className="flex gap-2">
             <input type="number" min="1" step="1" value={durationVal} onChange={e => setDurationVal(e.target.value)} placeholder="1" className={`${inputClass} flex-1`} />
-            <select value={durationUnit} onChange={e => setDurationUnit(e.target.value)} className="px-3 py-2 rounded-lg border border-white/[0.08] bg-white/5 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-500 transition-all w-24 flex-shrink-0">
+            <select value={durationUnit} onChange={e => setDurationUnit(e.target.value)} className="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-500 transition-all w-24 flex-shrink-0">
               {(['day','month','year'] as const).map(u => <option key={u} value={u}>{u === 'day' ? '天' : u === 'month' ? '月' : '年'}</option>)}
             </select>
           </div>
@@ -144,7 +144,7 @@ const CreateAgent = () => {
           )}
         </div>
         <div>
-          <label className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors cursor-pointer">
+          <label className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white dark:bg-slate-900 transition-colors cursor-pointer">
             <span className="text-xs font-medium text-slate-500">公开显示</span>
             <span className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${isPublic ? 'bg-blue-500 border-blue-500' : 'border-slate-400'}`}>
               {isPublic && <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/></svg>}
@@ -172,7 +172,7 @@ const CreateAgent = () => {
             <div>
               <label className="block text-xs font-semibold text-slate-500 mb-1.5">{t('agent.add.registrationToken')}</label>
               <div className="flex gap-2">
-                <code className="flex-1 px-3 py-2.5 rounded-lg bg-slate-100 dark:bg-white/5 text-xs font-mono text-slate-700 dark:text-slate-300 break-all border border-white/[0.06]">{token}</code>
+                <code className="flex-1 px-3 py-2.5 rounded-lg bg-slate-100 dark:bg-white dark:bg-slate-900 text-xs font-mono text-slate-700 dark:text-slate-300 break-all border border-white/[0.06]">{token}</code>
                 <button onClick={() => handleCopy(token)} className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 text-sm font-medium hover:bg-blue-500/20 transition-colors flex-shrink-0">
                   {copied ? <CheckIcon /> : <CopyIcon />}
                   {copied ? t('common.copied') : t('common.copy')}
@@ -195,7 +195,7 @@ const CreateAgent = () => {
                   <div className="flex gap-2 mb-4">
                     {['linux', 'darwin', 'windows'].map(p => (
                       <button key={p} onClick={() => { setSelectedPlatform(p); setSelectedArch(null); }}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${selectedPlatform === p ? 'btn-gradient' : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10'}`}>
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${selectedPlatform === p ? 'btn-gradient' : 'bg-slate-100 dark:bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10'}`}>
                         {p === 'darwin' ? 'macOS' : p.charAt(0).toUpperCase() + p.slice(1)}
                       </button>
                     ))}
@@ -206,7 +206,7 @@ const CreateAgent = () => {
                       <div className="flex gap-2 mb-4">
                         {['amd64', 'arm64'].map(a => (
                           <button key={a} onClick={() => setSelectedArch(a)}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${selectedArch === a ? 'btn-gradient' : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10'}`}>
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${selectedArch === a ? 'btn-gradient' : 'bg-slate-100 dark:bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10'}`}>
                             {a === 'arm64' ? 'ARM64' : 'AMD64 (x86_64)'}
                           </button>
                         ))}
@@ -214,7 +214,7 @@ const CreateAgent = () => {
                     </>
                   )}
                   {selectedPlatform && selectedArch && (
-                    <div className="p-4 rounded-lg border border-white/[0.08] bg-white/5">
+                    <div className="p-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
                       <p className="text-sm font-semibold text-slate-900 dark:text-white mb-2">3. 下载:</p>
                       {selectedPlatform !== 'windows' && (
                         <>
@@ -245,7 +245,7 @@ const CreateAgent = () => {
         )}
 
         <div className="flex justify-end pt-2 border-t border-white/[0.06]">
-          <button onClick={() => navigate('/agents')} className="px-4 py-2 rounded-lg text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors">
+          <button onClick={() => navigate('/agents')} className="px-4 py-2 rounded-lg text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white dark:bg-slate-900 transition-colors">
             {t('agent.add.returnToList')}
           </button>
         </div>

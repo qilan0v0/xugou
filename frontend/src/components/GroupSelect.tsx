@@ -80,12 +80,12 @@ export default function GroupSelect({ value, onChange, placeholder, className }:
         className={className}
       />
       {hasDropdown && createPortal(
-        <div className="rounded-lg border border-white/[0.08] bg-white dark:bg-slate-800 shadow-xl max-h-40 overflow-y-auto" style={dropdownStyle}>
+        <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-xl max-h-40 overflow-y-auto" style={dropdownStyle}>
           {value && !groups.includes(value) && (
             <button
               type="button"
               className={`w-full text-left px-3 py-2 text-sm flex items-center gap-2 border-b border-white/[0.06] ${
-                highlight === -1 ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5'
+                highlight === -1 ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white dark:bg-slate-900'
               }`}
               onMouseDown={e => { e.preventDefault(); onChange(value); setOpen(false); }}
             >
@@ -99,7 +99,7 @@ export default function GroupSelect({ value, onChange, placeholder, className }:
               key={g}
               type="button"
               className={`w-full text-left px-3 py-2 text-sm transition-colors flex items-center gap-2 ${
-                i === highlight ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5'
+                i === highlight ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white dark:bg-slate-900'
               } ${g === value ? 'font-medium' : ''}`}
               onMouseDown={e => { e.preventDefault(); select(g); }}
               onMouseEnter={() => setHighlight(i)}
