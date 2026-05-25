@@ -28,15 +28,25 @@ func init() {
 	cobra.OnInitialize(initConfig)
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "配置文件路径 (默认为 $HOME/.xugou-agent.yaml)")
-	rootCmd.PersistentFlags().String("server", "", "监控服务器地址")
+	rootCmd.PersistentFlags().StringP("server", "s", "", "监控服务器地址")
 	rootCmd.PersistentFlags().String("uuid", "", "API 令牌 (UUID 格式，不设置则自动生成)")
+	rootCmd.PersistentFlags().StringP("password", "p", "", "Nezha 兼容: 同 --uuid")
 	rootCmd.PersistentFlags().String("log-level", "info", "日志级别 (debug, info, warn, error)")
+	rootCmd.PersistentFlags().BoolP("debug", "d", false, "Nezha 兼容: 开启 debug 日志")
+	rootCmd.PersistentFlags().Bool("tls", false, "Nezha 兼容: 使用 TLS 连接")
 	rootCmd.PersistentFlags().Int("agent-id", 0, "客户端 ID，需要与服务器中注册的 ID 一致")
+	rootCmd.PersistentFlags().Bool("skip-conn", false, "Nezha 兼容: 跳过连接数统计")
+	rootCmd.PersistentFlags().Bool("skip-procs", false, "Nezha 兼容: 跳过进程数统计")
 
 	viper.BindPFlag("server", rootCmd.PersistentFlags().Lookup("server"))
 	viper.BindPFlag("uuid", rootCmd.PersistentFlags().Lookup("uuid"))
+	viper.BindPFlag("password", rootCmd.PersistentFlags().Lookup("password"))
 	viper.BindPFlag("log_level", rootCmd.PersistentFlags().Lookup("log-level"))
+	viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug"))
+	viper.BindPFlag("tls", rootCmd.PersistentFlags().Lookup("tls"))
 	viper.BindPFlag("agent_id", rootCmd.PersistentFlags().Lookup("agent-id"))
+	viper.BindPFlag("skip_conn", rootCmd.PersistentFlags().Lookup("skip-conn"))
+	viper.BindPFlag("skip_procs", rootCmd.PersistentFlags().Lookup("skip-procs"))
 }
 
 func initConfig() {

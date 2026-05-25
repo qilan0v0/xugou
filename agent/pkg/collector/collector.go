@@ -84,15 +84,23 @@ type LoadInfo struct {
 // Collector 定义数据收集器接口
 type Collector interface {
 	Collect(ctx context.Context) (*SystemInfo, error)
+	SetSkipConn(skip bool)
+	SetSkipProcs(skip bool)
 }
 
 // DefaultCollector 是默认的数据收集器实现
-type DefaultCollector struct{}
+type DefaultCollector struct {
+	skipConn  bool
+	skipProcs bool
+}
 
 // NewCollector 创建一个新的数据收集器
 func NewCollector() Collector {
 	return &DefaultCollector{}
 }
+
+func (c *DefaultCollector) SetSkipConn(skip bool)  { c.skipConn = skip }
+func (c *DefaultCollector) SetSkipProcs(skip bool) { c.skipProcs = skip }
 
 // Collect 收集系统信息
 func (c *DefaultCollector) Collect(ctx context.Context) (*SystemInfo, error) {
@@ -199,20 +207,24 @@ func (c *DefaultCollector) Collect(ctx context.Context) (*SystemInfo, error) {
 	}
 
 	// 进程数量
-	pids, err := process.Pids()
-	if err == nil {
-		info.ProcessCount = len(pids)
+	if !c.skipProcs {
+		pids, err := process.Pids()
+		if err == nil {
+			info.ProcessCount = len(pids)
+		}
 	}
 
 	// TCP / UDP 连接数
-	conns, err := net.Connections("all")
-	if err == nil {
-		for _, conn := range conns {
-			switch conn.Type {
-			case 1: // TCP
-				info.TcpCount++
-			case 2: // UDP
-				info.UdpCount++
+	if !c.skipConn {
+		conns, err := net.Connections("all")
+		if err == nil {
+			for _, conn := range conns {
+				switch conn.Type {
+				case 1: // TCP
+					info.TcpCount++
+				case 2: // UDP
+					info.UdpCount++
+				}
 			}
 		}
 	}
