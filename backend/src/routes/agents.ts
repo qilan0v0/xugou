@@ -12,10 +12,8 @@ agents.use('*', async (c, next) => {
   // 跳过特定路由的认证 (客户端上报指标接口和注册接口)
   if ((c.req.path.endsWith('/status') || c.req.path.endsWith('/register')) && c.req.method === 'POST') { return next(); }
   if (c.req.path.endsWith('/metrics') && c.req.method === 'GET') { return next(); }
-    return next();
-  }
-  
-  const jwtMiddleware = jwt({ alg: "HS256", 
+
+  const jwtMiddleware = jwt({ alg: "HS256",
     secret: getJwtSecret(c)
   });
   return jwtMiddleware(c, next);
