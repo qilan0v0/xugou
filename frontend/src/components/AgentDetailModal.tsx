@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Cross2Icon, CopyIcon, ClockIcon, DesktopIcon, GlobeIcon, LaptopIcon, Component1Icon, StackIcon, ActivityLogIcon, TimerIcon, CodeIcon, CrumpledPaperIcon, CheckIcon, DashboardIcon, LayersIcon, TargetIcon, ArrowDownIcon, ArrowUpIcon } from '@radix-ui/react-icons';
+import { Cross2Icon, CopyIcon, ClockIcon, DesktopIcon, GlobeIcon, LaptopIcon, Component1Icon, StackIcon, ActivityLogIcon, TimerIcon, CodeIcon, CrumpledPaperIcon, CheckIcon, TargetIcon, ArrowDownIcon, ArrowUpIcon } from '@radix-ui/react-icons';
 import { HardDrive } from 'lucide-react';
 import { useState } from 'react';
 import { Agent } from '../api/agents';
@@ -50,8 +50,6 @@ export default function AgentDetailModal({ agent, onClose, showToken }: AgentDet
   }, [onClose]);
 
   const isOnline = agent.status === 'active';
-  const mem = agent.memory_total && agent.memory_used ? Math.round((agent.memory_used / agent.memory_total) * 100) : 0;
-  const disk = agent.disk_total && agent.disk_used ? Math.round((agent.disk_used / agent.disk_total) * 100) : 0;
   const uptime = agent.boot_time ? Math.max(0, Date.now() - new Date(agent.boot_time).getTime()) : 0;
   const uptimeStr = uptime ? `${Math.floor(uptime / 86400000)}d ${Math.floor((uptime % 86400000) / 3600000)}h ${Math.floor((uptime % 3600000) / 60000)}m` : '';
   const connectedMs = agent.connected_at ? Math.max(0, Date.now() - new Date(agent.connected_at).getTime()) : 0;
@@ -127,12 +125,9 @@ export default function AgentDetailModal({ agent, onClose, showToken }: AgentDet
               {agent.cpu_model_name && <div className="flex items-center gap-2"><CrumpledPaperIcon className="text-orange-500 w-3.5 h-3.5 shrink-0" /><span className="text-slate-500">CPU型号:</span><span className="text-slate-700 dark:text-slate-300 truncate">{agent.cpu_model_name}</span></div>}
               {agent.cpu_cores != null && <div className="flex items-center gap-2"><Component1Icon className="text-emerald-500 w-3.5 h-3.5 shrink-0" /><span className="text-slate-500">CPU核心:</span><span className="text-slate-700 dark:text-slate-300">{agent.cpu_cores}</span></div>}
               {(agent.load1 != null) && <div className="flex items-center gap-2"><ActivityLogIcon className="text-rose-500 w-3.5 h-3.5 shrink-0" /><span className="text-slate-500">负载:</span><span className="text-slate-700 dark:text-slate-300 truncate">{[agent.load1, agent.load5, agent.load15].map(v => v?.toFixed(2) ?? '-').join(' / ')}</span></div>}
-              <div className="flex items-center gap-2"><DashboardIcon className="text-cyan-500 w-3.5 h-3.5 shrink-0" /><span className="text-slate-500">CPU:</span><span className="text-slate-700 dark:text-slate-300">{(agent.cpu_usage || 0).toFixed(1)}%</span></div>
-
               {/* Memory / Disk */}
-              {agent.memory_total != null && <div className="flex items-center gap-2"><StackIcon className="text-blue-500 w-3.5 h-3.5 shrink-0" /><span className="text-slate-500">总内存:</span><span className="text-slate-700 dark:text-slate-300">{`${(agent.memory_total / 1073741824).toFixed(1)} GiB`}</span></div>}
-              <div className="flex items-center gap-2"><LayersIcon className="text-green-500 w-3.5 h-3.5 shrink-0" /><span className="text-slate-500">内存:</span><span className="text-slate-700 dark:text-slate-300">{mem}%</span></div>
-              <div className="flex items-center gap-2"><HardDrive size={14} className="text-red-500 shrink-0" /><span className="text-slate-500">磁盘:</span><span className="text-slate-700 dark:text-slate-300">{disk}%</span></div>
+              {agent.memory_total != null && <div className="flex items-center gap-2"><StackIcon className="text-blue-500 w-3.5 h-3.5 shrink-0" /><span className="text-slate-500">内存:</span><span className="text-slate-700 dark:text-slate-300">{agent.memory_used != null ? (agent.memory_used / 1073741824).toFixed(1) : '?'} / {(agent.memory_total / 1073741824).toFixed(1)} GiB</span></div>}
+              {agent.disk_total != null && <div className="flex items-center gap-2"><HardDrive size={14} className="text-red-500 shrink-0" /><span className="text-slate-500">磁盘:</span><span className="text-slate-700 dark:text-slate-300">{agent.disk_used != null ? (agent.disk_used / 1073741824).toFixed(1) : '?'} / {(agent.disk_total / 1073741824).toFixed(1)} GiB</span></div>}
 
               {/* Network */}
               {agent.network_rx != null && <div className="flex items-center gap-2"><ArrowDownIcon className="text-cyan-500 w-3.5 h-3.5 shrink-0" /><span className="text-slate-500">↓下载:</span><span className="text-slate-700 dark:text-slate-300">{agent.network_rx.toFixed(0)} KB/s</span></div>}
