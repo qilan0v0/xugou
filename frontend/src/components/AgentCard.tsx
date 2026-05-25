@@ -110,18 +110,21 @@ const AgentCard = React.memo(({ agent, onClick, size = 'large' }: AgentCardProps
     return isOnline ? (
       <div
         onClick={onClick}
-        className={`rounded-lg border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-lg shadow-slate-200/40 dark:shadow-none hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer`}
+        className={`rounded-lg border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-lg shadow-neutral-200/40 dark:shadow-none hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer`}
       >
         <div className="flex items-center justify-start gap-3 p-3 md:px-5 min-w-[780px] w-full">
           {/* Left: dot + flag + name */}
-          <section className="grid items-center gap-2 w-32 shrink-0" style={{ gridTemplateColumns: 'auto auto 1fr' }}>
+          <section className="grid items-center gap-2 shrink-0 lg:w-28" style={{ gridTemplateColumns: 'auto auto 1fr' }}>
             <span className="h-2 w-2 shrink-0 rounded-full bg-green-500 self-center" />
             <div className="flex items-center justify-center min-w-[16px]"><CountryFlag code={agent.country} /></div>
-            <div className="flex flex-col min-w-0">
+            <div className="flex flex-col min-w-0 w-24">
               <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{agent.name}</p>
               {osName && <p className="text-[10px] text-slate-400 truncate">{osName}</p>}
             </div>
           </section>
+
+          {/* Separator */}
+          <div className="w-px h-8 bg-slate-200 dark:bg-slate-700 shrink-0" />
 
           {/* Right: metrics grid */}
           <div className="flex-1 grid grid-cols-8 items-center gap-3">
@@ -172,14 +175,15 @@ const AgentCard = React.memo(({ agent, onClick, size = 'large' }: AgentCardProps
     ) : (
       <div
         onClick={onClick}
-        className={`rounded-lg border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-lg shadow-slate-200/40 dark:shadow-none hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer opacity-60`}
+        className={`rounded-lg border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-lg shadow-neutral-200/40 dark:shadow-none hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer`}
       >
         <div className="flex items-center justify-start gap-3 p-3 md:px-5 min-w-[780px]">
-          <section className="grid items-center gap-2 w-32" style={{ gridTemplateColumns: 'auto auto 1fr' }}>
+          <section className="grid items-center gap-2 shrink-0 lg:w-28" style={{ gridTemplateColumns: 'auto auto 1fr' }}>
             <span className="h-2 w-2 shrink-0 rounded-full bg-slate-400 self-center" />
             <div className="flex items-center justify-center min-w-[16px]"><CountryFlag code={agent.country} /></div>
-            <p className="text-xs font-bold text-slate-400 truncate">{agent.name}</p>
+            <p className="text-xs font-bold text-slate-400 dark:text-slate-500 truncate">{agent.name}</p>
           </section>
+          <div className="w-px h-8 bg-slate-200 dark:bg-slate-700 shrink-0" />
           <span className="text-xs text-slate-400">{t('agent.status.offline')}</span>
         </div>
       </div>
