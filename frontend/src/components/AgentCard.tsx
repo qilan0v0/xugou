@@ -10,7 +10,7 @@ import { Cpu, MemoryStick, HardDrive, ArrowDown, ArrowUp, Download, Upload, Acti
 interface AgentCardProps {
   agent: Agent;
   onClick?: () => void;
-  size?: 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large';
 }
 
 const formatBytes = (bytes: number): string => {
@@ -96,6 +96,95 @@ const AgentCard = React.memo(({ agent, onClick, size = 'large' }: AgentCardProps
     onClick,
     className: `glass rounded-xl hover:shadow-lg transition-shadow duration-200 ${onClick ? 'cursor-pointer' : ''} ${!isOnline ? 'offline-striped ring-2 ring-red-500/50' : ''}`,
   };
+
+  // ── Small card (nezha ServerCardInline style) ──
+  if (size === 'small') {
+    const barColor = (v: number) =>
+      v > 90 ? 'bg-red-500' : v > 70 ? 'bg-orange-400' : 'bg-green-500';
+    const netUp = netTx >= 1024 ? `${(netTx / 1024).toFixed(1)}M/s` : `${netTx.toFixed(1)}K/s`;
+    const netDown = netRx >= 1024 ? `${(netRx / 1024).toFixed(1)}M/s` : `${netRx.toFixed(1)}K/s`;
+    const osBase = (agent.os || '').split(' ')[0].toLowerCase();
+    const verBase = (agent.version || '').split(' ')[0];
+    const osName = osBase === 'linux' ? (verBase || 'Linux') : (osBase || '');
+
+    return isOnline ? (
+      <div
+        onClick={onClick}
+        className={`rounded-lg border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-lg shadow-slate-200/40 dark:shadow-none hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer`}
+      >
+        <div className="flex items-center justify-start gap-3 p-3 md:px-5 min-w-[780px] w-full">
+          {/* Left: dot + flag + name */}
+          <section className="grid items-center gap-2 w-32 shrink-0" style={{ gridTemplateColumns: 'auto auto 1fr' }}>
+            <span className="h-2 w-2 shrink-0 rounded-full bg-green-500 self-center" />
+            <div className="flex items-center justify-center min-w-[16px]"><CountryFlag code={agent.country} /></div>
+            <div className="flex flex-col min-w-0">
+              <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{agent.name}</p>
+              {osName && <p className="text-[10px] text-slate-400 truncate">{osName}</p>}
+            </div>
+          </section>
+
+          {/* Right: metrics grid */}
+          <div className="flex-1 grid grid-cols-8 items-center gap-3">
+            <div className="flex w-16 flex-col">
+              <p className="text-xs text-slate-400 dark:text-slate-500">⏱ {t('agent.uptime')}</p>
+              <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{uptimeStr || '--'}</div>
+            </div>
+            <div className="flex w-14 flex-col">
+              <p className="text-xs text-slate-400 dark:text-slate-500">CPU</p>
+              <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{cpu.toFixed(1)}%</div>
+              <div className="mt-0.5 h-[3px] w-full rounded-sm bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                <div className={`h-full rounded-sm transition-all duration-500 ${barColor(cpu)}`} style={{ width: `${Math.min(Math.max(cpu, 0), 100)}%` }} />
+              </div>
+            </div>
+            <div className="flex w-14 flex-col">
+              <p className="text-xs text-slate-400 dark:text-slate-500">{t('agent.memory')}</p>
+              <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{memPct.toFixed(1)}%</div>
+              <div className="mt-0.5 h-[3px] w-full rounded-sm bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                <div className={`h-full rounded-sm transition-all duration-500 ${barColor(memPct)}`} style={{ width: `${Math.min(Math.max(memPct, 0), 100)}%` }} />
+              </div>
+            </div>
+            <div className="flex w-14 flex-col">
+              <p className="text-xs text-slate-400 dark:text-slate-500">{t('agent.disk')}</p>
+              <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{diskPct.toFixed(1)}%</div>
+              <div className="mt-0.5 h-[3px] w-full rounded-sm bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                <div className={`h-full rounded-sm transition-all duration-500 ${barColor(diskPct)}`} style={{ width: `${Math.min(Math.max(diskPct, 0), 100)}%` }} />
+              </div>
+            </div>
+            <div className="flex w-16 flex-col">
+              <p className="text-xs text-slate-400 dark:text-slate-500">{t('clientResource.download')}</p>
+              <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{netDown}</div>
+            </div>
+            <div className="flex w-16 flex-col">
+              <p className="text-xs text-slate-400 dark:text-slate-500">{t('clientResource.upload')}</p>
+              <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{netUp}</div>
+            </div>
+            <div className="flex w-20 flex-col">
+              <p className="text-xs text-slate-400 dark:text-slate-500">↓ {t('agent.networkTotalRx')}</p>
+              <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{rxTotalStr}</div>
+            </div>
+            <div className="flex w-20 flex-col">
+              <p className="text-xs text-slate-400 dark:text-slate-500">↑ {t('agent.networkTotalTx')}</p>
+              <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{txTotalStr}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    ) : (
+      <div
+        onClick={onClick}
+        className={`rounded-lg border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-lg shadow-slate-200/40 dark:shadow-none hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer opacity-60`}
+      >
+        <div className="flex items-center justify-start gap-3 p-3 md:px-5 min-w-[780px]">
+          <section className="grid items-center gap-2 w-32" style={{ gridTemplateColumns: 'auto auto 1fr' }}>
+            <span className="h-2 w-2 shrink-0 rounded-full bg-slate-400 self-center" />
+            <div className="flex items-center justify-center min-w-[16px]"><CountryFlag code={agent.country} /></div>
+            <p className="text-xs font-bold text-slate-400 truncate">{agent.name}</p>
+          </section>
+          <span className="text-xs text-slate-400">{t('agent.status.offline')}</span>
+        </div>
+      </div>
+    );
+  }
 
   // ── Medium card (nezha-dash-v2 ServerCard style) ──
   if (size === 'medium') {

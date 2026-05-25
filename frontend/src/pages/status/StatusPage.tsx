@@ -12,7 +12,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import LanguageSelector from "../../components/LanguageSelector";
 import { SunIcon, MoonIcon, CubeIcon, CheckCircledIcon, CrossCircledIcon, GlobeIcon, ArrowUpIcon } from '@radix-ui/react-icons';
-import { LayoutGrid, Rows3 } from 'lucide-react';
+import { LayoutGrid, Rows3, List } from 'lucide-react';
 import { ENV_API_BASE_URL } from '../../config';
 import { useTranslation } from 'react-i18next';
 
@@ -23,8 +23,8 @@ const StatusPage = () => {
   const { t } = useTranslation();
   const { isAuthenticated } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const [cardSize, setCardSize] = useState<'medium' | 'large'>(
-    () => (localStorage.getItem(CARD_SIZE_KEY) as 'medium' | 'large') || 'large'
+  const [cardSize, setCardSize] = useState<'small' | 'medium' | 'large'>(
+    () => (localStorage.getItem(CARD_SIZE_KEY) as 'small' | 'medium' | 'large') || 'large'
   );
   const [data, setData] = useState<{ title: string; description: string; logoUrl: string; customCss: string; monitors: Monitor[]; agents: StatusAgent[] }>({ title: '系统状态', description: '', logoUrl: '', customCss: '', monitors: [], agents: [] });
   const [error, setError] = useState<string | null>(null);
@@ -181,6 +181,13 @@ const StatusPage = () => {
             {/* Card size toggle */}
             <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg p-0.5">
               <button
+                onClick={() => { setCardSize('small'); localStorage.setItem(CARD_SIZE_KEY, 'small'); }}
+                className={`p-1.5 rounded-md transition-colors ${cardSize === 'small' ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
+                title="小卡片"
+              >
+                <List size={14} />
+              </button>
+              <button
                 onClick={() => { setCardSize('medium'); localStorage.setItem(CARD_SIZE_KEY, 'medium'); }}
                 className={`p-1.5 rounded-md transition-colors ${cardSize === 'medium' ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
                 title="中卡片"
@@ -237,7 +244,11 @@ const StatusPage = () => {
                 {filtered.length === 0 ? (
                   <div className="glass p-8 text-center"><p className="text-sm text-slate-500">没有匹配的客户端</p></div>
                 ) : (
-                  <div className={`grid gap-2 ${cardSize === 'large' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' : 'grid-cols-1 lg:grid-cols-2'}`}>
+                  <div className={`${
+  cardSize === 'small' ? 'flex flex-col gap-2 overflow-x-auto' :
+  cardSize === 'large' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' :
+  'grid grid-cols-1 lg:grid-cols-2 gap-2'
+}`}>
                     {filtered.map(agent => (
                       <AgentCard key={agent.id} agent={agent} size={cardSize} onClick={() => setSelectedAgent(agent)} />
                     ))}

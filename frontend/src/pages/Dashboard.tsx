@@ -8,7 +8,7 @@ import MonitorCard from '../components/MonitorCard';
 import AgentCard from '../components/AgentCard';
 import { useTranslation } from 'react-i18next';
 import { CheckCircledIcon, CrossCircledIcon, ClockIcon, GlobeIcon, ExclamationTriangleIcon } from '@radix-ui/react-icons';
-import { LayoutGrid, Rows3 } from 'lucide-react';
+import { LayoutGrid, Rows3, List } from 'lucide-react';
 
 const CARD_SIZE_KEY = 'xugou_agent_card_size';
 
@@ -17,12 +17,12 @@ const Dashboard = () => {
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [cardSize, setCardSize] = useState<'medium' | 'large'>(
-    () => (localStorage.getItem(CARD_SIZE_KEY) as 'medium' | 'large') || 'large'
+  const [cardSize, setCardSize] = useState<'small' | 'medium' | 'large'>(
+    () => (localStorage.getItem(CARD_SIZE_KEY) as 'small' | 'medium' | 'large') || 'large'
   );
   const { t } = useTranslation();
 
-  const toggleCardSize = (size: 'medium' | 'large') => {
+  const toggleCardSize = (size: 'small' | 'medium' | 'large') => {
     setCardSize(size);
     localStorage.setItem(CARD_SIZE_KEY, size);
   };
@@ -117,6 +117,13 @@ const Dashboard = () => {
             {/* Card size toggle */}
             <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg p-0.5">
               <button
+                onClick={() => toggleCardSize('small')}
+                className={`p-1.5 rounded-md transition-colors ${cardSize === 'small' ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
+                title="小卡片"
+              >
+                <List size={15} />
+              </button>
+              <button
                 onClick={() => toggleCardSize('medium')}
                 className={`p-1.5 rounded-md transition-colors ${cardSize === 'medium' ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
                 title="中卡片"
@@ -140,8 +147,12 @@ const Dashboard = () => {
             <Link to="/agents/create" className="btn-gradient px-4 py-2 text-sm inline-block">{t('agents.create')}</Link>
           </div>
         ) : (
-          <div className={`grid gap-2 ${cardSize === 'large' ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4' : 'grid-cols-1 lg:grid-cols-2'}`}>
-            {agents.slice(0, cardSize === 'medium' ? 10 : 3).map(a => <AgentCard key={a.id} agent={a} size={cardSize} />)}
+          <div className={`${
+  cardSize === 'small' ? 'flex flex-col gap-2 overflow-x-auto' :
+  cardSize === 'large' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4' :
+  'grid grid-cols-1 lg:grid-cols-2 gap-2'
+}`}>
+            {agents.slice(0, cardSize === 'small' ? 20 : cardSize === 'medium' ? 10 : 3).map(a => <AgentCard key={a.id} agent={a} size={cardSize} />)}
           </div>
         )}
       </div>
