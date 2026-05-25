@@ -21,7 +21,6 @@ const AgentDetail = lazy(() => import('./pages/agents/AgentDetail'));
 const CreateAgent = lazy(() => import('./pages/agents/CreateAgent'));
 const EditAgent = lazy(() => import('./pages/agents/EditAgent'));
 const GroupsList = lazy(() => import('./pages/agents/GroupsList'));
-const UsersList = lazy(() => import('./pages/users/UsersList'));
 const UserProfile = lazy(() => import('./pages/users/UserProfile'));
 const StatusPageConfig = lazy(() => import('./pages/status/StatusPageConfig'));
 
@@ -35,14 +34,6 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuth();
   if (isLoading) return <div className="flex justify-center items-center min-h-[50vh]"><LoadingSpinner /></div>;
   if (!isAuthenticated) return <Navigate to="/login" replace />;
-  return <>{children}</>;
-};
-
-const AdminRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, isLoading, user } = useAuth();
-  if (isLoading) return <div className="flex justify-center items-center min-h-[50vh]"><LoadingSpinner /></div>;
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
-  if (user?.role !== 'admin') return <Navigate to="/agents" replace />;
   return <>{children}</>;
 };
 
@@ -64,7 +55,6 @@ function App() {
         <Route path="/agents/edit/:id" element={<ProtectedRoute><Layout><Lazy><EditAgent /></Lazy></Layout></ProtectedRoute>} />
         <Route path="/agents/groups" element={<ProtectedRoute><Layout><Lazy><GroupsList /></Lazy></Layout></ProtectedRoute>} />
         <Route path="/agents/:id" element={<ProtectedRoute><Layout><Lazy><AgentDetail /></Lazy></Layout></ProtectedRoute>} />
-        <Route path="/users" element={<AdminRoute><Layout><Lazy><UsersList /></Lazy></Layout></AdminRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Layout><Lazy><UserProfile /></Lazy></Layout></ProtectedRoute>} />
         <Route path="*" element={<Layout><NotFound /></Layout>} />
       </Routes>
