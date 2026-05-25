@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from 'recharts';
+import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { useTranslation } from 'react-i18next';
 import { getAgentMetrics, AgentMetric } from '../api/agents';
 import { Cpu, MemoryStick, HardDrive, Activity } from 'lucide-react';
@@ -33,7 +33,7 @@ function ChartCard({ title, dataKey, data, color, icon, current, unit = '%' }: {
       </div>
       <div className="aspect-video w-full max-h-[220px]">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data} syncId="agent-charts" margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+          <AreaChart data={data} syncId="agent-charts" margin={{ top: 0, right: 4, left: -8, bottom: 0 }}>
             <defs>
               <linearGradient id={`fill-${dataKey}`} x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor={color} stopOpacity={0.2} />
@@ -41,6 +41,7 @@ function ChartCard({ title, dataKey, data, color, icon, current, unit = '%' }: {
               </linearGradient>
             </defs>
             <XAxis dataKey="ts" tickFormatter={formatTime} tick={{ fontSize: 9 }} interval="preserveStartEnd" hide />
+            <YAxis tick={{ fontSize: 9 }} width={28} axisLine={false} tickLine={false} />
             <Tooltip
               contentStyle={{ borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 12, padding: '4px 8px' }}
               labelFormatter={(v) => new Date(v as string).toLocaleString()}
@@ -101,8 +102,8 @@ export default function AgentCharts({ agentId }: Props) {
           <ChartCard title={t('agent.memory')} dataKey="mem" data={metrics} color={COLORS.mem} icon={<MemoryStick size={14} />} current={latest.mem} />
           <ChartCard title={t('agent.disk')} dataKey="disk" data={metrics} color={COLORS.disk} icon={<HardDrive size={14} />} current={latest.disk} />
           <ChartCard title={t('agent.traffic')} dataKey="net_rx" data={metrics} color={COLORS.net_rx} icon={<Activity size={14} />} current={latest.net_rx} unit=" KB/s" />
-          <ChartCard title="Processes" dataKey="process_count" data={metrics} color="#f97316" icon={<Cpu size={14} />} current={latest.process_count} unit="" />
-          <ChartCard title="TCP" dataKey="tcp_count" data={metrics} color="#3b82f6" icon={<Activity size={14} />} current={latest.tcp_count} unit="" />
+          <ChartCard title={t('agent.processes')} dataKey="process_count" data={metrics} color="#f97316" icon={<Cpu size={14} />} current={latest.process_count} unit="" />
+          <ChartCard title={t('agent.tcp')} dataKey="tcp_count" data={metrics} color="#3b82f6" icon={<Activity size={14} />} current={latest.tcp_count} unit="" />
         </div>
       )}
     </div>
