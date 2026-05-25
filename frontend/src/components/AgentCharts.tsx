@@ -31,7 +31,7 @@ function ChartCard({ title, dataKey, data, color, icon, current, unit = '%' }: {
           {round(current)}{unit}
         </span>
       </div>
-      <div className="h-[100px] w-full">
+      <div className="h-[180px] sm:h-[220px] w-full">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} syncId="agent-charts" margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
             <defs>
@@ -96,7 +96,7 @@ export default function AgentCharts({ agentId }: Props) {
       {metrics.length === 0 ? (
         <div className="glass rounded-xl p-8 text-center text-xs text-slate-400">Waiting for agent data...</div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="flex flex-col gap-3">
           <ChartCard title="CPU" dataKey="cpu" data={metrics} color={COLORS.cpu} icon={<Cpu size={14} />} current={latest.cpu} />
           <ChartCard title={t('agent.memory')} dataKey="mem" data={metrics} color={COLORS.mem} icon={<MemoryStick size={14} />} current={latest.mem} />
           <ChartCard title={t('agent.disk')} dataKey="disk" data={metrics} color={COLORS.disk} icon={<HardDrive size={14} />} current={latest.disk} />
