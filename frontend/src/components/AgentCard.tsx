@@ -127,43 +127,45 @@ const AgentCard = React.memo(({ agent, onClick, size = 'large' }: AgentCardProps
           <div className="w-px h-8 bg-slate-200 dark:bg-slate-700 shrink-0" />
 
           {/* Right: metrics grid */}
-          <div className="grid grid-cols-7 items-center gap-2">
-            <div className="flex w-14 flex-col">
-              <p className="text-xs text-slate-400 dark:text-slate-500">{t('agent.uptime')}</p>
-              <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{uptimeStr || '--'}</div>
-            </div>
-            <div className="flex w-14 flex-col">
-              <p className="text-xs text-slate-400 dark:text-slate-500">CPU</p>
-              <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{cpu.toFixed(1)}%</div>
-              <div className="mt-0.5 h-[3px] w-full rounded-sm bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                <div className={`h-full rounded-sm transition-all duration-500 ${barColor(cpu)}`} style={{ width: `${Math.min(Math.max(cpu, 0), 100)}%` }} />
+          <div className="flex-1 flex items-center">
+            <div className="grid grid-cols-7 items-center gap-2">
+              <div className="flex w-14 flex-col">
+                <p className="text-xs text-slate-400 dark:text-slate-500">{t('agent.uptime')}</p>
+                <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{uptimeStr || '--'}</div>
               </div>
-            </div>
-            <div className="flex w-14 flex-col">
-              <p className="text-xs text-slate-400 dark:text-slate-500">{t('agent.memory')}</p>
-              <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{memPct.toFixed(1)}%</div>
-              <div className="mt-0.5 h-[3px] w-full rounded-sm bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                <div className={`h-full rounded-sm transition-all duration-500 ${barColor(memPct)}`} style={{ width: `${Math.min(Math.max(memPct, 0), 100)}%` }} />
+              <div className="flex w-14 flex-col">
+                <p className="text-xs text-slate-400 dark:text-slate-500">CPU</p>
+                <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{cpu.toFixed(1)}%</div>
+                <div className="mt-0.5 h-[3px] w-full rounded-sm bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                  <div className={`h-full rounded-sm transition-all duration-500 ${barColor(cpu)}`} style={{ width: `${Math.min(Math.max(cpu, 0), 100)}%` }} />
+                </div>
               </div>
-            </div>
-            <div className="flex w-14 flex-col">
-              <p className="text-xs text-slate-400 dark:text-slate-500">{t('agent.disk')}</p>
-              <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{diskPct.toFixed(1)}%</div>
-              <div className="mt-0.5 h-[3px] w-full rounded-sm bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                <div className={`h-full rounded-sm transition-all duration-500 ${barColor(diskPct)}`} style={{ width: `${Math.min(Math.max(diskPct, 0), 100)}%` }} />
+              <div className="flex w-14 flex-col">
+                <p className="text-xs text-slate-400 dark:text-slate-500">{t('agent.memory')}</p>
+                <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{memPct.toFixed(1)}%</div>
+                <div className="mt-0.5 h-[3px] w-full rounded-sm bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                  <div className={`h-full rounded-sm transition-all duration-500 ${barColor(memPct)}`} style={{ width: `${Math.min(Math.max(memPct, 0), 100)}%` }} />
+                </div>
               </div>
-            </div>
-            <div className="flex w-14 flex-col">
-              <p className="text-xs text-slate-400 dark:text-slate-500">{t('clientResource.download')}</p>
-              <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{netDown}</div>
-            </div>
-            <div className="flex w-14 flex-col">
-              <p className="text-xs text-slate-400 dark:text-slate-500">{t('clientResource.upload')}</p>
-              <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{netUp}</div>
-            </div>
-            <div className="flex w-20 flex-col">
-              <p className="text-xs text-slate-400 dark:text-slate-500">{t('agent.networkTotal')} / {t('agent.traffic')}</p>
-              <div className="flex items-center text-[10px] font-semibold text-slate-700 dark:text-slate-300">↓{rxTotalStr} ↑{txTotalStr}</div>
+              <div className="flex w-14 flex-col">
+                <p className="text-xs text-slate-400 dark:text-slate-500">{t('agent.disk')}</p>
+                <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{diskPct.toFixed(1)}%</div>
+                <div className="mt-0.5 h-[3px] w-full rounded-sm bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                  <div className={`h-full rounded-sm transition-all duration-500 ${barColor(diskPct)}`} style={{ width: `${Math.min(Math.max(diskPct, 0), 100)}%` }} />
+                </div>
+              </div>
+              <div className="flex w-14 flex-col">
+                <p className="text-xs text-slate-400 dark:text-slate-500">{t('clientResource.download')}</p>
+                <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{netDown}</div>
+              </div>
+              <div className="flex w-14 flex-col">
+                <p className="text-xs text-slate-400 dark:text-slate-500">{t('clientResource.upload')}</p>
+                <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{netUp}</div>
+              </div>
+              <div className="flex w-20 flex-col">
+                <p className="text-xs text-slate-400 dark:text-slate-500">{t('agent.networkTotal')} / {t('agent.traffic')}</p>
+                <div className="flex items-center text-[10px] font-semibold text-slate-700 dark:text-slate-300">↓{rxTotalStr} ↑{txTotalStr}</div>
+              </div>
             </div>
           </div>
         </div>
