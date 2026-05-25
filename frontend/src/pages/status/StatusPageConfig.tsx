@@ -33,8 +33,11 @@ const StatusPageConfig = () => {
   const [webhookTesting, setWebhookTesting] = useState(false);
   const [webhookTestResult, setWebhookTestResult] = useState('');
   const [varsExpanded, setVarsExpanded] = useState(false);
-  const [testAgentId, setTestAgentId] = useState<number | null>(null);
+  const [testType, setTestType] = useState<'agent' | 'api'>('agent');
+  const [testEvent, setTestEvent] = useState<'down' | 'up'>('down');
+  const [testSubjectId, setTestSubjectId] = useState<number | null>(null);
   const [agentsBrief, setAgentsBrief] = useState<{id:number;name:string;hostname:string;os:string;ip_address:string;cpu_usage:number;country:string;boot_time:string;memory_total:number;memory_used:number;disk_total:number;disk_used:number;version:string}[]>([]);
+  const [monitorsBrief, setMonitorsBrief] = useState<Monitor[]>([]);
   const [webhookTls, setWebhookTls] = useState(true);
   const [notifyDown, setNotifyDown] = useState(true);
   const [notifyUp, setNotifyUp] = useState(true);
@@ -352,17 +355,38 @@ const StatusPageConfig = () => {
                     <span className="text-sm text-slate-700 dark:text-slate-300">验证 TLS 证书</span>
                   </label>
 
-                  <select value={testAgentId ?? ''} onChange={e => { const v = e.target.value; setTestAgentId(v ? Number(v) : null); }}
-                    onFocus={() => {
-                      if (agentsBrief.length === 0) {
-                        getAllAgents().then(res => {
-                          if (res.agents) setAgentsBrief(res.agents);
-                        });
-                      }
-                    }}
-                    className={`${inputClass} w-48`}>
-                    <option value="">选客户端测试(可选)</option>
-                    {agentsBrief.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                  {/* Notification type + test subject + event type */}
+                  <select value={testType} onChange={e => { setTestType(e.target.value as 'agent'|'api'); setTestSubjectId(null); }}
+                    className={`${inputClass} w-36`}>
+                    <option value="agent">客户端通知</option>
+                    <option value="api">API监控通知</option>
+                  </select>
+
+                  {testType === 'agent' ? (
+                    <select value={testSubjectId ?? ''} onChange={e => { const v = e.target.value; setTestSubjectId(v ? Number(v) : null); }}
+                      onFocus={() => { if (agentsBrief.length === 0) getAllAgents().then(res => { if (res.agents) setAgentsBrief(res.agents); }); }}
+                      className={`${inputClass} w-44`}>
+                      <option value="">选客户端(可选)</option>
+                      {agentsBrief.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                    </select>
+                  ) : (
+                    <select value={testSubjectId ?? ''} onChange={e => { const v = e.target.value; setTestSubjectId(v ? Number(v) : null); }}
+                      onFocus={() => {
+                        const cfg = config as any;
+                        const monitors = cfg?.monitors || [];
+                        if (monitors.length > 0) setMonitorsBrief(monitors);
+                        else getAllMonitors().then(res => { if (res.monitors) setMonitorsBrief(res.monitors); });
+                      }}
+                      className={`${inputClass} w-44`}>
+                      <option value="">选监控项(可选)</option>
+                      {monitorsBrief.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+                    </select>
+                  )}
+
+                  <select value={testEvent} onChange={e => setTestEvent(e.target.value as 'down'|'up')}
+                    className={`${inputClass} w-36`}>
+                    <option value="down">故障/离线通知</option>
+                    <option value="up">恢复/上线通知</option>
                   </select>
 
                   <button type="button" disabled={webhookTesting || !webhookUrl}
@@ -376,13 +400,22 @@ const StatusPageConfig = () => {
                           const idx = line.indexOf(':');
                           if (idx > 0) headers[line.slice(0,idx).trim()] = line.slice(idx+1).trim();
                         });
-                        // Build variable values
-                        const agent = testAgentId ? agentsBrief.find(a => a.id === testAgentId) : null;
                         const now = new Date().toISOString();
+                        // Pick template based on type + event
+                        let body = '';
+                        if (testType === 'agent') {
+                          body = testEvent === 'down' ? agentBodyDown : agentBodyUp;
+                        } else {
+                          body = testEvent === 'down' ? apiBodyDown : apiBodyUp;
+                        }
+                        // Build vars from selected subject
+                        const agent = testType === 'agent' && testSubjectId ? agentsBrief.find(a => a.id === testSubjectId) : null;
+                        const monitor = testType === 'api' && testSubjectId ? monitorsBrief.find(m => m.id === testSubjectId) : null;
                         const upMs = agent?.boot_time ? Math.max(0, Date.now() - new Date(agent.boot_time).getTime()) : 0;
                         const vars: Record<string,string> = {
-                          name: agent?.name || 'TEST-监控项', status: '测试',
-                          previous_status: 'up', time: now,
+                          name: (testType === 'agent' ? agent?.name : monitor?.name) || (testType === 'agent' ? 'Test-Agent' : 'Test-Monitor'),
+                          status: testEvent === 'down' ? '故障' : '已恢复',
+                          previous_status: testEvent === 'down' ? 'up' : 'down', time: now,
                           hostname: agent?.hostname || 'test.example.com',
                           ip: agent?.ip_address || '127.0.0.1',
                           os: agent?.os || 'Linux', version: agent?.version || '22.04',
@@ -400,11 +433,12 @@ const StatusPageConfig = () => {
                           connected_at: now,
                           network_rx_total: '1.23 GiB', network_tx_total: '0.56 GiB',
                           traffic_total: '1.79 GiB',
-                          message: '这是一条测试消息',
-                          url: 'https://example.com', method: 'GET',
-                          response_time: '120', expected_status: '200',
+                          message: testEvent === 'down' ? '这是一条故障测试消息' : '这是一条恢复测试消息',
+                          url: monitor?.url || 'https://example.com',
+                          method: monitor?.method || 'GET',
+                          response_time: String(monitor?.response_time || 120),
+                          expected_status: String(monitor?.expected_status || 200),
                         };
-                        let body = webhookBodyDown;  // use down template for testing
                         for (const [k, v] of Object.entries(vars)) {
                           body = body.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
                         }
@@ -414,11 +448,7 @@ const StatusPageConfig = () => {
                           body: JSON.stringify({ url: webhookUrl, method: webhookMethod, headers, body, content_type: webhookContentType, tls_verify: webhookTls }),
                         });
                         const json = await res.json();
-                        if (json.success) {
-                          setWebhookTestResult(`${json.status} ${json.statusText}`);
-                        } else {
-                          setWebhookTestResult(`错误: ${json.message}`);
-                        }
+                        setWebhookTestResult(json.success ? `${json.status} ${json.statusText}` : `错误: ${json.message}`);
                       } catch (e: any) {
                         setWebhookTestResult(`错误: ${e.message}`);
                       } finally { setWebhookTesting(false); }
