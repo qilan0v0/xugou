@@ -245,7 +245,7 @@ const StatusPage = () => {
                   <div className="glass p-8 text-center"><p className="text-sm text-slate-500">没有匹配的客户端</p></div>
                 ) : (
                   <div className={`${
-  cardSize === 'small' ? 'flex flex-col gap-2 overflow-x-auto items-start' :
+  cardSize === 'small' ? 'flex flex-col gap-2 overflow-x-auto' :
   cardSize === 'large' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' :
   'grid grid-cols-1 lg:grid-cols-2 gap-2'
 }`}>
