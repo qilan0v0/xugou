@@ -138,7 +138,14 @@ func runStart(cmd *cobra.Command, args []string) {
 		if viper.GetBool("debug") { fmt.Println("使用HTTP上报器") }
 	}
 
-	// 设置定时器，按指定间隔收集和上报数据
+	// 如果未显式设置上报间隔，添加随机抖动避免所有 agent 同时上报
+	intervalSet := cmd.Flags().Changed("interval") || cmd.Flags().Changed("report-delay") || cmd.Flags().Changed("report_delay")
+	firstDelay := 0
+	if !intervalSet {
+		firstDelay = int(time.Now().UnixNano() % 60) // 0~59 秒随机
+	}
+
+	// 设置定时器
 	ticker := time.NewTicker(time.Duration(interval) * time.Second)
 	defer ticker.Stop()
 
@@ -146,10 +153,14 @@ func runStart(cmd *cobra.Command, args []string) {
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 
-	// 启动时立即执行一次收集和上报
+	// 首次上报延迟（无显式间隔时随机 0~60s）
+	if firstDelay > 0 {
+		if debug { fmt.Printf("未设置上报间隔，%d秒后开始首次上报\n", firstDelay) }
+		time.Sleep(time.Duration(firstDelay) * time.Second)
+	}
 	go collectAndReport(ctx, dataCollector, dataReporter)
 
-	if viper.GetBool("debug") { fmt.Println("Xugou Agent 已启动，按 Ctrl+C 停止") }
+	if debug { fmt.Println("Xugou Agent 已启动，按 Ctrl+C 停止") }
 
 	// 主循环
 	for {
