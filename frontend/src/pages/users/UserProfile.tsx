@@ -62,11 +62,6 @@ const UserProfile = () => {
         </form>
       </div>
 
-      <div className="glass p-6 mb-6">
-        <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">{t('profile.notifications')}</h2>
-        <p className="text-sm text-slate-500">{t('profile.notificationsHint')}</p>
-      </div>
-
       <div className="glass p-6">
         <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">{t('profile.changePassword')}</h2>
         <form onSubmit={handlePassword} className="flex flex-col gap-4">

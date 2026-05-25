@@ -376,6 +376,16 @@ const zhCN = {
     'profile.error.passwordChange': '修改密码失败',
     'profile.success.updated': '个人资料更新成功',
     'profile.success.passwordChanged': '密码修改成功',
+    'profile.editInfo': '编辑信息',
+    'profile.username': '用户名',
+    'profile.email': '邮箱',
+    'profile.save': '保存',
+    'profile.change': '修改',
+    'profile.updateSuccess': '信息更新成功',
+    'profile.updateFailed': '更新失败',
+    'profile.confirmPassword': '确认密码',
+    'profile.passwordChanged': '密码修改成功',
+    'profile.changeFailed': '修改失败',
     
     // 状态页
     'statusPage.title': '系统状态',
