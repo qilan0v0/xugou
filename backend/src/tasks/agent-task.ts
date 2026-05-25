@@ -94,7 +94,7 @@ export async function sendAgentNotification(env: any, agent: any, event: 'down' 
       url: '', response_time: '',
     };
 
-    const template = event === 'down' ? (cfg.webhook_body_down || '') : (cfg.webhook_body_up || '');
+    const template = event === 'down' ? (cfg.agent_webhook_body_down || cfg.webhook_body_down || '') : (cfg.agent_webhook_body_up || cfg.webhook_body_up || '');
     let body = template;
     for (const [k, v] of Object.entries(vars)) {
       body = body.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
