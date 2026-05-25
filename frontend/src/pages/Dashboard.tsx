@@ -148,7 +148,7 @@ const Dashboard = () => {
           </div>
         ) : (
           <div className={`${
-  cardSize === 'small' ? 'flex flex-col gap-2 overflow-x-auto' :
+  cardSize === 'small' ? 'flex flex-col gap-2 overflow-x-scroll scrollbar-hidden' :
   cardSize === 'large' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4' :
   'grid grid-cols-1 lg:grid-cols-2 gap-2'
 }`}>

@@ -110,82 +110,78 @@ const AgentCard = React.memo(({ agent, onClick, size = 'large' }: AgentCardProps
     return isOnline ? (
       <div
         onClick={onClick}
-        className={`rounded-lg border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-lg shadow-neutral-200/40 dark:shadow-none hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer max-w-5xl min-w-[480px] sm:min-w-[620px] w-full self-center`}
+        className="flex items-center lg:flex-row justify-start gap-3 p-3 md:px-5 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors min-w-[780px] w-full rounded-lg border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-lg shadow-neutral-200/40 dark:shadow-none"
       >
-        <div className="flex items-center justify-start gap-3 p-3 md:px-5 min-w-[480px] sm:min-w-[620px] w-full">
-          {/* Left: dot + flag + name (sticky on mobile) */}
-          <section className="sticky left-0 bg-white dark:bg-slate-900 z-10 pr-2 grid items-center gap-2 shrink-0 lg:w-28" style={{ gridTemplateColumns: 'auto auto 1fr' }}>
-            <span className="h-2 w-2 shrink-0 rounded-full bg-green-500 self-center" />
-            <div className="flex items-center justify-center min-w-[16px]"><CountryFlag code={agent.country} /></div>
-            <div className="flex flex-col min-w-0 w-20">
-              <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{agent.name}</p>
-              {osName && <p className="text-[10px] text-slate-400 truncate">{osName}</p>}
-            </div>
-          </section>
+        {/* Left: dot + flag + name */}
+        <section className="grid items-center gap-2 lg:w-32 shrink-0" style={{ gridTemplateColumns: 'auto auto 1fr' }}>
+          <span className="h-2 w-2 shrink-0 rounded-full bg-green-500 self-center" />
+          <div className="flex items-center justify-center min-w-[17px]"><CountryFlag code={agent.country} /></div>
+          <div className="flex flex-col min-w-0 w-24">
+            <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{agent.name}</p>
+            {osName && <p className="text-[10px] text-slate-400 truncate">{osName}</p>}
+          </div>
+        </section>
 
-          {/* Separator */}
-          <div className="w-px h-8 bg-slate-200 dark:bg-slate-700 shrink-0 sticky left-[104px] sm:static" />
+        {/* Separator */}
+        <div className="w-px h-8 bg-slate-200 dark:bg-slate-700 shrink-0" />
 
-          {/* Right: metrics grid */}
-          <div className="flex-1 grid grid-cols-5 sm:grid-cols-8 items-center gap-1.5 sm:gap-2">
-            <div className="hidden sm:flex flex-1 min-w-[56px] flex-col">
-                <p className="text-xs text-slate-400 dark:text-slate-500">{t('agent.uptime')}</p>
-                <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{uptimeStr || '--'}</div>
-              </div>
-              <div className="flex flex-1 min-w-[56px] flex-col">
-                <p className="text-xs text-slate-400 dark:text-slate-500">CPU</p>
-                <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{cpu.toFixed(1)}%</div>
-                <div className="mt-0.5 h-[3px] w-[90%] rounded-sm bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                  <div className={`h-full rounded-sm transition-all duration-500 ${barColor(cpu)}`} style={{ width: `${Math.min(Math.max(cpu, 0), 100)}%` }} />
-                </div>
-              </div>
-              <div className="flex flex-1 min-w-[56px] flex-col">
-                <p className="text-xs text-slate-400 dark:text-slate-500">{t('agent.memory')}</p>
-                <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{memPct.toFixed(1)}%</div>
-                <div className="mt-0.5 h-[3px] w-[90%] rounded-sm bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                  <div className={`h-full rounded-sm transition-all duration-500 ${barColor(memPct)}`} style={{ width: `${Math.min(Math.max(memPct, 0), 100)}%` }} />
-                </div>
-              </div>
-              <div className="flex flex-1 min-w-[56px] flex-col">
-                <p className="text-xs text-slate-400 dark:text-slate-500">{t('agent.disk')}</p>
-                <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{diskPct.toFixed(1)}%</div>
-                <div className="mt-0.5 h-[3px] w-[90%] rounded-sm bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                  <div className={`h-full rounded-sm transition-all duration-500 ${barColor(diskPct)}`} style={{ width: `${Math.min(Math.max(diskPct, 0), 100)}%` }} />
-                </div>
-              </div>
-              <div className="flex flex-1 min-w-[56px] flex-col">
-                <p className="text-xs text-slate-400 dark:text-slate-500">{t('clientResource.download')}</p>
-                <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{netDown}</div>
-              </div>
-              <div className="flex flex-1 min-w-[56px] flex-col">
-                <p className="text-xs text-slate-400 dark:text-slate-500">{t('clientResource.upload')}</p>
-                <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{netUp}</div>
-              </div>
-              <div className="hidden sm:flex flex-1 min-w-[64px] flex-col">
-                <p className="text-xs text-slate-400 dark:text-slate-500">↓ {t('agent.networkTotalRx')}</p>
-                <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{rxTotalStr}</div>
-              </div>
-              <div className="hidden sm:flex flex-1 min-w-[64px] flex-col">
-                <p className="text-xs text-slate-400 dark:text-slate-500">↑ {t('agent.networkTotalTx')}</p>
-                <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{txTotalStr}</div>
-              </div>
+        {/* Right: metrics grid */}
+        <section className="grid grid-cols-8 items-center gap-3 flex-1">
+          <div className="flex w-16 flex-col">
+            <p className="text-xs text-slate-400 dark:text-slate-500">{t('agent.uptime')}</p>
+            <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{uptimeStr || '--'}</div>
+          </div>
+          <div className="flex w-14 flex-col">
+            <p className="text-xs text-slate-400 dark:text-slate-500">CPU</p>
+            <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{cpu.toFixed(1)}%</div>
+            <div className="mt-0.5 h-[3px] w-full rounded-sm bg-slate-100 dark:bg-slate-800 overflow-hidden">
+              <div className={`h-full rounded-sm transition-all duration-500 ${barColor(cpu)}`} style={{ width: `${Math.min(Math.max(cpu, 0), 100)}%` }} />
             </div>
-        </div>
+          </div>
+          <div className="flex w-14 flex-col">
+            <p className="text-xs text-slate-400 dark:text-slate-500">{t('agent.memory')}</p>
+            <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{memPct.toFixed(1)}%</div>
+            <div className="mt-0.5 h-[3px] w-full rounded-sm bg-slate-100 dark:bg-slate-800 overflow-hidden">
+              <div className={`h-full rounded-sm transition-all duration-500 ${barColor(memPct)}`} style={{ width: `${Math.min(Math.max(memPct, 0), 100)}%` }} />
+            </div>
+          </div>
+          <div className="flex w-14 flex-col">
+            <p className="text-xs text-slate-400 dark:text-slate-500">{t('agent.disk')}</p>
+            <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{diskPct.toFixed(1)}%</div>
+            <div className="mt-0.5 h-[3px] w-full rounded-sm bg-slate-100 dark:bg-slate-800 overflow-hidden">
+              <div className={`h-full rounded-sm transition-all duration-500 ${barColor(diskPct)}`} style={{ width: `${Math.min(Math.max(diskPct, 0), 100)}%` }} />
+            </div>
+          </div>
+          <div className="flex w-16 flex-col">
+            <p className="text-xs text-slate-400 dark:text-slate-500">{t('clientResource.download')}</p>
+            <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{netDown}</div>
+          </div>
+          <div className="flex w-16 flex-col">
+            <p className="text-xs text-slate-400 dark:text-slate-500">{t('clientResource.upload')}</p>
+            <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{netUp}</div>
+          </div>
+          <div className="flex w-20 flex-col">
+            <p className="text-xs text-slate-400 dark:text-slate-500">↓ {t('agent.networkTotalRx')}</p>
+            <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{rxTotalStr}</div>
+          </div>
+          <div className="flex w-20 flex-col">
+            <p className="text-xs text-slate-400 dark:text-slate-500">↑ {t('agent.networkTotalTx')}</p>
+            <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{txTotalStr}</div>
+          </div>
+        </section>
       </div>
     ) : (
       <div
         onClick={onClick}
-        className={`rounded-lg border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-lg shadow-neutral-200/40 dark:shadow-none hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer max-w-5xl min-w-[480px] sm:min-w-[620px] w-full self-center`}
+        className="flex items-center lg:flex-row justify-start gap-3 p-3 md:px-5 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors min-w-[780px] rounded-lg border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-lg shadow-neutral-200/40 dark:shadow-none opacity-60"
       >
-        <div className="flex items-center justify-start gap-3 p-3 md:px-5 min-w-[480px] sm:min-w-[620px] w-full">
-          <section className="grid items-center gap-2 shrink-0 lg:w-28" style={{ gridTemplateColumns: 'auto auto 1fr' }}>
-            <span className="h-2 w-2 shrink-0 rounded-full bg-slate-400 self-center" />
-            <div className="flex items-center justify-center min-w-[16px]"><CountryFlag code={agent.country} /></div>
-            <p className="text-xs font-bold text-slate-400 dark:text-slate-500 truncate">{agent.name}</p>
-          </section>
-          <div className="w-px h-8 bg-slate-200 dark:bg-slate-700 shrink-0" />
-          <span className="text-xs text-slate-400">{t('agent.status.offline')}</span>
-        </div>
+        <section className="grid items-center gap-2 shrink-0" style={{ gridTemplateColumns: 'auto auto 1fr' }}>
+          <span className="h-2 w-2 shrink-0 rounded-full bg-slate-400 self-center" />
+          <div className="flex items-center justify-center min-w-[17px]"><CountryFlag code={agent.country} /></div>
+          <p className="text-xs font-bold text-slate-400 dark:text-slate-500 truncate">{agent.name}</p>
+        </section>
+        <div className="w-px h-8 bg-slate-200 dark:bg-slate-700 shrink-0" />
+        <span className="text-xs text-slate-400">{t('agent.status.offline')}</span>
       </div>
     );
   }
