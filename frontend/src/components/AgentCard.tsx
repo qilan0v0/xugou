@@ -108,11 +108,11 @@ const AgentCard = React.memo(({ agent, onClick, size = 'large' }: AgentCardProps
       </div>
     );
 
-    const MetricCol = ({ label, value, bar }: { label: string; value: string; bar: number }) => (
-      <div className="flex w-12 sm:w-14 flex-col">
+    const MetricCol = ({ label, value, bar, noBar }: { label: string; value: string; bar?: number; noBar?: boolean }) => (
+      <div className="flex flex-col items-center">
         <p className="text-[10px] text-slate-400 dark:text-slate-500">{label}</p>
-        <div className="flex items-center text-[11px] font-semibold text-slate-700 dark:text-slate-300">{value}</div>
-        <ThinBar value={bar} />
+        <div className="text-[11px] font-semibold text-slate-700 dark:text-slate-300">{value}</div>
+        {!noBar && bar != null && <ThinBar value={bar} />}
       </div>
     );
 
@@ -146,12 +146,12 @@ const AgentCard = React.memo(({ agent, onClick, size = 'large' }: AgentCardProps
                   <span className="text-[10px] text-slate-500 truncate">{osName}</span>
                 </div>
               )}
-              <div className="flex-1 grid grid-cols-3 sm:grid-cols-5 items-start gap-1.5 sm:gap-2 min-w-0">
+              <div className="flex-1 grid grid-cols-3 sm:grid-cols-5 items-end gap-1 sm:gap-3 min-w-0">
                 <MetricCol label="CPU" value={`${cpu.toFixed(1)}%`} bar={cpu} />
                 <MetricCol label={t('agent.memory')} value={`${memPct.toFixed(1)}%`} bar={memPct} />
                 <MetricCol label={t('agent.disk')} value={`${diskPct.toFixed(1)}%`} bar={diskPct} />
-                <MetricCol label={t('clientResource.download')} value={netDown} bar={netRx > 1024 ? Math.min((netRx / 1024 / 10) * 100, 100) : 0} />
-                <MetricCol label={t('clientResource.upload')} value={netUp} bar={netTx > 1024 ? Math.min((netTx / 1024 / 10) * 100, 100) : 0} />
+                <MetricCol label={t('clientResource.download')} value={netDown} noBar />
+                <MetricCol label={t('clientResource.upload')} value={netUp} noBar />
               </div>
             </div>
 
