@@ -48,6 +48,7 @@ function EditModal({ agent, onClose, onSaved }: { agent: Agent; onClose: () => v
   const [durationVal, setDurationVal] = useState(agent.duration_value ? String(agent.duration_value) : '1');
   const [durationUnit, setDurationUnit] = useState(agent.duration_unit || 'month');
   const [isPublic, setIsPublic] = useState(agent.public !== 0);
+  const [remark, setRemark] = useState(agent.remark || '');
   const [saving, setSaving] = useState(false);
 
   const handleSave = async (e: React.FormEvent) => {
@@ -69,6 +70,7 @@ function EditModal({ agent, onClose, onSaved }: { agent: Agent; onClose: () => v
         data.start_time = null; data.duration_value = null; data.duration_unit = null; data.expiry_time = null;
       }
       data.public = isPublic;
+      data.remark = remark;
       await updateAgent(agent.id, data);
       onSaved();
       onClose();
@@ -116,6 +118,7 @@ function EditModal({ agent, onClose, onSaved }: { agent: Agent; onClose: () => v
               </select>
             </div>
           </div>
+          <div><label className={labelC}>备注</label><textarea value={remark} onChange={e => setRemark(e.target.value)} placeholder="管理员备注，仅后台可见" rows={3} className={inputC} /></div>
           <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={isPublic} onChange={e => setIsPublic(e.target.checked)} className="chk-box" /><span className="text-xs text-slate-500">公开显示</span></label>
           <div className="flex justify-end gap-3 pt-2 border-t border-white/[0.06]">
             <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5">取消</button>
