@@ -258,7 +258,7 @@ const zhCN = {
     'agents.table.actions': '操作',
     
     // 客户端详情
-    'agent.details': '客户端详情',
+    'agent.details': '详情',
     'agent.edit': '编辑客户端',
     'agent.delete': '删除客户端',
     'agent.status.online': '在线',

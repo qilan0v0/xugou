@@ -83,7 +83,7 @@ export default function AgentCharts({ agentId }: Props) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t('agent.charts') || 'Metrics History'}</h3>
+        <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t('agent.details')}</h3>
         <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-lg p-0.5">
           {[1, 6, 24].map(h => (
             <button key={h}
