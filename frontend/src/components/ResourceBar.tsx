@@ -4,30 +4,26 @@ interface ResourceBarProps {
   height?: number;
 }
 
-const ResourceBar = ({ value = 0, color = 'green', height = 8 }: ResourceBarProps) => {
+const ResourceBar = ({ value = 0, color = 'green', height = 5 }: ResourceBarProps) => {
   const safeValue = Math.min(Math.max(value, 0), 100);
 
-  const colorMap: Record<string, string> = {
-    green: 'from-emerald-500 to-emerald-400',
-    blue: 'from-blue-500 to-blue-400',
-    amber: 'from-amber-500 to-amber-400',
-    red: 'from-red-500 to-red-400',
-    cyan: 'from-cyan-500 to-cyan-400',
-    indigo: 'from-indigo-500 to-indigo-400',
-    purple: 'from-purple-500 to-purple-400',
-    dynamic: safeValue < 50 ? 'from-emerald-500 to-emerald-400' : safeValue < 75 ? 'from-amber-500 to-amber-400' : 'from-red-500 to-red-400',
-  };
-
-  const barGradient = color === 'dynamic' ? colorMap.dynamic : (colorMap[color] || colorMap.green);
+  const barColor = color === 'dynamic'
+    ? (safeValue > 90 ? 'bg-red-500' : safeValue > 70 ? 'bg-orange-400' : 'bg-green-500')
+    : {
+        green: 'bg-green-500',
+        blue: 'bg-blue-500',
+        amber: 'bg-orange-400',
+        red: 'bg-red-500',
+        cyan: 'bg-cyan-500',
+        indigo: 'bg-indigo-500',
+        purple: 'bg-purple-500',
+      }[color] || 'bg-green-500';
 
   return (
-    <div className="w-full rounded-full bg-slate-200 dark:bg-white/10 overflow-hidden" style={{ height: `${height}px` }}>
+    <div className="w-full rounded-sm bg-slate-100 dark:bg-slate-800 overflow-hidden" style={{ height: `${height}px` }}>
       <div
-        className={`h-full w-full rounded-full bg-gradient-to-r ${barGradient} origin-left will-change-transform backface-hidden`}
-        style={{
-          transform: `scaleX(${safeValue / 100})`,
-          transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-        }}
+        className={`h-full rounded-sm transition-all duration-500 ${barColor}`}
+        style={{ width: `${safeValue}%` }}
       />
     </div>
   );

@@ -319,10 +319,10 @@ const AgentCard = React.memo(({ agent, onClick, size = 'large' }: AgentCardProps
       {/* Two-column metrics - paired rows for alignment */}
       <div className="flex flex-col gap-1.5">
         {[
-          [<MetricItem key="cpu" icon={<Cpu size={14} />} iconColor="bg-blue-500/10 text-blue-600" label="CPU" value={`${cpu.toFixed(1)}%`} barValue={cpu} barColor="blue" />,
-           <MetricItem key="mem" icon={<MemoryStick size={14} />} iconColor="bg-green-500/10 text-green-600" label={t('agent.memory')} value={`${memPct.toFixed(1)}%`} sub={`${memUsedStr} / ${memTotalStr}`} barValue={memPct} barColor="green" />],
-          [<MetricItem key="disk" icon={<HardDrive size={14} />} iconColor="bg-red-500/10 text-red-600" label={t('agent.disk')} value={`${diskPct.toFixed(1)}%`} sub={`${diskUsedStr} / ${diskTotalStr}`} barValue={diskPct} barColor="red" />,
-           <MetricItem key="traf" icon={<Activity size={14} />} iconColor="bg-violet-500/10 text-violet-600" label={t('agent.traffic')} value={trafficLimit > 0 ? `${totalTrafficStr} / ${trafficLimitStr}` : '--'} barValue={trafficLimit > 0 ? trafficPct : 0} barColor="purple" />],
+          [<MetricItem key="cpu" icon={<Cpu size={14} />} iconColor="bg-blue-500/10 text-blue-600" label="CPU" value={`${cpu.toFixed(1)}%`} barValue={cpu} barColor="dynamic" />,
+           <MetricItem key="mem" icon={<MemoryStick size={14} />} iconColor="bg-green-500/10 text-green-600" label={t('agent.memory')} value={`${memPct.toFixed(1)}%`} sub={`${memUsedStr} / ${memTotalStr}`} barValue={memPct} barColor="dynamic" />],
+          [<MetricItem key="disk" icon={<HardDrive size={14} />} iconColor="bg-red-500/10 text-red-600" label={t('agent.disk')} value={`${diskPct.toFixed(1)}%`} sub={`${diskUsedStr} / ${diskTotalStr}`} barValue={diskPct} barColor="dynamic" />,
+           <MetricItem key="traf" icon={<Activity size={14} />} iconColor="bg-violet-500/10 text-violet-600" label={t('agent.traffic')} value={trafficLimit > 0 ? `${totalTrafficStr} / ${trafficLimitStr}` : '--'} barValue={trafficLimit > 0 ? trafficPct : 0} barColor="dynamic" />],
           [<MetricItem key="dl" icon={<ArrowDown size={14} />} iconColor="bg-cyan-500/10 text-cyan-600" label={t('clientResource.download')} value={netRx >= 1024 ? `${(netRx / 1024).toFixed(1)} MB/s` : `${netRx.toFixed(1)} KB/s`} />,
            <MetricItem key="ul" icon={<ArrowUp size={14} />} iconColor="bg-indigo-500/10 text-indigo-600" label={t('clientResource.upload')} value={netTx >= 1024 ? `${(netTx / 1024).toFixed(1)} MB/s` : `${netTx.toFixed(1)} KB/s`} />],
           [<MetricItem key="tdl" icon={<Download size={14} />} iconColor="bg-slate-500/10 text-slate-500" label={t('agent.networkTotalRx')} value={rxTotalStr} />,
