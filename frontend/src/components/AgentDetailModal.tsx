@@ -7,6 +7,11 @@ import CountryFlag from './CountryFlag';
 import AgentCharts from './AgentCharts';
 import { ENV_API_BASE_URL } from '../config';
 
+const formatSize = (bytes: number): string => {
+  if (bytes >= 1073741824) return (bytes / 1073741824).toFixed(1) + ' GiB';
+  return (bytes / 1048576).toFixed(0) + ' MiB';
+};
+
 const toCountryName = (code: string) => {
   if (!code) return '--';
   try {
@@ -126,8 +131,8 @@ export default function AgentDetailModal({ agent, onClose, showToken }: AgentDet
               {agent.cpu_cores != null && <div className="flex items-center gap-2"><Component1Icon className="text-emerald-500 w-3.5 h-3.5 shrink-0" /><span className="text-slate-500">CPU核心:</span><span className="text-slate-700 dark:text-slate-300">{agent.cpu_cores}</span></div>}
               {(agent.load1 != null) && <div className="flex items-center gap-2"><ActivityLogIcon className="text-rose-500 w-3.5 h-3.5 shrink-0" /><span className="text-slate-500">负载:</span><span className="text-slate-700 dark:text-slate-300 truncate">{[agent.load1, agent.load5, agent.load15].map(v => v?.toFixed(2) ?? '-').join(' / ')}</span></div>}
               {/* Memory / Disk */}
-              {agent.memory_total != null && <div className="flex items-center gap-2"><StackIcon className="text-blue-500 w-3.5 h-3.5 shrink-0" /><span className="text-slate-500">内存:</span><span className="text-slate-700 dark:text-slate-300">{agent.memory_used != null ? (agent.memory_used / 1073741824).toFixed(1) : '?'} / {(agent.memory_total / 1073741824).toFixed(1)} GiB</span></div>}
-              {agent.disk_total != null && <div className="flex items-center gap-2"><HardDrive size={14} className="text-red-500 shrink-0" /><span className="text-slate-500">磁盘:</span><span className="text-slate-700 dark:text-slate-300">{agent.disk_used != null ? (agent.disk_used / 1073741824).toFixed(1) : '?'} / {(agent.disk_total / 1073741824).toFixed(1)} GiB</span></div>}
+              {agent.memory_total != null && <div className="flex items-center gap-2"><StackIcon className="text-blue-500 w-3.5 h-3.5 shrink-0" /><span className="text-slate-500">内存:</span><span className="text-slate-700 dark:text-slate-300">{formatSize(agent.memory_used || 0)} / {formatSize(agent.memory_total)}</span></div>}
+              {agent.disk_total != null && <div className="flex items-center gap-2"><HardDrive size={14} className="text-red-500 shrink-0" /><span className="text-slate-500">磁盘:</span><span className="text-slate-700 dark:text-slate-300">{formatSize(agent.disk_used || 0)} / {formatSize(agent.disk_total)}</span></div>}
 
               {/* Network */}
               {agent.network_rx != null && <div className="flex items-center gap-2"><ArrowDownIcon className="text-cyan-500 w-3.5 h-3.5 shrink-0" /><span className="text-slate-500">↓下载:</span><span className="text-slate-700 dark:text-slate-300">{agent.network_rx.toFixed(0)} KB/s</span></div>}
@@ -143,8 +148,8 @@ export default function AgentDetailModal({ agent, onClose, showToken }: AgentDet
             </div>
             {(agent.network_rx_total != null || agent.network_tx_total != null) && (
               <div className="mt-3 pt-3 border-t border-slate-200 dark:border-white/5 text-[11px] text-slate-500 flex gap-4">
-                {agent.network_rx_total != null && <span>总下载: {(agent.network_rx_total / 1073741824).toFixed(2)} GiB</span>}
-                {agent.network_tx_total != null && <span>总上传: {(agent.network_tx_total / 1073741824).toFixed(2)} GiB</span>}
+                {agent.network_rx_total != null && <span>总下载: {formatSize(agent.network_rx_total)}</span>}
+                {agent.network_tx_total != null && <span>总上传: {formatSize(agent.network_tx_total)}</span>}
               </div>
             )}
           </div>
