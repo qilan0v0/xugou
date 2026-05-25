@@ -322,7 +322,7 @@ agents.get('/:id/metrics', async (c) => {
     const hours = Math.min(Number(c.req.query('hours') || '24'), 168); // max 7 days
     const since = new Date(Date.now() - hours * 3600000).toISOString();
     const rows = c.env.DB.prepare(
-      'SELECT timestamp, cpu, mem_pct, disk_pct, net_rx, net_tx FROM agent_metrics_history WHERE agent_id = ? AND timestamp >= ? ORDER BY timestamp ASC'
+      'SELECT timestamp, cpu, mem_pct, disk_pct, net_rx, net_tx, process_count, tcp_count, udp_count FROM agent_metrics_history WHERE agent_id = ? AND timestamp >= ? ORDER BY timestamp ASC'
     ).bind(agentId, since).all();
 
     return c.json({
@@ -334,6 +334,9 @@ agents.get('/:id/metrics', async (c) => {
         disk: r.disk_pct ?? 0,
         net_rx: r.net_rx ?? 0,
         net_tx: r.net_tx ?? 0,
+        process_count: r.process_count ?? 0,
+        tcp_count: r.tcp_count ?? 0,
+        udp_count: r.udp_count ?? 0,
       })),
     });
   } catch (e: any) {

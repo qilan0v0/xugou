@@ -152,6 +152,9 @@ export interface AgentMetric {
   disk: number;
   net_rx: number;
   net_tx: number;
+  process_count: number;
+  tcp_count: number;
+  udp_count: number;
 }
 
 export const getAgentMetrics = async (id: number, hours = 24) => {
