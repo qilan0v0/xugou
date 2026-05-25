@@ -12,6 +12,7 @@ import (
 	"github.com/shirou/gopsutil/v3/load"
 	"github.com/shirou/gopsutil/v3/mem"
 	"github.com/shirou/gopsutil/v3/net"
+	"github.com/shirou/gopsutil/v3/process"
 )
 
 // Version is set via ldflags at build time
@@ -29,6 +30,9 @@ type SystemInfo struct {
 	DiskInfo    []DiskInfo    `json:"disks"`
 	NetworkInfo []NetworkInfo `json:"network"`
 	LoadInfo    LoadInfo      `json:"load"`
+	ProcessCount int           `json:"process_count"`
+	TcpCount     int           `json:"tcp_count"`
+	UdpCount     int           `json:"udp_count"`
 	BootTime     time.Time     `json:"boot_time"`
 	AgentVersion string        `json:"agent_version"`
 }
@@ -191,6 +195,25 @@ func (c *DefaultCollector) Collect(ctx context.Context) (*SystemInfo, error) {
 			Load1:  loadAvg.Load1,
 			Load5:  loadAvg.Load5,
 			Load15: loadAvg.Load15,
+		}
+	}
+
+	// 进程数量
+	pids, err := process.Pids()
+	if err == nil {
+		info.ProcessCount = len(pids)
+	}
+
+	// TCP / UDP 连接数
+	conns, err := net.Connections("all")
+	if err == nil {
+		for _, conn := range conns {
+			switch conn.Type {
+			case 1: // TCP
+				info.TcpCount++
+			case 2: // UDP
+				info.UdpCount++
+			}
 		}
 	}
 

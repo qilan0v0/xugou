@@ -172,7 +172,7 @@ app.post('/api/agents/status', async (c) => {
     }
 
     const result = env.DB.prepare(
-      `UPDATE agents SET status='active', cpu_usage=?, memory_total=?, memory_used=?, disk_total=?, disk_used=?, network_rx=?, network_tx=?, hostname=?, ip_address=?, os=?, version=?, cpu_arch=?, cpu_model_name=?, cpu_cores=?, load1=?, load5=?, load15=?, boot_time=?, network_rx_total=?, network_tx_total=?, agent_version=?, country=?, updated_at=?, last_payload=? WHERE id=?`
+      `UPDATE agents SET status='active', cpu_usage=?, memory_total=?, memory_used=?, disk_total=?, disk_used=?, network_rx=?, network_tx=?, hostname=?, ip_address=?, os=?, version=?, cpu_arch=?, cpu_model_name=?, cpu_cores=?, load1=?, load5=?, load15=?, boot_time=?, network_rx_total=?, network_tx_total=?, agent_version=?, country=?, updated_at=?, last_payload=?, process_count=?, tcp_count=?, udp_count=? WHERE id=?`
     ).bind(
       cpu, memTotal, memUsed, diskTotal, diskUsed, netRx, netTx,
       toD1Primitive(body.hostname),
@@ -180,7 +180,9 @@ app.post('/api/agents/status', async (c) => {
       toD1Primitive(body.os), toD1Primitive(body.version),
       cpuArch, cpuModelName, cpuCores, l1, l5, l15, bt, netRxTotal, netTxTotal, av,
       country,
-      now, raw.slice(0, 2000), agent.id
+      now, raw.slice(0, 2000),
+      body.process_count ?? null, body.tcp_count ?? null, body.udp_count ?? null,
+      agent.id
     ).run();
 
     if (!result.success) {
@@ -193,8 +195,8 @@ app.post('/api/agents/status', async (c) => {
       const memPctVal = (memTotal && memUsed) ? (memUsed / memTotal * 100) : null;
       const diskPctVal = (diskTotal && diskUsed) ? (diskUsed / diskTotal * 100) : null;
       env.DB.prepare(
-        'INSERT INTO agent_metrics_history (agent_id, timestamp, cpu, mem_pct, disk_pct, net_rx, net_tx) VALUES (?, ?, ?, ?, ?, ?, ?)'
-      ).bind(agent.id, now, cpu, memPctVal, diskPctVal, netRx, netTx).run();
+        'INSERT INTO agent_metrics_history (agent_id, timestamp, cpu, mem_pct, disk_pct, net_rx, net_tx, process_count, tcp_count, udp_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+      ).bind(agent.id, now, cpu, memPctVal, diskPctVal, netRx, netTx, body.process_count ?? null, body.tcp_count ?? null, body.udp_count ?? null).run();
       // Keep only the last 2880 records per agent (24h at 30s intervals)
       env.DB.prepare(
         'DELETE FROM agent_metrics_history WHERE agent_id = ? AND id NOT IN (SELECT id FROM agent_metrics_history WHERE agent_id = ? ORDER BY id DESC LIMIT 2880)'

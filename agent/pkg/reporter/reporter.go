@@ -62,9 +62,12 @@ type StatusPayload struct {
 	Disks        []collector.DiskInfo  `json:"disks"`
 	Network      []collector.NetworkInfo `json:"network"`
 	Load         collector.LoadInfo    `json:"load"`
-	BootTime     string                `json:"boot_time"`
-	AgentVersion string                `json:"agent_version"`
-	Keepalive    int                   `json:"keepalive"`
+	BootTime      string                `json:"boot_time"`
+	AgentVersion  string                `json:"agent_version"`
+	Keepalive     int                   `json:"keepalive"`
+	ProcessCount  int                   `json:"process_count"`
+	TcpCount      int                   `json:"tcp_count"`
+	UdpCount      int                   `json:"udp_count"`
 }
 
 // RegisterPayload 定义注册到后端的数据结构
@@ -208,6 +211,9 @@ func (r *HTTPReporter) Report(ctx context.Context, info *collector.SystemInfo) e
 		BootTime:     bootTimeStr,
 		AgentVersion: collector.Version,
 		Keepalive:    30,
+		ProcessCount: info.ProcessCount,
+		TcpCount:     info.TcpCount,
+		UdpCount:     info.UdpCount,
 	}
 
 	data, err := json.Marshal(payload)

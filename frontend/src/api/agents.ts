@@ -31,6 +31,9 @@ export interface Agent {
   agent_version?: string;
   country?: string;
   connected_at?: string;
+  process_count?: number;
+  tcp_count?: number;
+  udp_count?: number;
   traffic_limit?: number;
   expiry_time?: string;
   start_time?: string;

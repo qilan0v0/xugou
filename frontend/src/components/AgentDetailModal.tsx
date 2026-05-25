@@ -129,6 +129,9 @@ export default function AgentDetailModal({ agent, onClose, showToken }: AgentDet
                 {connectStr && <div className="flex items-center gap-2"><ActivityLogIcon className="text-cyan-500 w-3.5 h-3.5" /><span className="text-slate-500">连接时长:</span><span className="text-slate-700 dark:text-slate-300">{connectStr}</span></div>}
                 {uptimeStr && <div className="flex items-center gap-2"><TimerIcon className="text-teal-500 w-3.5 h-3.5" /><span className="text-slate-500">运行时长:</span><span className="text-slate-700 dark:text-slate-300">{uptimeStr}</span></div>}
                 {agent.agent_version && <div className="flex items-center gap-2"><CodeIcon className="text-purple-500 w-3.5 h-3.5" /><span className="text-slate-500">Agent版本:</span><span className="text-slate-700 dark:text-slate-300">{agent.agent_version}</span></div>}
+                {agent.process_count != null && <div className="flex items-center gap-2"><Component1Icon className="text-rose-500 w-3.5 h-3.5" /><span className="text-slate-500">进程数:</span><span className="text-slate-700 dark:text-slate-300">{agent.process_count}</span></div>}
+                {agent.tcp_count != null && <div className="flex items-center gap-2"><ActivityLogIcon className="text-blue-500 w-3.5 h-3.5" /><span className="text-slate-500">TCP:</span><span className="text-slate-700 dark:text-slate-300">{agent.tcp_count}</span></div>}
+                {agent.udp_count != null && <div className="flex items-center gap-2"><ActivityLogIcon className="text-sky-500 w-3.5 h-3.5" /><span className="text-slate-500">UDP:</span><span className="text-slate-700 dark:text-slate-300">{agent.udp_count}</span></div>}
               </div>
             </div>
 
