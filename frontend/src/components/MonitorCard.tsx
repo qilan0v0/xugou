@@ -54,12 +54,12 @@ const MonitorCard = React.memo(({ monitor, onClick }: MonitorCardProps) => {
     >
       <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r ${config.border}`} />
       <div className="p-4">
-        <div className="flex justify-between items-start mb-3 gap-2 min-w-0">
-          <div className="flex items-center gap-2 min-w-0">
+        <div className="flex justify-between items-start mb-3 gap-2">
+          <div className="flex-1 flex items-center gap-2 min-w-0">
             <span className={`text-sm font-bold shrink-0 ${config.text}`}>{config.icon}</span>
             <span className="font-semibold text-sm text-slate-900 dark:text-white truncate">{monitor.name}</span>
           </div>
-          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap shrink-0 ${config.bg} ${config.text}`}>
+          <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium whitespace-nowrap shrink-0 ${config.bg} ${config.text}`}>
             <span className={`w-1.5 h-1.5 rounded-full ${config.dot}`} />
             {label}
           </span>
