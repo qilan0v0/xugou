@@ -141,7 +141,7 @@ const AgentCard = React.memo(({ agent, onClick, size = 'large' }: AgentCardProps
             {/* Middle: OS + metrics columns */}
             <div className="flex items-center gap-3">
               {agent.os && (
-                <div className="flex items-center gap-1.5 shrink-0 min-w-[60px]">
+                <div className="hidden sm:flex items-center gap-1.5 shrink-0 min-w-[60px]">
                   <img src={getOSImage((agent.os || '') + ' ' + (agent.version || ''))} alt="" className="w-4 h-4 object-contain" title={`${agent.os} · ${agent.version || ''}`} />
                   <span className="text-[10px] text-slate-500 truncate">{osName}</span>
                 </div>
