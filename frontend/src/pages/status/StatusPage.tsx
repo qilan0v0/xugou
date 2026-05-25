@@ -39,6 +39,7 @@ const StatusPage = () => {
       try {
         const res = await getStatusPageData();
         if (res.success && res.data) {
+          setError(null);
           setData({
             title: res.data.title || '系统状态',
             description: res.data.description || '',
@@ -47,11 +48,11 @@ const StatusPage = () => {
             monitors: res.data.monitors || [],
             agents: res.data.agents || [],
           });
-        } else {
+        } else if (!fetched) {
           setError(res.message || t('statusPage.fetchError'));
         }
       } catch (err: any) {
-        setError(t('statusPage.fetchError'));
+        if (!fetched) setError(t('statusPage.fetchError'));
       } finally {
         setFetched(true);
       }
