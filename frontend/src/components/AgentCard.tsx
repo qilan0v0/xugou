@@ -224,7 +224,7 @@ const AgentCard = React.memo(({ agent, onClick, size = 'large' }: AgentCardProps
                   <span className="text-[10px] text-slate-400 truncate">{osName}</span>
                 </div>
               )}
-              <section className="flex flex-nowrap items-center justify-between gap-1 sm:gap-3 flex-1 min-w-0">
+              <section className="grid grid-cols-5 items-center gap-1 sm:gap-3">
                 <div className="flex w-12 sm:w-14 flex-col shrink-0">
                   <p className="text-xs text-slate-400 dark:text-slate-500">CPU</p>
                   <div className="flex items-center text-xs font-semibold text-slate-700 dark:text-slate-300">{cpu.toFixed(1)}%</div>
