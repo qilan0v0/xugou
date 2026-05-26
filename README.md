@@ -1,118 +1,101 @@
-# QLTZ - 基于CloudFlare搭建的轻量化监控平台
+# QLTZ — 柒蓝轻量监控
 
-<div align="center">
-
-![QLTZ Logo](frontend/public/logo.svg)
-
-QLTZ 是一个基于 CloudFlare 的轻量化系统监控平台，提供系统监控和状态页面功能。
+基于 Cloudflare Workers + Serv00 的轻量化监控平台，支持服务器探针、API 监控、公开状态页。
 
 [English](./README_EN.md) | 简体中文
 
-</div>
+## 功能
 
-## 📅 开发计划
+| 模块 | 功能 |
+|------|------|
+| **Agent 探针** | CPU、内存、磁盘、网络流量、进程数、TCP/UDP 连接数实时采集上报，兼容 Nezha v0/v1 启动参数 |
+| **API 监控** | HTTP/HTTPS 接口定时检查，支持自定义请求方法/头/体，响应时间与状态码检测 |
+| **客户端管理** | 在线/离线状态、流量限制、到期时间、分组标签、管理员备注 |
+| **历史图表** | CPU/内存/磁盘/网络/进程/TCP/UDP 面积图，支持 1h/6h/24h 时间范围 |
+| **公开状态页** | 可自定义标题/Logo/CSS，三档卡片布局切换（大/中/小），不登录即可查看 |
+| **告警通知** | Webhook 通知，API 监控与客户端监控独立开关和消息模板 |
+| **多种部署** | Cloudflare Workers（前后端一体）、Serv00（Node.js）、Docker |
 
-目前已实现的主要功能：
-
-- ✅ 系统监控 - 客户端资源监控与数据上报
-- ✅ HTTP 监控 - API 接口健康检测与分析
-- ✅ 数据可视化 - 实时数据展示与历史趋势分析
-- ✅ 状态页面 - 可定制的服务状态页面
-
-计划实现的功能：
-
-- 🚧 实时通知 - 异常事件通过多渠道通知（邮件、Webhook、Slack等）
-
-## ✨ 核心特性
-
-- 🖥️ **系统监控**
-  - 实时监控 CPU、内存、磁盘、网络等系统指标
-  - 支持自定义监控间隔
-  - 全平台支持（agent由go编写，理论上go能编译的平台都可以支持）
-
-- 🌐 **HTTP 监控**
-  - 支持 HTTP/HTTPS 接口监控
-  - 自定义请求方法、头部和请求体
-  - 响应时间、状态码和内容检查
-
-- 📊 **数据可视化**
-  - 实时数据图表展示
-  - 自定义仪表盘
-
-- 🌍 **状态页面**
-  - 自定义状态页面
-  - 支持多监控项展示
-  - 响应式设计
-
-## 🏗️ 系统架构
-
-QLTZ 采用现代化的系统架构，包含以下组件：
-
-- **Agent**: 轻量级系统监控客户端
-- **Backend**: 基于 Cloudflare Workers 的后端服务
-- **Frontend**: 基于 React + TypeScript 的现代化前端界面
-
-## 🚀 快速开始
-
-### 环境要求
-
-- Node.js >= 18
-- Go >= 1.24
-
-### 部署步骤
-
-1. 克隆项目
-```bash
-git clone https://github.com/zaunist/qltz.git
-cd qltz
-```
-
-2. 安装依赖
-```bash
-# 前端依赖安装
-cd frontend
-npm install
-
-# 后端依赖安装
-cd ../backend
-npm install
+## 系统架构
 
 ```
+Agent (Go) → Backend (Hono + SQLite) → Frontend (React + TypeScript)
+  │              │                           │
+  │ 采集上报      │ 存储 / API / WebSocket     │ 仪表盘 / 状态页
+  │              │                           │
+  └──────────────┴───────────────────────────┘
+            Cloudflare Workers / Serv00 / Docker
+```
 
-3. 启动服务
+## 快速部署
+
+### Serv00（推荐免费方案）
+
 ```bash
-# 启动后端服务
+cd ~/domains/你的用户名.serv00.net/public_nodejs
+git clone https://github.com/qilan0v0/xugou.git
+cd xugou/backend
+npm install --omit=dev
+npm run build:node
+cp serv00/public_app.js ../../app.js
+# 访问 https://你的用户名.serv00.net/
+```
+
+详见 [SERV00.md](./SERV00.md)
+
+### Docker
+
+```bash
+docker run -d -p 8080:8080 \
+  -e QLTZ_SERVER=https://your-server.com \
+  -e QLTZ_TOKEN=your-token \
+  ghcr.io/qilan0v0/qltz-agent:latest
+```
+
+### Cloudflare Workers
+
+```bash
 cd backend
-npm run dev
-
-# 启动前端服务
-cd frontend
-npm run dev
-
+npm install
+npx wrangler deploy
 ```
 
-5. 访问系统
-打开浏览器访问 `http://localhost:5173`
+### 前端
 
-## 详细的视频部署教程
+```bash
+cd frontend
+npm install
+npm run build
+npx wrangler pages deploy dist --branch=main
+```
 
-还没录
+## Agent 部署
 
-## ⭐ 支持我们
+从 [Releases](https://github.com/qilan0v0/xugou/releases) 下载对应平台的二进制：
 
-有钱的捧个钱场，没钱的捧个人场：
+```bash
+# Xugou 原生参数
+./qltz-agent start -s https://your-server.com --uuid YOUR_TOKEN
 
-- 给项目点个 Star，分享给您的朋友
-- 通过微信赞赏支持我的持续开发
+# Nezha v0 兼容
+./qltz-agent start -s server:8008 -p YOUR_KEY --tls
 
-<div align="center">
-  <img src="frontend/public/wechat-reward.png" alt="微信赞赏码" width="300">
-</div>
+# Nezha v1 配置文件
+./qltz-agent start -c config.yaml
+```
 
-## 🤝 贡献
+详细参数见 [agent/README.md](./agent/README.md)
 
-欢迎所有形式的贡献，无论是新功能、bug 修复还是文档改进。
+## 项目结构
 
-## 📄 开源协议
+```
+├── agent/          # Go 探针（采集、上报、Nezha 兼容）
+├── backend/        # Hono API 服务（Cloudflare Workers + Node.js）
+├── frontend/       # React 仪表盘
+├── workers.js      # CF Workers 入口
+└── .github/        # CI/CD
+```
 
-本项目采用 MIT 协议开源，详见 [LICENSE](./LICENSE) 文件。
+## 许可证
+
+MIT
