@@ -92,8 +92,9 @@ export default function AgentDetailModal({ agent, onClose, showToken }: AgentDet
         <div className="p-6">
           {/* Header */}
           <div className="flex items-center gap-3 mb-5 pr-8">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center text-white text-base font-bold flex-shrink-0">
-              {agent.name.charAt(0)}
+            <div className="relative w-11 h-11 flex items-center justify-center flex-shrink-0">
+              <CircularProgress value={isOnline ? (() => { const upH = uptime / 3600000; return Math.min(Math.round((upH / 24) * 100), 100); })() : 0} size={38} color={isOnline ? '#22c55e' : '#94a3b8'} />
+              <span className="absolute text-[13px] font-bold text-white dark:text-slate-300">{agent.name.charAt(0)}</span>
             </div>
             <div className="min-w-0 flex-1">
               <h2 className="text-lg font-bold text-slate-900 dark:text-white truncate">{agent.name}</h2>
@@ -105,7 +106,7 @@ export default function AgentDetailModal({ agent, onClose, showToken }: AgentDet
             <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium flex-shrink-0 ${
               isOnline ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-slate-500/10 text-slate-500'
             }`}>
-              <CircularProgress value={isOnline ? (() => { const upH = uptime / 3600000; return Math.min(Math.round((upH / 24) * 100), 100); })() : 0} size={22} color={isOnline ? '#22c55e' : '#94a3b8'} />
+              <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse-dot shadow-[0_0_6px_rgba(34,197,94,0.6)]' : 'bg-slate-400'}`} />
               {isOnline ? '在线' : '离线'}
             </span>
           </div>
