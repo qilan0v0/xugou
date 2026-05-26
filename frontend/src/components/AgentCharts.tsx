@@ -28,9 +28,15 @@ function ChartCard({ title, dataKey, dataKey2, label, label2, data, color, color
           <span className="text-slate-400">{icon}</span>
           <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{title}</span>
         </div>
-        <div className="flex items-center gap-2 text-xs">
-          <span style={{ color }}>● {round(current)}{unit}</span>
-          {hasLine2 && current2 != null && <span style={{ color: color2 }}>● {round(current2)}{unit}</span>}
+        <div className="flex items-center gap-2 text-[10px]">
+          {hasLine2 ? (
+            <>
+              <span style={{ color }}>● {label || title} {round(current)}{unit}</span>
+              <span style={{ color: color2 }}>● {label2} {round(current2!)}{unit}</span>
+            </>
+          ) : (
+            <span className="text-xs font-semibold text-slate-900 dark:text-white">{round(current)}{unit}</span>
+          )}
         </div>
       </div>
       <div className="aspect-video w-full max-h-[220px]">
