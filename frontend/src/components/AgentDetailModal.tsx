@@ -50,7 +50,7 @@ const CircularProgress = ({ value, size, color }: { value: number; size: number;
         <circle cx={(size+4)/2} cy={(size+4)/2} r={r} fill="none" stroke={color} strokeWidth={3} strokeLinecap="round"
           strokeDasharray={circ} strokeDashoffset={offset} transform={`rotate(-90 ${(size+4)/2} ${(size+4)/2})`} className="transition-all duration-700" />
       </svg>
-      <span className="text-[9px] font-bold mx-auto" style={{ color }}>{Math.round(value)}%</span>
+      <span className="text-[10px] font-bold mx-auto" style={{ color }}>{Math.round(value)}%</span>
     </div>
   );
 };
@@ -92,10 +92,7 @@ export default function AgentDetailModal({ agent, onClose, showToken }: AgentDet
         <div className="p-6">
           {/* Header */}
           <div className="flex items-center gap-3 mb-5 pr-8">
-            <div className="relative w-11 h-11 flex items-center justify-center flex-shrink-0">
-              <CircularProgress value={isOnline ? (() => { const upH = uptime / 3600000; return Math.min(Math.round((upH / 24) * 100), 100); })() : 0} size={38} color={isOnline ? '#22c55e' : '#94a3b8'} />
-              <span className="absolute text-[13px] font-bold text-white dark:text-slate-300">{agent.name.charAt(0)}</span>
-            </div>
+            <CircularProgress value={isOnline ? (() => { const upH = uptime / 3600000; return Math.min(Math.round((upH / 24) * 100), 100); })() : 0} size={38} color={isOnline ? '#22c55e' : '#94a3b8'} />
             <div className="min-w-0 flex-1">
               <h2 className="text-lg font-bold text-slate-900 dark:text-white truncate">{agent.name}</h2>
               <p className="text-xs text-slate-500">
