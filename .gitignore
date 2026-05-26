@@ -56,8 +56,8 @@ go.work
 .cache/
 .temp/
 */.wrangler/
-/agent/xugou-agent
-/agent/xugou-agent-linux
+/agent/qltz-agent
+/agent/qltz-agent-linux
 
 # 系统文件
 .DS_Store

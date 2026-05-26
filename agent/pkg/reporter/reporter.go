@@ -117,7 +117,7 @@ func (r *HTTPReporter) ensureRegistered(ctx context.Context, info *collector.Sys
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", "XUGOU-Agent/1.0")
+	req.Header.Set("User-Agent", "QLTZ-Agent/1.0")
 
 	resp, err := r.client.Do(req)
 	if err != nil {
@@ -229,7 +229,7 @@ func (r *HTTPReporter) Report(ctx context.Context, info *collector.SystemInfo) e
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", "XUGOU-Agent/1.0")
+	req.Header.Set("User-Agent", "QLTZ-Agent/1.0")
 
 	resp, err := r.client.Do(req)
 	if err != nil {

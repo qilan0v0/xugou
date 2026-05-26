@@ -22,7 +22,7 @@ const app = new Hono<{ Bindings: Bindings }>();
 
 import { readFileSync, existsSync } from 'fs';
 const configPath = process.env.CONFIG_PATH || './config.json';
-let config: any = { port: 7860, hostname: '0.0.0.0', jwt_secret: 'change-me', enable_db_init: true, db_path: './data/xugou.db' };
+let config: any = { port: 7860, hostname: '0.0.0.0', jwt_secret: 'change-me', enable_db_init: true, db_path: './data/qltz.db' };
 if (existsSync(configPath)) {
   try { config = { ...config, ...JSON.parse(readFileSync(configPath, 'utf-8')) }; } catch(e) {}
 }
@@ -53,9 +53,9 @@ import { checkAndInitializeDatabase } from './setup/initCheck';
 app.use('*', logger());
 app.use('*', cors({
   origin: (origin) => {
-    const allowed = ['xugou-frontend.pages.dev', 'xugou.mdzz.uk', 'localhost', '127.0.0.1', 'qilan.sbs', 'serv00.net'];
+    const allowed = ['qltz-frontend.pages.dev', 'qltz.mdzz.uk', 'localhost', '127.0.0.1', 'qilan.sbs', 'serv00.net'];
     if (!origin || allowed.some(d => origin.includes(d))) return origin;
-    return 'https://xugou-frontend.pages.dev';
+    return 'https://qltz-frontend.pages.dev';
   },
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin'],
@@ -68,7 +68,7 @@ app.use('*', async (c, next) => {
   await next();
 });
 
-app.get('/', (c) => c.json({ message: 'XUGOU API (Node.js)' }));
+app.get('/', (c) => c.json({ message: 'QLTZ API (Node.js)' }));
 
 app.post('/api/agents/status', async (c) => {
   try {
@@ -343,7 +343,7 @@ broadcast = (type, data) => {
   });
 
   server.listen(port, host, () => {
-    console.log(`Xugou Node.js backend on http://${host}:${port}`);
+    console.log(`Qltz Node.js backend on http://${host}:${port}`);
   });
 })();
 

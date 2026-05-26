@@ -21,7 +21,7 @@ const toCountryName = (code: string) => {
 
 function CopyStartCmd({ token }: { token: string }) {
   const [copied, setCopied] = useState(false);
-  const cmd = `./xugou-agent start --server ${ENV_API_BASE_URL || window.location.origin} --uuid ${token} --interval 60`;
+  const cmd = `./qltz-agent start --server ${ENV_API_BASE_URL || window.location.origin} --uuid ${token} --interval 60`;
   const handleCopy = () => {
     navigator.clipboard.writeText(cmd);
     setCopied(true);

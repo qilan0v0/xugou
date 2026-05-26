@@ -155,7 +155,7 @@ async function checkSingleMonitor(c: any, monitor: Monitor) {
     const response = await fetch(monitor.url, {
       method: monitor.method,
       headers: {
-        'User-Agent': 'Xugou-Monitor/1.0',
+        'User-Agent': 'Qltz-Monitor/1.0',
         ...(monitor.headers ? JSON.parse(monitor.headers) : {})
       },
       body: monitor.body || undefined

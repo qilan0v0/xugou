@@ -76,7 +76,7 @@ export interface SqliteAdapter {
 let db: any = null;
 
 export function createDb(path?: string): SqliteAdapter {
-  const dbPath = path || process.env.DB_PATH || './data/xugou.db';
+  const dbPath = path || process.env.DB_PATH || './data/qltz.db';
   const dir = dirname(dbPath);
 
   if (!existsSync(dir)) {

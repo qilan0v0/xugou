@@ -57,7 +57,7 @@ const Navbar = () => {
           {/* Logo — reads custom config */}
           {(() => {
             let cfg: any = {};
-            try { cfg = JSON.parse(localStorage.getItem('xugou_page_config') || '{}'); } catch {}
+            try { cfg = JSON.parse(localStorage.getItem('qltz_page_config') || '{}'); } catch {}
             return (
               <Link to="/" className="flex items-center gap-2 group no-underline">
                 {cfg.logoUrl ? (
@@ -68,7 +68,7 @@ const Navbar = () => {
                     <PieChartIcon className="w-4 h-4 text-white" />
                   </div>
                 )}
-                <span className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">{cfg.title || 'XUGOU'}</span>
+                <span className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">{cfg.title || 'QLTZ'}</span>
               </Link>
             );
           })()}

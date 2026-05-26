@@ -13,8 +13,8 @@ import (
 func init() {
 	configCmd := &cobra.Command{
 		Use:   "config",
-		Short: "配置 Xugou Agent",
-		Long:  `配置 Xugou Agent 的服务器地址、API 令牌等设置`,
+		Short: "配置 Qltz Agent",
+		Long:  `配置 Qltz Agent 的服务器地址、API 令牌等设置`,
 		Run:   runConfig,
 	}
 
@@ -44,7 +44,7 @@ func runConfig(cmd *cobra.Command, args []string) {
 			fmt.Println("错误: 无法获取用户主目录:", err)
 			os.Exit(1)
 		}
-		configPath = filepath.Join(home, ".xugou-agent.yaml")
+		configPath = filepath.Join(home, ".qltz-agent.yaml")
 	}
 
 	// 将配置写入文件

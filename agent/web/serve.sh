@@ -1,5 +1,5 @@
 #!/bin/sh
-# Xugou Agent Web Status Page
+# Qltz Agent Web Status Page
 # Served via socat TCP-LISTEN, one process per connection
 
 read -r request_line
@@ -27,8 +27,8 @@ generate_html() {
     DISK_INFO=$(df -h / 2>/dev/null | tail -1 | awk '{print $3" / "$2" ("$5")"}')
     CPU_LOAD=$(cat /proc/loadavg 2>/dev/null | awk '{print $1", "$2", "$3}' || echo "N/A")
     PROC_COUNT=$(ls -d /proc/[0-9]* 2>/dev/null | wc -l || echo "N/A")
-    AGENT_PID=$(pgrep -f xugou-agent 2>/dev/null || echo "N/A")
-    AGENT_VER=$(/usr/local/bin/xugou-agent version 2>/dev/null || echo "N/A")
+    AGENT_PID=$(pgrep -f qltz-agent 2>/dev/null || echo "N/A")
+    AGENT_VER=$(/usr/local/bin/qltz-agent version 2>/dev/null || echo "N/A")
     NOW=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
     # Network interfaces
@@ -51,7 +51,7 @@ Cache-Control: no-cache
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="refresh" content="30">
-<title>Xugou Agent — Status</title>
+<title>Qltz Agent — Status</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#0d1117;color:#c9d1d9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;padding:24px;min-height:100vh}
@@ -75,7 +75,7 @@ h1{font-size:20px;font-weight:600;color:#f0f6fc;margin-bottom:8px}
 </style>
 </head>
 <body>
-<h1>🔍 Xugou Agent</h1>
+<h1>🔍 Qltz Agent</h1>
 <p class="sub">System monitoring probe — <span id="time">$NOW</span> &nbsp; <a class="refresh" href="/">↻ refresh</a></p>
 
 <div class="grid">
@@ -110,12 +110,12 @@ h1{font-size:20px;font-weight:600;color:#f0f6fc;margin-bottom:8px}
 <div class="metric"><span class="label">Version</span><span class="value">$AGENT_VER</span></div>
 <div class="metric"><span class="label">PID</span><span class="value">$AGENT_PID</span></div>
 <div class="metric"><span class="label">Status</span><span class="value"><span class="badge badge-ok">RUNNING</span></span></div>
-<div class="metric"><span class="label">Interval</span><span class="value">${XUGOU_INTERVAL:-60}s</span></div>
-<div class="metric"><span class="label">Server</span><span class="value">${XUGOU_SERVER:-console}</span></div>
+<div class="metric"><span class="label">Interval</span><span class="value">${QLTZ_INTERVAL:-60}s</span></div>
+<div class="metric"><span class="label">Server</span><span class="value">${QLTZ_SERVER:-console}</span></div>
 </div>
 </div>
 
-<div class="footer">Xugou Agent &copy; 2025 — auto-refresh every 30s — <span id="gen">generated at $NOW</span></div>
+<div class="footer">Qltz Agent &copy; 2025 — auto-refresh every 30s — <span id="gen">generated at $NOW</span></div>
 </body>
 </html>
 EOF

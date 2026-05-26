@@ -16,7 +16,7 @@ import { LayoutGrid, Rows3, List } from 'lucide-react';
 import { ENV_API_BASE_URL } from '../../config';
 import { useTranslation } from 'react-i18next';
 
-const CARD_SIZE_KEY = 'xugou_agent_card_size';
+const CARD_SIZE_KEY = 'qltz_agent_card_size';
 
 const StatusPage = () => {
   const navigate = useNavigate();
@@ -92,7 +92,7 @@ const StatusPage = () => {
       }
       link.href = data.logoUrl;
     }
-    localStorage.setItem('xugou_page_config', JSON.stringify({ title: data.title, logoUrl: data.logoUrl }));
+    localStorage.setItem('qltz_page_config', JSON.stringify({ title: data.title, logoUrl: data.logoUrl }));
   }, [data.title, data.logoUrl]);
 
   if (error) return <div className="flex justify-center items-center min-h-[50vh]"><span className="text-red-500">{error}</span></div>;

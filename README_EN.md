@@ -1,10 +1,10 @@
-# XUGOU - Lightweight Monitoring Platform Based on CloudFlare
+# QLTZ - Lightweight Monitoring Platform Based on CloudFlare
 
 <div align="center">
 
-![XUGOU Logo](frontend/public/logo.svg)
+![QLTZ Logo](frontend/public/logo.svg)
 
-XUGOU is a lightweight system monitoring platform based on CloudFlare, providing system monitoring and status page functionality.
+QLTZ is a lightweight system monitoring platform based on CloudFlare, providing system monitoring and status page functionality.
 
 English | [简体中文](./README.md)
 
@@ -46,7 +46,7 @@ Planned features:
 
 ## 🏗️ System Architecture
 
-XUGOU adopts a modern system architecture, including the following components:
+QLTZ adopts a modern system architecture, including the following components:
 
 - **Agent**: Lightweight system monitoring client
 - **Backend**: Backend service based on Cloudflare Workers
@@ -63,8 +63,8 @@ XUGOU adopts a modern system architecture, including the following components:
 
 1. Clone the repository
 ```bash
-git clone https://github.com/zaunist/xugou.git
-cd xugou
+git clone https://github.com/zaunist/qltz.git
+cd qltz
 ```
 
 2. Install dependencies

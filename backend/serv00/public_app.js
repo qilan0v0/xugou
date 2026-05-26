@@ -1,4 +1,4 @@
-// Xugou Passenger entry — self-contained watchdog with HTTP proxy
+// Qltz Passenger entry — self-contained watchdog with HTTP proxy
 // Copy to: ~/domains/用户名.serv00.net/public_nodejs/app.js
 // Passenger detects the HTTP server and auto-starts on first request
 
@@ -8,7 +8,7 @@ const net = require("net");
 const path = require("path");
 const fs = require("fs");
 
-const BACKEND_DIR = path.join(__dirname, "xugou", "backend");
+const BACKEND_DIR = path.join(__dirname, "qltz", "backend");
 const PORT = parseInt(process.env.PORT) || 5411;
 const LOG_FILE = path.join(BACKEND_DIR, "data", "backend.log");
 const MAX_MEMORY_MB = 128;

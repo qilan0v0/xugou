@@ -68,7 +68,7 @@ const enUS = {
     'language.enUS': 'English',
     
     // Home page
-    'home.title': 'Welcome to XUGOU',
+    'home.title': 'Welcome to QLTZ',
     'home.subtitle': 'Simple and easy-to-use monitoring platform',
     'home.getStarted': 'Get Started',
     'home.learnMore': 'Learn More',
@@ -322,7 +322,7 @@ const enUS = {
     // Add agent page
     'agent.add.note': 'The agent will be automatically added to the system after running the installation command, no manual creation needed',
     'agent.add.serverAddress': 'Server Address',
-    'agent.add.serverAddressPlaceholder': 'Enter server address, e.g.: https://xugou.example.com',
+    'agent.add.serverAddressPlaceholder': 'Enter server address, e.g.: https://qltz.example.com',
     'agent.add.serverAddressHelp': 'Make sure this address is accessible from the agent server',
     'agent.add.registrationToken': 'Registration Token',
     'agent.add.generatingToken': 'Generating token...',
@@ -518,7 +518,7 @@ const enUS = {
     'heartbeatGrid.unknownTime': 'Unknown time',
     
     // Footer
-    'footer.copyright': '© {year} XUGOU. All Rights Reserved.',
+    'footer.copyright': '© {year} QLTZ. All Rights Reserved.',
     'footer.blog': 'Blog',
     'footer.youtube': 'YouTube Channel',
     'footer.tempMail': '24h Temporary Email'

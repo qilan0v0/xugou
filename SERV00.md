@@ -1,4 +1,4 @@
-# Xugou 部署到 Serv00
+# Qltz 部署到 Serv00
 
 Serv00 是 FreeBSD 共享主机，配额 512MB RAM / 20 进程 / 3GB 磁盘。
 
@@ -17,7 +17,7 @@ Serv00 是 FreeBSD 共享主机，配额 512MB RAM / 20 进程 / 3GB 磁盘。
   "hostname": "127.0.0.1",
   "jwt_secret": "换成随机字符串",
   "enable_db_init": true,
-  "db_path": "./data/xugou.db"
+  "db_path": "./data/qltz.db"
 }
 ```
 
@@ -34,7 +34,7 @@ cd ~/domains/你的用户名.serv00.net/public_nodejs
 
 # 2. 克隆项目
 git clone https://github.com/qilan0v0/xugou.git
-cd xugou/backend
+cd qltz/backend
 
 # 3. 安装依赖
 npm install --omit=dev
@@ -51,7 +51,7 @@ cp serv00/public_app.js ../app.js
 ## 更新代码
 
 ```bash
-cd ~/domains/你的用户名.serv00.net/public_nodejs/xugou
+cd ~/domains/你的用户名.serv00.net/public_nodejs/qltz
 git pull
 
 # 复制最新入口（如果有变动）
@@ -79,7 +79,7 @@ https://你的用户名.serv00.net
 |------|------|------|
 | Passenger 入口 | `public_nodejs/app.js` | 自带 HTTP 代理的看门狗，Passenger 自动托管 |
 | 后端 | `backend/dist/index.node.js` | 编译后的 Hono API |
-| 数据库 | `backend/data/xugou.db` | better-sqlite3 原生模式 |
+| 数据库 | `backend/data/qltz.db` | better-sqlite3 原生模式 |
 
 看门狗功能：
 - 每 30 秒检测后端端口，挂了自动拉起
@@ -91,7 +91,7 @@ https://你的用户名.serv00.net
 
 ```bash
 # 后端日志
-tail -f ~/domains/你的用户名.serv00.net/public_nodejs/xugou/backend/data/backend.log
+tail -f ~/domains/你的用户名.serv00.net/public_nodejs/qltz/backend/data/backend.log
 ```
 
 ## 检查存活
@@ -99,7 +99,7 @@ tail -f ~/domains/你的用户名.serv00.net/public_nodejs/xugou/backend/data/ba
 ```bash
 ps aux | grep "dist/index.node" | grep -v grep
 curl -s http://127.0.0.1:5411/
-# → {"message":"XUGOU API (Node.js)"}
+# → {"message":"QLTZ API (Node.js)"}
 ```
 
 ## 常见问题

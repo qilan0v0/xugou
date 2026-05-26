@@ -11,7 +11,7 @@ const ThemeContext = createContext<ThemeContextType>({ theme: 'light', toggleThe
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const [theme, setTheme] = useState<Theme>(() => {
-    const saved = localStorage.getItem('xugou-theme');
+    const saved = localStorage.getItem('qltz-theme');
     return (saved === 'light' || saved === 'dark') ? saved : 'light';
   });
 
@@ -22,7 +22,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     } else {
       root.classList.remove('dark');
     }
-    localStorage.setItem('xugou-theme', theme);
+    localStorage.setItem('qltz-theme', theme);
   }, [theme]);
 
   const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');

@@ -60,7 +60,7 @@ const StatusPageConfig = () => {
     if (hasInit.current) return; hasInit.current = true;
     // Restore admin CSS from localStorage (fast first paint)
     try {
-      const c = JSON.parse(localStorage.getItem('xugou_page_config') || '{}');
+      const c = JSON.parse(localStorage.getItem('qltz_page_config') || '{}');
       if (c.adminCss) setAdminCss(c.adminCss);
     } catch {}
 
@@ -134,7 +134,7 @@ const StatusPageConfig = () => {
           webhookTlsVerify: webhookTls, notifyDown, notifyUp, agentNotifyDown, agentNotifyUp, agentWebhookBodyDown: agentBodyDown, agentWebhookBodyUp: agentBodyUp, apiWebhookBodyDown: apiBodyDown, apiWebhookBodyUp: apiBodyUp,
         }).catch(() => {});
         // Cache to localStorage for fast next load
-        localStorage.setItem('xugou_page_config', JSON.stringify({
+        localStorage.setItem('qltz_page_config', JSON.stringify({
           title: config.title, logoUrl: config.logoUrl, adminCss,
         }));
       }

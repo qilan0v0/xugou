@@ -1,4 +1,4 @@
-name = "xugou-backend"
+name = "qltz-backend"
 main = "src/index.ts"
 compatibility_date = "2025-03-10"
 compatibility_flags = ["nodejs_compat"]
@@ -9,7 +9,7 @@ ENABLE_DB_INIT = "true"
 
 [[d1_databases]]
 binding = "DB"
-database_name = "xugou_db"
+database_name = "qltz_db"
 database_id = "b3bbe7a0-b4b2-4345-9c26-6b8fb3a4c899"
 
 [triggers]
@@ -20,7 +20,7 @@ vars = { NODE_ENV = "production", JWT_SECRET = "8e2904a6-819f-44f1-9d81-179d7a6d
 
 [[env.production.d1_databases]]
 binding = "DB"
-database_name = "xugou_db"
+database_name = "qltz_db"
 database_id = "b3bbe7a0-b4b2-4345-9c26-6b8fb3a4c899"
 
 [env.production.triggers]
@@ -31,7 +31,7 @@ vars = { NODE_ENV = "development", JWT_SECRET = "8e2904a6-819f-44f1-9d81-179d7a6
 
 [[env.development.d1_databases]]
 binding = "DB"
-database_name = "xugou_db"
+database_name = "qltz_db"
 database_id = "b3bbe7a0-b4b2-4345-9c26-6b8fb3a4c899"
 
 [env.development.triggers]

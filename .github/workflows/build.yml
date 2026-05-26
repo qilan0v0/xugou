@@ -11,10 +11,10 @@ on:
         type: string
         default: ''
       binary_name:
-        description: 'binary name (e.g. xugou-agent)'
+        description: 'binary name (e.g. qltz-agent)'
         required: false
         type: string
-        default: 'xugou-agent'
+        default: 'qltz-agent'
 
 jobs:
   build:
@@ -66,7 +66,7 @@ jobs:
         CGO_ENABLED: '0'
       run: |
         cd agent
-        go build -v -ldflags="-X github.com/xugou/agent/cmd/agent.Version=${VERSION} -X github.com/xugou/agent/cmd/agent.GitCommit=${{ github.sha }} -X github.com/xugou/agent/cmd/agent.BuildDate=${BUILD_DATE} -X github.com/xugou/agent/pkg/collector.Version=${VERSION}" -o ${{ steps.vars.outputs.artifact }} .
+        go build -v -ldflags="-X github.com/qltz/agent/cmd/agent.Version=${VERSION} -X github.com/qltz/agent/cmd/agent.GitCommit=${{ github.sha }} -X github.com/qltz/agent/cmd/agent.BuildDate=${BUILD_DATE} -X github.com/qltz/agent/pkg/collector.Version=${VERSION}" -o ${{ steps.vars.outputs.artifact }} .
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
@@ -129,13 +129,13 @@ jobs:
       with:
         tag_name: ${{ steps.version.outputs.VERSION }}
         files: |
-          xugou-agent-linux-amd64/xugou-agent-linux-amd64
-          xugou-agent-linux-arm64/xugou-agent-linux-arm64
-          xugou-agent-darwin-amd64/xugou-agent-darwin-amd64
-          xugou-agent-darwin-arm64/xugou-agent-darwin-arm64
-          xugou-agent-windows-amd64.exe/xugou-agent-windows-amd64.exe
-          xugou-agent-windows-arm64.exe/xugou-agent-windows-arm64.exe
-          xugou-agent-freebsd-amd64/xugou-agent-freebsd-amd64
-          xugou-agent-freebsd-arm64/xugou-agent-freebsd-arm64
-          xugou-agent-netbsd-amd64/xugou-agent-netbsd-amd64
-          xugou-agent-netbsd-arm64/xugou-agent-netbsd-arm64
+          qltz-agent-linux-amd64/qltz-agent-linux-amd64
+          qltz-agent-linux-arm64/qltz-agent-linux-arm64
+          qltz-agent-darwin-amd64/qltz-agent-darwin-amd64
+          qltz-agent-darwin-arm64/qltz-agent-darwin-arm64
+          qltz-agent-windows-amd64.exe/qltz-agent-windows-amd64.exe
+          qltz-agent-windows-arm64.exe/qltz-agent-windows-arm64.exe
+          qltz-agent-freebsd-amd64/qltz-agent-freebsd-amd64
+          qltz-agent-freebsd-arm64/qltz-agent-freebsd-arm64
+          qltz-agent-netbsd-amd64/qltz-agent-netbsd-amd64
+          qltz-agent-netbsd-arm64/qltz-agent-netbsd-arm64

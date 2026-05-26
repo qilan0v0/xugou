@@ -66,7 +66,7 @@ const CreateAgent = () => {
   const getDownloadUrl = () => {
     if (!selectedPlatform || !selectedArch) return '';
     const ext = selectedPlatform === 'windows' ? '.exe' : '';
-    return `https://github.com/qilan0v0/xugou/releases/latest/download/xugou-agent-${selectedPlatform}-${selectedArch}${ext}`;
+    return `https://github.com/qilan0v0/xugou/releases/latest/download/qltz-agent-${selectedPlatform}-${selectedArch}${ext}`;
   };
 
   const inputClass = "w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 transition-all";
@@ -218,8 +218,8 @@ const CreateAgent = () => {
                       <p className="text-sm font-semibold text-slate-900 dark:text-white mb-2">3. 下载:</p>
                       {selectedPlatform !== 'windows' && (
                         <>
-                          <code className={codeClass}>{`curl -sSL ${getDownloadUrl()} -o xugou-agent && chmod +x xugou-agent`}</code>
-                          <button onClick={() => handleCopy(`curl -sSL ${getDownloadUrl()} -o xugou-agent && chmod +x xugou-agent`)}
+                          <code className={codeClass}>{`curl -sSL ${getDownloadUrl()} -o qltz-agent && chmod +x qltz-agent`}</code>
+                          <button onClick={() => handleCopy(`curl -sSL ${getDownloadUrl()} -o qltz-agent && chmod +x qltz-agent`)}
                             className="mt-2 text-xs text-blue-500 hover:text-blue-400 transition-colors flex items-center gap-1">
                             {copied ? <CheckIcon className="w-3 h-3" /> : <CopyIcon className="w-3 h-3" />}{copied ? t('common.copied') : t('common.copy')}
                           </button>
@@ -232,8 +232,8 @@ const CreateAgent = () => {
                 </div>
                 <div>
                   <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-2">{t('agent.add.step2')}</h4>
-                  <code className={codeClass}>{`./xugou-agent start --server ${serverUrl} --uuid ${token} --interval 60`}</code>
-                  <button onClick={() => handleCopy(`./xugou-agent start --server ${serverUrl} --uuid ${token} --interval 60`)}
+                  <code className={codeClass}>{`./qltz-agent start --server ${serverUrl} --uuid ${token} --interval 60`}</code>
+                  <button onClick={() => handleCopy(`./qltz-agent start --server ${serverUrl} --uuid ${token} --interval 60`)}
                     className="mt-2 text-xs text-blue-500 hover:text-blue-400 transition-colors flex items-center gap-1">
                     {copied ? <CheckIcon className="w-3 h-3" /> : <CopyIcon className="w-3 h-3" />}{t('agents.copyCommand')}
                   </button>

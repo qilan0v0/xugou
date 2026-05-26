@@ -20,8 +20,8 @@ import (
 func init() {
 	startCmd := &cobra.Command{
 		Use:   "start",
-		Short: "启动 Xugou Agent",
-		Long:  `启动 Xugou Agent 开始收集系统信息并上报到服务器`,
+		Short: "启动 Qltz Agent",
+		Long:  `启动 Qltz Agent 开始收集系统信息并上报到服务器`,
 		Run:   runStart,
 	}
 
@@ -61,7 +61,7 @@ func saveToken(token string) {
 		if err != nil {
 			return
 		}
-		configPath = filepath.Join(home, ".xugou-agent.yaml")
+		configPath = filepath.Join(home, ".qltz-agent.yaml")
 	}
 
 	config := map[string]interface{}{
@@ -112,7 +112,7 @@ func runStart(cmd *cobra.Command, args []string) {
 	debug := viper.GetString("log_level") == "debug"
 	skipConn := viper.GetBool("skip_conn")
 	skipProcs := viper.GetBool("skip_procs")
-	if debug { fmt.Println("Xugou Agent 启动中...") }
+	if debug { fmt.Println("Qltz Agent 启动中...") }
 	if debug { fmt.Printf("服务器地址: %s\n", server) }
 	if debug { fmt.Printf("收集间隔: %d秒\n", interval) }
 	if debug && skipConn { fmt.Println("跳过连接数统计") }
@@ -160,7 +160,7 @@ func runStart(cmd *cobra.Command, args []string) {
 	}
 	go collectAndReport(ctx, dataCollector, dataReporter)
 
-	if debug { fmt.Println("Xugou Agent 已启动，按 Ctrl+C 停止") }
+	if debug { fmt.Println("Qltz Agent 已启动，按 Ctrl+C 停止") }
 
 	// 主循环
 	for {

@@ -13,33 +13,33 @@ trap cleanup INT TERM
 # Build argument list from environment variables
 ARGS=""
 
-if [ -n "$XUGOU_SERVER" ]; then
-    ARGS="$ARGS --server $XUGOU_SERVER"
+if [ -n "$QLTZ_SERVER" ]; then
+    ARGS="$ARGS --server $QLTZ_SERVER"
 fi
 
-if [ -n "$XUGOU_TOKEN" ]; then
-    ARGS="$ARGS --token $XUGOU_TOKEN"
+if [ -n "$QLTZ_TOKEN" ]; then
+    ARGS="$ARGS --token $QLTZ_TOKEN"
 fi
 
-if [ -n "$XUGOU_INTERVAL" ]; then
-    ARGS="$ARGS --interval $XUGOU_INTERVAL"
+if [ -n "$QLTZ_INTERVAL" ]; then
+    ARGS="$ARGS --interval $QLTZ_INTERVAL"
 fi
 
-if [ -n "$XUGOU_LOG_LEVEL" ]; then
-    ARGS="$ARGS --log-level $XUGOU_LOG_LEVEL"
+if [ -n "$QLTZ_LOG_LEVEL" ]; then
+    ARGS="$ARGS --log-level $QLTZ_LOG_LEVEL"
 fi
 
-if [ -n "$XUGOU_CONFIG" ]; then
-    ARGS="$ARGS --config $XUGOU_CONFIG"
+if [ -n "$QLTZ_CONFIG" ]; then
+    ARGS="$ARGS --config $QLTZ_CONFIG"
 fi
 
 # Start agent in background
-/usr/local/bin/xugou-agent $ARGS "$@" &
+/usr/local/bin/qltz-agent $ARGS "$@" &
 AGENT_PID=$!
 echo "Agent started (PID: $AGENT_PID)"
 
 # Start web server in background
-WEB_PORT=${XUGOU_WEB_PORT:-8080}
+WEB_PORT=${QLTZ_WEB_PORT:-8080}
 echo "Starting web status page on port $WEB_PORT"
 socat TCP-LISTEN:${WEB_PORT},reuseaddr,fork EXEC:/app/web/serve.sh &
 SOCAT_PID=$!

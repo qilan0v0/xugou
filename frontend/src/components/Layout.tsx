@@ -17,7 +17,7 @@ const Layout = ({ children }: LayoutProps) => {
   useEffect(() => {
     // Apply admin CSS from localStorage immediately
     try {
-      const c = JSON.parse(localStorage.getItem('xugou_page_config') || '{}');
+      const c = JSON.parse(localStorage.getItem('qltz_page_config') || '{}');
       if (c.adminCss) setAdminCss(c.adminCss);
     } catch {}
     // Then fetch fresh config from API
@@ -36,8 +36,8 @@ const Layout = ({ children }: LayoutProps) => {
         }
         // Merge: preserve adminCss from localStorage, update title/logo from API
         let existing: any = {};
-        try { existing = JSON.parse(localStorage.getItem('xugou_page_config') || '{}'); } catch {}
-        localStorage.setItem('xugou_page_config', JSON.stringify({
+        try { existing = JSON.parse(localStorage.getItem('qltz_page_config') || '{}'); } catch {}
+        localStorage.setItem('qltz_page_config', JSON.stringify({
           title: res.data.title, logoUrl: res.data.logoUrl, adminCss: existing.adminCss || '',
         }));
       }

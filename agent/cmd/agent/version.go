@@ -17,7 +17,7 @@ func init() {
 	versionCmd := &cobra.Command{
 		Use:   "version",
 		Short: "显示版本信息",
-		Long:  `显示 Xugou Agent 的版本信息、构建日期和 Git 提交哈希`,
+		Long:  `显示 Qltz Agent 的版本信息、构建日期和 Git 提交哈希`,
 		Run:   runVersion,
 	}
 
@@ -25,7 +25,7 @@ func init() {
 }
 
 func runVersion(cmd *cobra.Command, args []string) {
-	fmt.Println("Xugou Agent 版本信息:")
+	fmt.Println("Qltz Agent 版本信息:")
 	fmt.Printf("版本: %s\n", Version)
 	fmt.Printf("Git 提交: %s\n", GitCommit)
 	fmt.Printf("构建日期: %s\n", BuildDate)

@@ -115,7 +115,7 @@ interface SqliteAdapter {
 let SQL: SqlJsStatic;
 
 export async function createDb(path?: string): Promise<SqliteAdapter> {
-  dbPath = path || process.env.DB_PATH || './data/xugou.db';
+  dbPath = path || process.env.DB_PATH || './data/qltz.db';
   const dir = dirname(dbPath);
 
   if (!existsSync(dir)) {

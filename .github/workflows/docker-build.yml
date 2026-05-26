@@ -67,7 +67,7 @@ jobs:
           fi
 
           REGISTRY="${{ inputs.registry || env.REGISTRY }}"
-          REPO="${REGISTRY}/${{ github.repository_owner }}/xugou-agent"
+          REPO="${REGISTRY}/${{ github.repository_owner }}/qltz-agent"
 
           echo "agent_version=${AGENT_VER}" >> $GITHUB_OUTPUT
           echo "image_tag=${IMG_TAG}" >> $GITHUB_OUTPUT
@@ -103,7 +103,7 @@ jobs:
             ${{ steps.meta.outputs.repository }}:${{ steps.meta.outputs.image_tag }}
             ${{ steps.meta.outputs.repository }}:latest
           labels: |
-            org.opencontainers.image.title=Xugou Agent
+            org.opencontainers.image.title=Qltz Agent
             org.opencontainers.image.description=System monitoring agent probe
             org.opencontainers.image.version=${{ steps.meta.outputs.image_tag }}
             org.opencontainers.image.created=${{ steps.meta.outputs.created }}

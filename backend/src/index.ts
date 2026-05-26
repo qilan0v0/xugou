@@ -58,9 +58,9 @@ const app = new Hono<{ Bindings: Bindings }>();
 app.use('*', logger());
 app.use('*', cors({
   origin: (origin) => {
-    const allowed = ['xugou-frontend.pages.dev', 'xugou.mdzz.uk', 'localhost', '127.0.0.1'];
+    const allowed = ['qltz-frontend.pages.dev', 'qltz.mdzz.uk', 'localhost', '127.0.0.1'];
     if (!origin || allowed.some(d => origin.includes(d))) return origin;
-    return 'https://xugou-frontend.pages.dev';
+    return 'https://qltz-frontend.pages.dev';
   },
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization'],
@@ -76,7 +76,7 @@ app.use('*', async (c, next) => {
 });
 
 // 公共路由
-app.get('/', (c) => c.json({ message: 'XUGOU API 服务正在运行' }));
+app.get('/', (c) => c.json({ message: 'QLTZ API 服务正在运行' }));
 
 // 获取 JWT 密钥
 const getJwtSecret = (c: any) => {

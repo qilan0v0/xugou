@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { CheckCircledIcon, CrossCircledIcon, ClockIcon, GlobeIcon, ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { LayoutGrid, Rows3, List } from 'lucide-react';
 
-const CARD_SIZE_KEY = 'xugou_agent_card_size';
+const CARD_SIZE_KEY = 'qltz_agent_card_size';
 
 const Dashboard = () => {
   const [monitors, setMonitors] = useState<Monitor[]>([]);

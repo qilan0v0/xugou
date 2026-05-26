@@ -1,5 +1,5 @@
 #!/bin/sh
-# Serv00 / FreeBSD deployment setup for Xugou backend
+# Serv00 / FreeBSD deployment setup for Qltz backend
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"

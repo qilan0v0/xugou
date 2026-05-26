@@ -68,7 +68,7 @@ const zhCN = {
     'language.enUS': 'English',
     
     // 首页
-    'home.title': '欢迎使用 XUGOU',
+    'home.title': '欢迎使用 QLTZ',
     'home.subtitle': '简单易用的监控平台',
     'home.getStarted': '开始使用',
     'home.learnMore': '了解更多',
@@ -327,7 +327,7 @@ const zhCN = {
     // 添加客户端页面
     'agent.add.note': '客户端将在运行安装命令后自动添加到系统中，无需手动创建',
     'agent.add.serverAddress': '服务端地址',
-    'agent.add.serverAddressPlaceholder': '请输入服务端地址，例如：https://xugou.example.com',
+    'agent.add.serverAddressPlaceholder': '请输入服务端地址，例如：https://qltz.example.com',
     'agent.add.serverAddressHelp': '请确保此地址可以从客户端服务器访问',
     'agent.add.registrationToken': '注册Token',
     'agent.add.generatingToken': '正在生成Token...',
@@ -496,7 +496,7 @@ const zhCN = {
     'register.error.tryAgain': '注册失败，请稍后再试',
     
     // 页脚
-    'footer.copyright': '© {year} XUGOU. 保留所有权利。',
+    'footer.copyright': '© {year} QLTZ. 保留所有权利。',
     'footer.blog': '博客',
     'footer.youtube': '油管频道',
     'footer.tempMail': '24小时临时邮箱',
