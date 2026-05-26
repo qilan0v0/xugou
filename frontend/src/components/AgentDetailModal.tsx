@@ -40,15 +40,18 @@ function CopyStartCmd({ token }: { token: string }) {
 }
 
 const CircularProgress = ({ value, size, color }: { value: number; size: number; color: string }) => {
-  const r = (size - 3) / 2;
+  const r = (size - 4) / 2;
   const circ = 2 * Math.PI * r;
   const offset = circ - (Math.min(value, 100) / 100) * circ;
   return (
-    <svg width={size} height={size} className="shrink-0">
-      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="currentColor" strokeWidth={2} className="text-slate-200 dark:text-slate-700" />
-      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={2} strokeLinecap="round"
-        strokeDasharray={circ} strokeDashoffset={offset} transform={`rotate(-90 ${size/2} ${size/2})`} className="transition-all duration-700" />
-    </svg>
+    <div className="relative inline-flex items-center shrink-0" style={{ width: size + 4, height: size + 4 }}>
+      <svg width={size + 4} height={size + 4} className="absolute inset-0">
+        <circle cx={(size+4)/2} cy={(size+4)/2} r={r} fill="none" stroke="currentColor" strokeWidth={3} className="text-slate-200 dark:text-slate-700" />
+        <circle cx={(size+4)/2} cy={(size+4)/2} r={r} fill="none" stroke={color} strokeWidth={3} strokeLinecap="round"
+          strokeDasharray={circ} strokeDashoffset={offset} transform={`rotate(-90 ${(size+4)/2} ${(size+4)/2})`} className="transition-all duration-700" />
+      </svg>
+      <span className="text-[9px] font-bold mx-auto" style={{ color }}>{Math.round(value)}%</span>
+    </div>
   );
 };
 
@@ -102,7 +105,7 @@ export default function AgentDetailModal({ agent, onClose, showToken }: AgentDet
             <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium flex-shrink-0 ${
               isOnline ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-slate-500/10 text-slate-500'
             }`}>
-              <CircularProgress value={isOnline ? (() => { const upH = uptime / 3600000; return Math.min(Math.round((upH / 24) * 100), 100); })() : 0} size={14} color={isOnline ? '#22c55e' : '#94a3b8'} />
+              <CircularProgress value={isOnline ? (() => { const upH = uptime / 3600000; return Math.min(Math.round((upH / 24) * 100), 100); })() : 0} size={22} color={isOnline ? '#22c55e' : '#94a3b8'} />
               {isOnline ? '在线' : '离线'}
             </span>
           </div>
