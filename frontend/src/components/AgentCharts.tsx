@@ -17,8 +17,8 @@ const formatTime = (ts: string) => {
 
 const round = (v: number) => Math.round(v * 10) / 10;
 
-function ChartCard({ title, dataKey, dataKey2, data, color, color2, icon, current, current2, unit = '%' }: {
-  title: string; dataKey: string; dataKey2?: string; data: AgentMetric[]; color: string; color2?: string; icon: React.ReactNode; current: number; current2?: number; unit?: string;
+function ChartCard({ title, dataKey, dataKey2, label, label2, data, color, color2, icon, current, current2, unit = '%' }: {
+  title: string; dataKey: string; label?: string; dataKey2?: string; label2?: string; data: AgentMetric[]; color: string; color2?: string; icon: React.ReactNode; current: number; current2?: number; unit?: string;
 }) {
   const hasLine2 = !!dataKey2 && !!color2;
   return (
@@ -53,7 +53,10 @@ function ChartCard({ title, dataKey, dataKey2, data, color, color2, icon, curren
             <Tooltip
               contentStyle={{ borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 12, padding: '4px 8px' }}
               labelFormatter={(v) => new Date(v as string).toLocaleString()}
-              formatter={(v: number, name: string) => [`${round(v)}${unit}`, name === dataKey2 ? (dataKey2 || '') : title]}
+              formatter={(v: number, name: string) => {
+                const labelName = name === dataKey2 ? (label2 || dataKey2) : (label || title);
+                return [`${round(v)}${unit}`, labelName];
+              }}
             />
             <Area
               type="monotone" dataKey={dataKey} stroke={color}
@@ -110,9 +113,9 @@ export default function AgentCharts({ agentId }: Props) {
           <ChartCard title="CPU" dataKey="cpu" data={metrics} color={COLORS.cpu} icon={<Cpu size={14} />} current={latest.cpu} />
           <ChartCard title={t('agent.memory')} dataKey="mem" data={metrics} color={COLORS.mem} icon={<MemoryStick size={14} />} current={latest.mem} />
           <ChartCard title={t('agent.disk')} dataKey="disk" data={metrics} color={COLORS.disk} icon={<HardDrive size={14} />} current={latest.disk} />
-          <ChartCard title={t('agent.traffic')} dataKey="net_rx" dataKey2="net_tx" data={metrics} color={COLORS.net_rx} color2={COLORS.net_tx} icon={<Activity size={14} />} current={latest.net_rx} current2={latest.net_tx} unit=" KB/s" />
+          <ChartCard title={t('agent.traffic')} dataKey="net_rx" label={t('clientResource.download')} dataKey2="net_tx" label2={t('clientResource.upload')} data={metrics} color={COLORS.net_rx} color2={COLORS.net_tx} icon={<Activity size={14} />} current={latest.net_rx} current2={latest.net_tx} unit=" KB/s" />
           <ChartCard title={t('agent.processes')} dataKey="process_count" data={metrics} color="#f97316" icon={<Cpu size={14} />} current={latest.process_count} unit="" />
-          <ChartCard title="TCP / UDP" dataKey="tcp_count" dataKey2="udp_count" data={metrics} color="#3b82f6" color2="#8b5cf6" icon={<Activity size={14} />} current={latest.tcp_count} current2={latest.udp_count} unit="" />
+          <ChartCard title="TCP / UDP" dataKey="tcp_count" label="TCP" dataKey2="udp_count" label2="UDP" data={metrics} color="#3b82f6" color2="#8b5cf6" icon={<Activity size={14} />} current={latest.tcp_count} current2={latest.udp_count} unit="" />
         </div>
       )}
     </div>
