@@ -329,6 +329,14 @@ const StatusPageConfig = () => {
                           ['{method}', '请求方法 (仅API监控)'],
                           ['{response_time}', '响应时间ms (仅API监控)'],
                           ['{expected_status}', '期望状态码 (仅API监控)'],
+                          ['{monitor_id}', '监控ID (仅API监控)'],
+                          ['{interval}', '检测间隔秒 (仅API监控)'],
+                          ['{timeout}', '超时秒 (仅API监控)'],
+                          ['{tags}', '标签 (仅API监控)'],
+                          ['{last_checked}', '上次检测时间 (仅API监控)'],
+                          ['{active}', '是否启用 (仅API监控)'],
+                          ['{headers}', '请求头 (仅API监控)'],
+                          ['{body}', '请求体 (仅API监控)'],
                         ].map(([v, d]) => (
                           <div key={v} className="flex items-baseline gap-1.5">
                             <code className="text-blue-600 dark:text-blue-400 font-mono whitespace-nowrap">{v}</code>
