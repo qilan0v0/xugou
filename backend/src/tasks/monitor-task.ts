@@ -10,21 +10,23 @@ async function sendNotification(env: any, monitor: Monitor, event: 'down' | 'up'
     console.log(`[Webhook] 查找用户 ${monitor.created_by} 的通知配置...`);
     const cfg = await env.DB.prepare('SELECT * FROM webhook_config WHERE user_id = ?').bind(monitor.created_by).first() as any;
     if (!cfg) {
-      console.log(`[Webhook] 用户 ${monitor.created_by} 无通知配置，跳过`);
+      console.log(`[Webhook] 用户 ${monitor.created_by} 无通知配置，跳过 (event=${event})`);
       return;
     }
     if (!cfg.webhook_url) {
-      console.log(`[Webhook] webhook_url 为空，跳过`);
+      console.log(`[Webhook] webhook_url 为空，跳过 (event=${event})`);
       return;
     }
     if (event === 'down' && !cfg.notify_down) {
-      console.log(`[Webhook] notify_down 关闭，跳过`);
+      console.log(`[Webhook] notify_down=0 关闭，跳过 (monitor=${monitor.name})`);
       return;
     }
     if (event === 'up' && !cfg.notify_up) {
-      console.log(`[Webhook] notify_up 关闭，跳过`);
+      console.log(`[Webhook] notify_up=0 关闭，跳过 (monitor=${monitor.name})`);
       return;
     }
+
+    console.log(`[Webhook] 准备发送 ${event} 通知: ${monitor.name} → ${cfg.webhook_url} (notify_down=${cfg.notify_down}, notify_up=${cfg.notify_up})`);
 
     const now = new Date().toISOString();
     const prevStatus = monitor.status || 'pending';
