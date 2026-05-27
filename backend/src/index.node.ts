@@ -165,7 +165,7 @@ app.post('/api/agents/status', async (c) => {
     const currentStatus = prev?.status;
     // Detect reconnect: gap 2min~10min = real reconnection; >10min = likely backend restart, skip notification
     const gapMs = prev?.updated_at ? Date.now() - new Date(prev.updated_at).getTime() : 0;
-    const wasDisconnected = gapMs > 120000 && gapMs < 600000;
+    const wasDisconnected = gapMs > 120000 && gapMs < 240000;
     const wasInactive = isNewAgent || (currentStatus === 'inactive') || (wasDisconnected && (!currentStatus || currentStatus !== 'active')) || (!currentStatus && !prev?.connected_at);
     if (wasInactive) {
       env.DB.prepare('UPDATE agents SET connected_at = ? WHERE id = ?').bind(now, agent.id).run();
