@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendNotification = sendNotification;
 const hono_1 = require("hono");
+const notify_1 = require("../utils/notify");
 const monitorTask = new hono_1.Hono();
 async function sendNotification(env, monitor, event) {
     try {
@@ -48,10 +49,7 @@ async function sendNotification(env, monitor, event) {
             network_rx_total: '', network_tx_total: '', traffic_total: '',
         };
         const template = event === 'down' ? (cfg.api_webhook_body_down || cfg.webhook_body_down || '') : (cfg.api_webhook_body_up || cfg.webhook_body_up || '');
-        let body = template;
-        for (const [k, v] of Object.entries(vars)) {
-            body = body.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
-        }
+        const body = (0, notify_1.applyTemplate)(template, vars, { json: cfg.webhook_content_type === 'json' });
         const reqHeaders = {};
         if (cfg.webhook_headers) {
             cfg.webhook_headers.split('\n').forEach((line) => {

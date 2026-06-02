@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.checkAgentsStatus = void 0;
 exports.sendAgentNotification = sendAgentNotification;
+const notify_1 = require("../utils/notify");
 // 定期检查客户端状态的任务
 const checkAgentsStatus = async (env) => {
     try {
@@ -50,10 +51,13 @@ async function sendAgentNotification(env, agent, event) {
         const upDays = upMs ? Math.floor(upMs / 86400000) : 0;
         const upHours = upMs ? Math.floor((upMs % 86400000) / 3600000) : 0;
         const memTotalGB = agent.memory_total ? (agent.memory_total / 1073741824).toFixed(1) : '';
+        const memUsedGB = agent.memory_used ? (agent.memory_used / 1073741824).toFixed(2) : '';
         const diskTotalGB = agent.disk_total ? (agent.disk_total / 1073741824).toFixed(1) : '';
+        const diskUsedGB = agent.disk_used ? (agent.disk_used / 1073741824).toFixed(1) : '';
         const netRxTotal = agent.network_rx_total ? (agent.network_rx_total / 1073741824).toFixed(2) : '';
         const netTxTotal = agent.network_tx_total ? (agent.network_tx_total / 1073741824).toFixed(2) : '';
         const totalTraffic = ((agent.network_rx_total || 0) + (agent.network_tx_total || 0)) / 1073741824;
+        const fmtRate = (kb) => kb >= 1024 ? `${(kb / 1024).toFixed(2)} MB/s` : `${kb.toFixed(1)} KB/s`;
         const fmtDateTime = (s) => { try {
             return new Date(s).toLocaleString('zh-CN');
         }
@@ -74,25 +78,32 @@ async function sendAgentNotification(env, agent, event) {
             cpu_arch: agent.cpu_arch || '',
             memory: memPct ? `${memPct}%` : '',
             memory_total: memTotalGB ? `${memTotalGB} GiB` : '',
+            memory_used: memUsedGB ? `${memUsedGB} GiB` : '',
             disk: diskPct ? `${diskPct}%` : '',
             disk_total: diskTotalGB ? `${diskTotalGB} GiB` : '',
+            disk_used: diskUsedGB ? `${diskUsedGB} GiB` : '',
             uptime: upMs ? `${upDays}d ${upHours}h` : '',
             load: agent.load1 != null ? `${agent.load1.toFixed(2)} / ${(agent.load5 || 0).toFixed(2)} / ${(agent.load15 || 0).toFixed(2)}` : '',
+            load1: agent.load1 != null ? agent.load1.toFixed(2) : '',
+            load5: agent.load5 != null ? agent.load5.toFixed(2) : '',
+            load15: agent.load15 != null ? agent.load15.toFixed(2) : '',
             country: agent.country || '',
             agent_version: agent.agent_version || '',
             boot_time: agent.boot_time ? fmtDateTime(agent.boot_time) : '',
             connected_at: agent.connected_at ? fmtDateTime(agent.connected_at) : '',
+            network_rx: agent.network_rx != null ? fmtRate(agent.network_rx) : '',
+            network_tx: agent.network_tx != null ? fmtRate(agent.network_tx) : '',
             network_rx_total: netRxTotal ? `${netRxTotal} GiB` : '',
             network_tx_total: netTxTotal ? `${netTxTotal} GiB` : '',
             traffic_total: totalTraffic ? `${totalTraffic.toFixed(2)} GiB` : '',
+            process_count: agent.process_count != null ? String(agent.process_count) : '',
+            tcp_count: agent.tcp_count != null ? String(agent.tcp_count) : '',
+            udp_count: agent.udp_count != null ? String(agent.udp_count) : '',
             message: event === 'down' ? `${agent.name} 已离线` : `${agent.name} 已上线`,
             url: '', response_time: '',
         };
         const template = event === 'down' ? (cfg.agent_webhook_body_down || cfg.webhook_body_down || '') : (cfg.agent_webhook_body_up || cfg.webhook_body_up || '');
-        let body = template;
-        for (const [k, v] of Object.entries(vars)) {
-            body = body.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
-        }
+        const body = (0, notify_1.applyTemplate)(template, vars, { json: cfg.webhook_content_type === 'json' });
         const reqHeaders = {};
         if (cfg.webhook_headers) {
             cfg.webhook_headers.split('\n').forEach((line) => {

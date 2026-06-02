@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { Bindings } from '../models/db';
 import { Monitor } from '../models/monitor';
+import { applyTemplate } from '../utils/notify';
 
 const monitorTask = new Hono<{ Bindings: Bindings }>();
 
@@ -55,10 +56,7 @@ export async function sendNotification(env: any, monitor: Monitor, event: 'down'
     };
 
     const template = event === 'down' ? (cfg.api_webhook_body_down || cfg.webhook_body_down || '') : (cfg.api_webhook_body_up || cfg.webhook_body_up || '');
-    let body = template;
-    for (const [k, v] of Object.entries(vars)) {
-      body = body.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
-    }
+    const body = applyTemplate(template, vars, { json: cfg.webhook_content_type === 'json' });
 
     const reqHeaders: Record<string,string> = {};
     if (cfg.webhook_headers) {
