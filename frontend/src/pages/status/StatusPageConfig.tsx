@@ -3,7 +3,6 @@ import { CheckIcon } from '@radix-ui/react-icons';
 import { getAllMonitors, Monitor } from '../../api/monitors';
 import ToastNotify from '../../components/ToastNotify';
 import { getAllAgents, Agent } from '../../api/agents';
-import { ENV_API_BASE_URL } from '../../config';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import api from '../../api/index';
 import { getStatusPageConfig, saveStatusPageConfig, StatusPageConfig as StatusConfig, StatusPageConfigResponse } from '../../api/status';
@@ -403,69 +402,30 @@ const StatusPageConfig = () => {
                       setWebhookTesting(true);
                       setWebhookTestResult('');
                       try {
-                        const headers: Record<string,string> = {};
-                        webhookHeaders.split('\n').forEach(line => {
-                          const idx = line.indexOf(':');
-                          if (idx > 0) headers[line.slice(0,idx).trim()] = line.slice(idx+1).trim();
+                        // 先保存当前通知配置，确保真实测试使用屏幕上的开关/URL/模板
+                        await api.post('/api/status/webhook', {
+                          webhookUrl, webhookMethod, webhookContentType,
+                          webhookBodyDown, webhookBodyUp, webhookHeaders,
+                          webhookTlsVerify: webhookTls, notifyDown, notifyUp,
+                          agentNotifyDown, agentNotifyUp,
+                          agentWebhookBodyDown: agentBodyDown, agentWebhookBodyUp: agentBodyUp,
+                          apiWebhookBodyDown: apiBodyDown, apiWebhookBodyUp: apiBodyUp,
                         });
-                        const now = new Date().toISOString();
-                        // Pick template based on type + event
-                        let body = '';
-                        if (testType === 'agent') {
-                          body = testEvent === 'down' ? agentBodyDown : agentBodyUp;
-                        } else {
-                          body = testEvent === 'down' ? apiBodyDown : apiBodyUp;
-                        }
-                        // Build vars from selected subject
-                        const agent = testType === 'agent' && testSubjectId ? agentsBrief.find(a => a.id === testSubjectId) : null;
-                        const monitor = testType === 'api' && testSubjectId ? monitorsBrief.find(m => m.id === testSubjectId) : null;
-                        const upMs = agent?.boot_time ? Math.max(0, Date.now() - new Date(agent.boot_time).getTime()) : 0;
-                        const vars: Record<string,string> = {
-                          name: (testType === 'agent' ? agent?.name : monitor?.name) || (testType === 'agent' ? 'Test-Agent' : 'Test-Monitor'),
-                          status: testEvent === 'down' ? '故障' : '已恢复',
-                          previous_status: testEvent === 'down' ? 'up' : 'down', time: now,
-                          hostname: agent?.hostname || 'test.example.com',
-                          ip: agent?.ip_address || '127.0.0.1',
-                          os: agent?.os || 'Linux', version: agent?.version || '22.04',
-                          cpu: agent ? `${Math.round(agent.cpu_usage || 0)}%` : '25%',
-                          cpu_cores: '4', cpu_model: 'Intel Test', cpu_arch: 'x86_64',
-                          memory: agent?.memory_total ? `${Math.round(((agent.memory_used||0)/(agent.memory_total||1))*100)}%` : '50%',
-                          memory_total: agent?.memory_total ? `${(agent.memory_total/1073741824).toFixed(1)} GiB` : '8.0 GiB',
-                          disk: agent?.disk_total ? `${Math.round(((agent.disk_used||0)/(agent.disk_total||1))*100)}%` : '30%',
-                          disk_total: agent?.disk_total ? `${(agent.disk_total/1073741824).toFixed(1)} GiB` : '256.0 GiB',
-                          uptime: upMs ? `${Math.floor(upMs/86400000)}d ${Math.floor((upMs%86400000)/3600000)}h` : '1d 2h',
-                          load: '0.50 / 0.30 / 0.20',
-                          country: agent?.country || 'CN',
-                          agent_version: '1.0.0',
-                          boot_time: agent?.boot_time || now,
-                          connected_at: now,
-                          network_rx_total: '1.23 GiB', network_tx_total: '0.56 GiB',
-                          traffic_total: '1.79 GiB',
-                          message: testEvent === 'down' ? '这是一条故障测试消息' : '这是一条恢复测试消息',
-                          url: monitor?.url || 'https://example.com',
-                          method: monitor?.method || 'GET',
-                          response_time: String(monitor?.response_time || 120),
-                          expected_status: String(monitor?.expected_status || 200),
-                        };
-                        for (const [k, v] of Object.entries(vars)) {
-                          body = body.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
-                        }
-                        const res = await fetch(`${ENV_API_BASE_URL}/api/status/webhook-test`, {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` },
-                          body: JSON.stringify({ url: webhookUrl, method: webhookMethod, headers, body, content_type: webhookContentType, tls_verify: webhookTls }),
+                        // 走与定时任务完全相同的真实发送路径
+                        const res = await api.post('/api/status/notify-test', {
+                          type: testType, event: testEvent, subjectId: testSubjectId,
                         });
-                        const json = await res.json();
-                        setWebhookTestResult(json.success ? `${json.status} ${json.statusText}` : `错误: ${json.message}`);
+                        const json = res.data || {};
+                        setWebhookTestResult(json.success ? `✓ ${json.reason}${json.status ? ` (HTTP ${json.status})` : ''}` : `✗ ${json.reason}`);
                       } catch (e: any) {
-                        setWebhookTestResult(`错误: ${e.message}`);
+                        setWebhookTestResult(`✗ ${e?.response?.data?.reason || e.message}`);
                       } finally { setWebhookTesting(false); }
                     }}
                     className="px-4 py-2 rounded-lg text-sm font-medium border border-blue-500/30 text-blue-500 hover:bg-blue-500/10 transition-colors disabled:opacity-40">
-                    {webhookTesting ? '发送中...' : '模拟测试'}
+                    {webhookTesting ? '发送中...' : '真实测试'}
                   </button>
                   {webhookTestResult && (
-                    <span className={`text-xs ${webhookTestResult.startsWith('2') ? 'text-emerald-500' : 'text-red-500'}`}>
+                    <span className={`text-xs ${webhookTestResult.startsWith('✓') ? 'text-emerald-500' : 'text-red-500'}`}>
                       {webhookTestResult}
                     </span>
                   )}

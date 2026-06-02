@@ -5,25 +5,27 @@ import { Monitor } from '../models/monitor';
 const monitorTask = new Hono<{ Bindings: Bindings }>();
 
 // ── Webhook 通知 ──────────────────────────────────────────
-async function sendNotification(env: any, monitor: Monitor, event: 'down' | 'up') {
+export interface NotifyResult { ok: boolean; reason: string; status?: number; }
+
+export async function sendNotification(env: any, monitor: Monitor, event: 'down' | 'up'): Promise<NotifyResult> {
   try {
     console.log(`[Webhook] 查找用户 ${monitor.created_by} 的通知配置...`);
     const cfg = await env.DB.prepare('SELECT * FROM webhook_config WHERE user_id = ?').bind(monitor.created_by).first() as any;
     if (!cfg) {
       console.log(`[Webhook] 用户 ${monitor.created_by} 无通知配置，跳过 (event=${event})`);
-      return;
+      return { ok: false, reason: `用户 ${monitor.created_by} 未配置通知` };
     }
     if (!cfg.webhook_url) {
       console.log(`[Webhook] webhook_url 为空，跳过 (event=${event})`);
-      return;
+      return { ok: false, reason: '未配置 Webhook URL' };
     }
     if (event === 'down' && !cfg.notify_down) {
       console.log(`[Webhook] notify_down=0 关闭，跳过 (monitor=${monitor.name})`);
-      return;
+      return { ok: false, reason: 'API监控「故障时通知」已关闭（请勾选后保存）' };
     }
     if (event === 'up' && !cfg.notify_up) {
       console.log(`[Webhook] notify_up=0 关闭，跳过 (monitor=${monitor.name})`);
-      return;
+      return { ok: false, reason: 'API监控「恢复时通知」已关闭（请勾选后保存）' };
     }
 
     console.log(`[Webhook] 准备发送 ${event} 通知: ${monitor.name} → ${cfg.webhook_url} (notify_down=${cfg.notify_down}, notify_up=${cfg.notify_up})`);
@@ -80,8 +82,10 @@ async function sendNotification(env: any, monitor: Monitor, event: 'down' | 'up'
     });
     clearTimeout(timeout);
     console.log(`[Webhook] 结果: ${monitor.name} ${event} → ${res.status}`);
+    return { ok: res.ok, reason: res.ok ? '已发送' : `Webhook 返回 HTTP ${res.status}`, status: res.status };
   } catch (e: any) {
     console.error(`[Webhook] 失败 (${monitor.name} ${event}):`, e.message);
+    return { ok: false, reason: `发送失败: ${e.message}` };
   }
 }
 

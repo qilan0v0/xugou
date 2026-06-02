@@ -6,6 +6,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getJwtSecret = void 0;
 exports.toD1Primitive = toD1Primitive;
 exports.generateToken = generateToken;
+exports.addDuration = addDuration;
+exports.generateAgentName = generateAgentName;
 /**
  * 获取JWT密钥
  * 优先从环境变量中获取JWT_SECRET，如果不存在则使用默认值
@@ -41,8 +43,35 @@ function toD1Primitive(v) {
     return v;
 }
 async function generateToken() {
-    const array = new Uint8Array(32);
+    // Generate a random UUID (version 4)
+    const array = new Uint8Array(16);
     crypto.getRandomValues(array);
-    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+    // Set UUID v4 markers: version 4 (bits 48-51) and variant (bits 64-65)
+    array[6] = (array[6] & 0x0f) | 0x40;
+    array[8] = (array[8] & 0x3f) | 0x80;
+    const hex = Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
-//# sourceMappingURL=jwt.js.map
+function addDuration(date, value, unit) {
+    const d = new Date(date);
+    switch (unit) {
+        case 'day': return new Date(d.getTime() + value * 86400000);
+        case 'month':
+            d.setMonth(d.getMonth() + value);
+            return d;
+        case 'year':
+            d.setFullYear(d.getFullYear() + value);
+            return d;
+        default: return d;
+    }
+}
+function generateAgentName(country) {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let rand = '';
+    const array = new Uint8Array(6);
+    crypto.getRandomValues(array);
+    for (let i = 0; i < 6; i++) {
+        rand += chars[array[i] % chars.length];
+    }
+    return country ? `${country}-${rand}` : rand;
+}

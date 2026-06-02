@@ -37,17 +37,19 @@ export const checkAgentsStatus = async (env: any) => {
 };
 
 // ── Agent Webhook 通知 ────────────────────────────────────
-export async function sendAgentNotification(env: any, agent: any, event: 'down' | 'up') {
+export interface NotifyResult { ok: boolean; reason: string; status?: number; }
+
+export async function sendAgentNotification(env: any, agent: any, event: 'down' | 'up'): Promise<NotifyResult> {
   try {
     const cfg = await env.DB.prepare('SELECT * FROM webhook_config WHERE user_id = ?').bind(agent.created_by).first() as any;
     if (!cfg || !cfg.webhook_url) {
       if (event === 'up') console.log(`[通知] ${agent.name} 上线但未配置 webhook URL，跳过通知`);
-      return;
+      return { ok: false, reason: '未配置 Webhook URL' };
     }
-    if (event === 'down' && !cfg.agent_notify_down) return;
+    if (event === 'down' && !cfg.agent_notify_down) return { ok: false, reason: '客户端「离线时通知」已关闭（请勾选后保存）' };
     if (event === 'up' && !cfg.agent_notify_up) {
       console.log(`[通知] ${agent.name} 上线但 agent_notify_up 已关闭，跳过通知`);
-      return;
+      return { ok: false, reason: '客户端「上线时通知」已关闭（请勾选后保存）' };
     }
 
     const now = new Date().toISOString();
@@ -123,7 +125,9 @@ export async function sendAgentNotification(env: any, agent: any, event: 'down' 
     clearTimeout(timeout);
     const rBody = await res.text().catch(() => '');
     console.log(`[通知] 结果: ${agent.name} → HTTP ${res.status} ${res.statusText} | ${rBody.slice(0, 200)}`);
+    return { ok: res.ok, reason: res.ok ? '已发送' : `Webhook 返回 HTTP ${res.status}`, status: res.status };
   } catch (e: any) {
     console.error(`[通知] ${event === 'up' ? '上线' : '离线'}通知失败: ${agent.name} | ${e.message}`);
+    return { ok: false, reason: `发送失败: ${e.message}` };
   }
 } 

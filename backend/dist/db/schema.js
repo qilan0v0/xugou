@@ -39,4 +39,3 @@ CREATE TABLE IF NOT EXISTS agents (
   network_tx INTEGER
 )
 `;
-//# sourceMappingURL=schema.js.map

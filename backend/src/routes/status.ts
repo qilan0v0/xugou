@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { jwt, verify } from 'hono/jwt';
 import { Bindings } from '../models/db';
 import { getJwtSecret } from '../utils/jwt';
+import { sendNotification, sendAgentNotification } from '../tasks';
 
 // 状态页配置接口定义
 interface StatusPageConfig {
@@ -319,6 +320,53 @@ adminRoutes.post('/webhook', requireAuth, async (c) => {
     return c.json({ success: true, message: '通知配置已保存' });
   } catch (e: any) {
     return c.json({ success: false, message: '保存通知配置失败' }, 500);
+  }
+});
+
+// 真实通知测试 — 走与定时任务完全相同的发送路径（使用已保存的配置 + 真实开关/模板）
+// 用它可定位「为什么不通知」：会返回精确原因（开关关闭 / 未配置 URL / Webhook 返回码 等）
+adminRoutes.post('/notify-test', requireAuth, async (c) => {
+  const payload = c.get('jwtPayload');
+  const userId = payload.id;
+  try {
+    const { type, event, subjectId } = await c.req.json() as {
+      type: 'api' | 'agent';
+      event: 'down' | 'up';
+      subjectId?: number;
+    };
+    const ev: 'down' | 'up' = event === 'up' ? 'up' : 'down';
+
+    if (type === 'agent') {
+      let agent: any = null;
+      if (subjectId) {
+        agent = await c.env.DB.prepare('SELECT * FROM agents WHERE id = ?').bind(subjectId).first<any>();
+      }
+      if (!agent) {
+        // 合成对象 — created_by 必须为当前用户，否则查不到通知配置
+        agent = { id: 0, name: '测试客户端', hostname: 'test.example.com', ip_address: '127.0.0.1', os: 'Linux' };
+      }
+      agent.created_by = userId;
+      const r = await sendAgentNotification(c.env, agent, ev);
+      return c.json({ success: r.ok, reason: r.reason, status: r.status });
+    }
+
+    // API 监控
+    let monitor: any = null;
+    if (subjectId) {
+      monitor = await c.env.DB.prepare('SELECT * FROM monitors WHERE id = ?').bind(subjectId).first<any>();
+    }
+    if (!monitor) {
+      monitor = {
+        id: 0, name: '测试监控', url: 'https://example.com', method: 'GET',
+        expected_status: 200, response_time: 120, uptime: 100, status: ev === 'down' ? 'up' : 'down',
+        interval: 60, timeout: 30, tags: '', headers: '', body: '', active: 1,
+      };
+    }
+    monitor.created_by = userId;
+    const r = await sendNotification(c.env, monitor, ev);
+    return c.json({ success: r.ok, reason: r.reason, status: r.status });
+  } catch (e: any) {
+    return c.json({ success: false, reason: e.message || '测试失败' }, 500);
   }
 });
 

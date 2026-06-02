@@ -18,10 +18,10 @@ monitors.get('/', async (c) => {
         // 根据用户角色过滤监控
         let result;
         if (payload.role === 'admin') {
-            result = await c.env.DB.prepare('SELECT * FROM monitors ORDER BY created_at DESC').all();
+            result = await c.env.DB.prepare('SELECT * FROM monitors ORDER BY sort_order ASC, created_at DESC').all();
         }
         else {
-            result = await c.env.DB.prepare('SELECT * FROM monitors WHERE created_by = ? ORDER BY created_at DESC').bind(payload.id).all();
+            result = await c.env.DB.prepare('SELECT * FROM monitors WHERE created_by = ? ORDER BY sort_order ASC, created_at DESC').bind(payload.id).all();
         }
         // 获取所有监控的历史状态数据
         if (result.results && result.results.length > 0) {
@@ -41,6 +41,52 @@ monitors.get('/', async (c) => {
     catch (error) {
         console.error('获取监控列表错误:', error);
         return c.json({ success: false, message: '获取监控列表失败' }, 500);
+    }
+});
+// 获取所有标签（标签池）
+monitors.get('/tags/pool', async (c) => {
+    try {
+        const payload = c.get('jwtPayload');
+        let result;
+        if (payload.role === 'admin') {
+            result = await c.env.DB.prepare("SELECT tags FROM monitors WHERE tags IS NOT NULL AND tags != ''").all();
+        }
+        else {
+            result = await c.env.DB.prepare("SELECT tags FROM monitors WHERE created_by = ? AND tags IS NOT NULL AND tags != ''").bind(payload.id).all();
+        }
+        const tagSet = new Set();
+        for (const row of result.results || []) {
+            row.tags.split(',').map(t => t.trim()).filter(Boolean).forEach(t => tagSet.add(t));
+        }
+        return c.json({ success: true, tags: Array.from(tagSet).sort() });
+    }
+    catch (error) {
+        console.error('获取监控标签池错误:', error);
+        return c.json({ success: false, message: '获取监控标签池失败' }, 500);
+    }
+});
+// 排序：拖拽到目标位置 (toIndex: 0-based)
+monitors.post('/reorder', async (c) => {
+    try {
+        const { id, toIndex } = await c.req.json();
+        if (id == null || toIndex == null)
+            return c.json({ success: false, message: '缺少参数' }, 400);
+        const all = await c.env.DB.prepare('SELECT id, sort_order FROM monitors ORDER BY sort_order ASC, created_at DESC').all();
+        const items = all.results || [];
+        const idx = items.findIndex(m => m.id === id);
+        if (idx < 0)
+            return c.json({ success: false, message: '监控不存在' }, 404);
+        if (idx === toIndex)
+            return c.json({ success: true, message: '位置未变' });
+        const [moved] = items.splice(idx, 1);
+        items.splice(toIndex, 0, moved);
+        for (let i = 0; i < items.length; i++) {
+            await c.env.DB.prepare('UPDATE monitors SET sort_order = ? WHERE id = ?').bind(i, items[i].id).run();
+        }
+        return c.json({ success: true, message: '排序已更新' });
+    }
+    catch (e) {
+        return c.json({ success: false, message: '排序失败' }, 500);
     }
 });
 // 获取单个监控
@@ -92,11 +138,11 @@ monitors.post('/', async (c) => {
         // 将 headers 对象转换为 JSON 字符串
         const headers = data.headers ? JSON.stringify(data.headers) : '{}';
         // 插入新监控
-        const result = await c.env.DB.prepare(`INSERT INTO monitors 
-       (name, url, method, interval, timeout, expected_status, headers, body, created_by, active, status, uptime, response_time, last_checked, created_at, updated_at) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).bind(data.name, data.url, data.method, data.interval || 60, data.timeout || 30, data.expectedStatus || 200, headers, data.body || '', payload.id, true, 'pending', 100.0, 0, null, now, now).run();
+        const result = await c.env.DB.prepare(`INSERT INTO monitors
+       (name, url, method, interval, timeout, expected_status, headers, body, created_by, active, status, tags, uptime, response_time, last_checked, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).bind(data.name, data.url, data.method, data.interval || 60, data.timeout || 30, data.expectedStatus || 200, headers, data.body || '', payload.id, true, 'pending', data.tags || null, 100.0, 0, null, now, now).run();
         if (!result.success) {
-            throw new Error('创建监控失败');
+            throw new Error('创建监控失败: ' + (result.error || 'unknown'));
         }
         // 获取新创建的监控
         const newMonitor = await c.env.DB.prepare('SELECT * FROM monitors WHERE rowid = last_insert_rowid()').first();
@@ -177,6 +223,14 @@ monitors.put('/:id', async (c) => {
             updates.push('last_checked = ?');
             values.push(data.lastChecked);
         }
+        if (data.tags !== undefined) {
+            updates.push('tags = ?');
+            values.push(data.tags);
+        }
+        if (data.public !== undefined) {
+            updates.push('public = ?');
+            values.push(data.public ? 1 : 0);
+        }
         updates.push('updated_at = ?');
         values.push(new Date().toISOString());
         // 添加 ID 作为 WHERE 条件
@@ -184,7 +238,7 @@ monitors.put('/:id', async (c) => {
         // 执行更新
         const result = await c.env.DB.prepare(`UPDATE monitors SET ${updates.join(', ')} WHERE id = ?`).bind(...values).run();
         if (!result.success) {
-            throw new Error('更新监控失败');
+            throw new Error('更新监控失败: ' + (result.error || 'unknown'));
         }
         // 获取更新后的监控
         const updatedMonitor = await c.env.DB.prepare('SELECT * FROM monitors WHERE id = ?').bind(id).first();
@@ -215,7 +269,7 @@ monitors.delete('/:id', async (c) => {
         // 执行删除
         const result = await c.env.DB.prepare('DELETE FROM monitors WHERE id = ?').bind(id).run();
         if (!result.success) {
-            throw new Error('删除监控失败');
+            throw new Error('删除监控失败: ' + (result.error || 'unknown'));
         }
         return c.json({ success: true, message: '监控已删除' });
     }
@@ -394,4 +448,3 @@ monitors.post('/:id/check', async (c) => {
     }
 });
 exports.default = monitors;
-//# sourceMappingURL=monitors.js.map

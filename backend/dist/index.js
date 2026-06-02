@@ -9,6 +9,7 @@ const cors_1 = require("hono/cors");
 const pretty_json_1 = require("hono/pretty-json");
 const initCheck_1 = require("./setup/initCheck");
 const jwt_1 = require("./utils/jwt");
+const agent_task_1 = require("./tasks/agent-task");
 // 导入路由
 const ratelimit_1 = require("./utils/ratelimit");
 const auth_1 = __importDefault(require("./routes/auth"));
@@ -24,10 +25,10 @@ const app = new hono_1.Hono();
 app.use('*', (0, logger_1.logger)());
 app.use('*', (0, cors_1.cors)({
     origin: (origin) => {
-        const allowed = ['xugou-frontend.pages.dev', 'xugou.mdzz.uk', 'localhost', '127.0.0.1'];
+        const allowed = ['qltz-frontend.pages.dev', 'qltz.mdzz.uk', 'localhost', '127.0.0.1'];
         if (!origin || allowed.some(d => origin.includes(d)))
             return origin;
-        return 'https://xugou-frontend.pages.dev';
+        return 'https://qltz-frontend.pages.dev';
     },
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowHeaders: ['Content-Type', 'Authorization'],
@@ -41,7 +42,7 @@ app.use('*', async (c, next) => {
     c.header('Access-Control-Allow-Credentials', 'true');
 });
 // 公共路由
-app.get('/', (c) => c.json({ message: 'XUGOU API 服务正在运行' }));
+app.get('/', (c) => c.json({ message: 'QLTZ API 服务正在运行' }));
 // 获取 JWT 密钥
 const getJwtSecret = (c) => {
     // 在 Cloudflare Workers 环境中，使用 env 变量
@@ -89,15 +90,30 @@ app.post('/api/agents/status', async (c) => {
         }
         if (!token)
             return c.json({ success: false, message: 'no token' }, 400);
-        const agent = await c.env.DB.prepare('SELECT id FROM agents WHERE token = ?').bind(token).first();
-        if (!agent)
-            return c.json({ success: false, message: 'agent not found' }, 404);
-        // 从 Cloudflare 请求元数据提取国家代码
+        // 从 Cloudflare 请求元数据提取国家代码 (before auto-create)
         const country = c.req.raw?.cf?.country ?? null;
+        let isNewAgent = false;
+        let agent = await c.env.DB.prepare('SELECT id FROM agents WHERE token = ?').bind(token).first();
+        if (!agent) {
+            const adminUser = await c.env.DB.prepare('SELECT id FROM users WHERE role = ?').bind('admin').first();
+            if (!adminUser)
+                return c.json({ success: false, message: 'no admin user' }, 500);
+            const autoName = (0, jwt_1.generateAgentName)(country);
+            const now = new Date().toISOString();
+            await c.env.DB.prepare(`INSERT INTO agents (name, token, created_by, status, created_at, updated_at, connected_at)
+         VALUES (?, ?, ?, 'active', ?, ?, ?)`).bind(autoName, token, adminUser.id, now, now, now).run();
+            agent = await c.env.DB.prepare('SELECT id FROM agents WHERE token = ?').bind(token).first();
+            if (!agent)
+                return c.json({ success: false, message: 'auto-create failed' }, 500);
+            isNewAgent = true;
+        }
         // 首次连接/重连时刷新 connected_at
         const now = new Date().toISOString();
-        const currentStatus = await c.env.DB.prepare('SELECT status FROM agents WHERE id = ?').bind(agent.id).first();
-        const wasInactive = !currentStatus || currentStatus.status === 'inactive';
+        const prev = await c.env.DB.prepare('SELECT status, updated_at, connected_at FROM agents WHERE id = ?').bind(agent.id).first();
+        const currentStatus = prev?.status;
+        const gapMs = prev?.updated_at ? Date.now() - new Date(prev.updated_at).getTime() : 0;
+        const wasDisconnected = gapMs > 120000;
+        const wasInactive = isNewAgent || !currentStatus || currentStatus === 'inactive' || wasDisconnected || !prev?.connected_at;
         if (wasInactive) {
             await c.env.DB.prepare('UPDATE agents SET connected_at = ? WHERE id = ?').bind(now, agent.id).run();
         }
@@ -105,6 +121,22 @@ app.post('/api/agents/status', async (c) => {
         if (!result.success) {
             console.error('DIRECT_STATUS update failed:', result.error);
             return c.json({ success: false, message: 'update failed: ' + (result.error || 'unknown') }, 500);
+        }
+        // 首次上线通知
+        if (wasInactive) {
+            const fullAgent = await c.env.DB.prepare('SELECT * FROM agents WHERE id = ?').bind(agent.id).first();
+            if (fullAgent) {
+                console.log(`[上线] ${fullAgent.hostname || fullAgent.name || agent.id} 已上线`);
+                (0, agent_task_1.sendAgentNotification)(c.env, fullAgent, 'up').catch(e => console.error('[通知] 上线通知失败:', e.message));
+            }
+        }
+        // 自动续期
+        const agentForRenew = await c.env.DB.prepare('SELECT expiry_time, duration_value, duration_unit FROM agents WHERE id = ?').bind(agent.id).first();
+        if (agentForRenew?.expiry_time && agentForRenew?.duration_value && agentForRenew?.duration_unit) {
+            if (new Date() > new Date(agentForRenew.expiry_time)) {
+                const newExpiry = (0, jwt_1.addDuration)(new Date(), agentForRenew.duration_value, agentForRenew.duration_unit);
+                await c.env.DB.prepare('UPDATE agents SET start_time = ?, expiry_time = ? WHERE id = ?').bind(new Date().toISOString(), newExpiry.toISOString(), agent.id).run();
+            }
         }
         return c.json({ success: true, message: 'ok' });
     }
@@ -186,4 +218,3 @@ exports.default = {
         }
     }
 };
-//# sourceMappingURL=index.js.map

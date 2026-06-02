@@ -122,4 +122,3 @@ auth.get('/me', async (c) => {
     }
 });
 exports.default = auth;
-//# sourceMappingURL=auth.js.map

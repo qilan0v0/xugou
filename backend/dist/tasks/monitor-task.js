@@ -1,7 +1,86 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.sendNotification = sendNotification;
 const hono_1 = require("hono");
 const monitorTask = new hono_1.Hono();
+async function sendNotification(env, monitor, event) {
+    try {
+        console.log(`[Webhook] 查找用户 ${monitor.created_by} 的通知配置...`);
+        const cfg = await env.DB.prepare('SELECT * FROM webhook_config WHERE user_id = ?').bind(monitor.created_by).first();
+        if (!cfg) {
+            console.log(`[Webhook] 用户 ${monitor.created_by} 无通知配置，跳过 (event=${event})`);
+            return { ok: false, reason: `用户 ${monitor.created_by} 未配置通知` };
+        }
+        if (!cfg.webhook_url) {
+            console.log(`[Webhook] webhook_url 为空，跳过 (event=${event})`);
+            return { ok: false, reason: '未配置 Webhook URL' };
+        }
+        if (event === 'down' && !cfg.notify_down) {
+            console.log(`[Webhook] notify_down=0 关闭，跳过 (monitor=${monitor.name})`);
+            return { ok: false, reason: 'API监控「故障时通知」已关闭（请勾选后保存）' };
+        }
+        if (event === 'up' && !cfg.notify_up) {
+            console.log(`[Webhook] notify_up=0 关闭，跳过 (monitor=${monitor.name})`);
+            return { ok: false, reason: 'API监控「恢复时通知」已关闭（请勾选后保存）' };
+        }
+        console.log(`[Webhook] 准备发送 ${event} 通知: ${monitor.name} → ${cfg.webhook_url} (notify_down=${cfg.notify_down}, notify_up=${cfg.notify_up})`);
+        const now = new Date().toISOString();
+        const prevStatus = monitor.status || 'pending';
+        const vars = {
+            name: monitor.name, status: event === 'down' ? '故障' : '已恢复', time: now,
+            previous_status: prevStatus, url: monitor.url,
+            method: monitor.method, expected_status: String(monitor.expected_status || 200),
+            response_time: String(monitor.response_time || 0),
+            uptime: monitor.uptime ? `${monitor.uptime.toFixed(1)}%` : '',
+            message: event === 'down' ? `${monitor.name} 出现故障` : `${monitor.name} 已恢复正常`,
+            monitor_id: String(monitor.id),
+            interval: String(monitor.interval),
+            timeout: String(monitor.timeout),
+            tags: monitor.tags || '',
+            last_checked: monitor.last_checked || '',
+            created_at: monitor.created_at || '',
+            active: monitor.active ? '是' : '否',
+            headers: monitor.headers || '',
+            body: monitor.body || '',
+            hostname: '', ip: '', os: '', cpu: '', memory: '', disk: '', country: '',
+            version: '', cpu_cores: '', cpu_model: '', cpu_arch: '', memory_total: '', disk_total: '',
+            load: '', agent_version: '', boot_time: '', connected_at: '',
+            network_rx_total: '', network_tx_total: '', traffic_total: '',
+        };
+        const template = event === 'down' ? (cfg.api_webhook_body_down || cfg.webhook_body_down || '') : (cfg.api_webhook_body_up || cfg.webhook_body_up || '');
+        let body = template;
+        for (const [k, v] of Object.entries(vars)) {
+            body = body.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
+        }
+        const reqHeaders = {};
+        if (cfg.webhook_headers) {
+            cfg.webhook_headers.split('\n').forEach((line) => {
+                const idx = line.indexOf(':');
+                if (idx > 0)
+                    reqHeaders[line.slice(0, idx).trim()] = line.slice(idx + 1).trim();
+            });
+        }
+        if (cfg.webhook_method === 'POST') {
+            reqHeaders['Content-Type'] = cfg.webhook_content_type === 'json' ? 'application/json' : 'text/plain';
+        }
+        console.log(`[Webhook] 发送 ${event} 通知 → ${cfg.webhook_url}`);
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000);
+        const res = await fetch(cfg.webhook_url, {
+            method: cfg.webhook_method || 'POST',
+            headers: reqHeaders,
+            body: cfg.webhook_method !== 'GET' ? body : undefined,
+            signal: controller.signal,
+        });
+        clearTimeout(timeout);
+        console.log(`[Webhook] 结果: ${monitor.name} ${event} → ${res.status}`);
+        return { ok: res.ok, reason: res.ok ? '已发送' : `Webhook 返回 HTTP ${res.status}`, status: res.status };
+    }
+    catch (e) {
+        console.error(`[Webhook] 失败 (${monitor.name} ${event}):`, e.message);
+        return { ok: false, reason: `发送失败: ${e.message}` };
+    }
+}
 // 清理30天以前的历史记录
 async function cleanupOldRecords(c) {
     try {
@@ -71,7 +150,7 @@ async function checkSingleMonitor(c, monitor) {
         const response = await fetch(monitor.url, {
             method: monitor.method,
             headers: {
-                'User-Agent': 'Xugou-Monitor/1.0',
+                'User-Agent': 'Qltz-Monitor/1.0',
                 ...(monitor.headers ? JSON.parse(monitor.headers) : {})
             },
             body: monitor.body || undefined
@@ -106,6 +185,12 @@ async function checkSingleMonitor(c, monitor) {
             isUp = response.status === monitor.expected_status;
         }
         const status = isUp ? 'up' : 'down';
+        const prevStatus = monitor.status;
+        // 状态变化时发送通知 (up↔down 或 pending→up/down)
+        if (prevStatus !== status) {
+            console.log(`[Webhook] 状态变化: ${monitor.name} ${prevStatus} → ${status}`);
+            sendNotification(c.env, monitor, status === 'down' ? 'down' : 'up');
+        }
         // 记录状态历史
         await c.env.DB.prepare(`INSERT INTO monitor_status_history (monitor_id, status, timestamp) 
        VALUES (?, ?, datetime('now'))`).bind(monitor.id, status).run();
@@ -134,6 +219,11 @@ async function checkSingleMonitor(c, monitor) {
     }
     catch (error) {
         console.error(`检查监控项失败: ${monitor.name}`, error);
+        // 仅当之前是正常状态时才发故障通知
+        if (monitor.status === 'up' || monitor.status === 'pending') {
+            console.log(`[Webhook] 检查异常: ${monitor.name} ${monitor.status} → down`);
+            sendNotification(c.env, monitor, 'down');
+        }
         // 记录错误状态
         await c.env.DB.prepare(`INSERT INTO monitor_status_history (monitor_id, status, timestamp) 
        VALUES (?, ?, datetime('now'))`).bind(monitor.id, 'down').run();
@@ -173,4 +263,3 @@ exports.default = {
     },
     fetch: monitorTask.fetch
 };
-//# sourceMappingURL=monitor-task.js.map

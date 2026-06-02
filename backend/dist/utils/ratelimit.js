@@ -34,4 +34,3 @@ try {
         interval.unref();
 }
 catch (e) { /* CF Workers: no setInterval in global scope, lazy cleanup is fine */ }
-//# sourceMappingURL=ratelimit.js.map

@@ -29,19 +29,23 @@ async function createTables(env) {
     console.log('创建用户表...');
     await env.DB.exec("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL UNIQUE, password TEXT NOT NULL, email TEXT, role TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)");
     console.log('创建监控表...');
-    await env.DB.exec("CREATE TABLE IF NOT EXISTS monitors (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, url TEXT NOT NULL, method TEXT NOT NULL, interval INTEGER NOT NULL, timeout INTEGER NOT NULL, expected_status INTEGER NOT NULL, headers TEXT NOT NULL, body TEXT, created_by INTEGER NOT NULL, active BOOLEAN NOT NULL, status TEXT DEFAULT 'pending', public INTEGER DEFAULT 1, uptime REAL DEFAULT 100.0, response_time INTEGER DEFAULT 0, last_checked TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, FOREIGN KEY (created_by) REFERENCES users(id))");
+    await env.DB.exec("CREATE TABLE IF NOT EXISTS monitors (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, url TEXT NOT NULL, method TEXT NOT NULL, interval INTEGER NOT NULL, timeout INTEGER NOT NULL, expected_status INTEGER NOT NULL, headers TEXT NOT NULL, body TEXT, created_by INTEGER NOT NULL, active BOOLEAN NOT NULL, status TEXT DEFAULT 'pending', public INTEGER DEFAULT 1, tags TEXT, uptime REAL DEFAULT 100.0, response_time INTEGER DEFAULT 0, last_checked TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, FOREIGN KEY (created_by) REFERENCES users(id))");
     console.log('创建监控历史记录表...');
     await env.DB.exec("CREATE TABLE IF NOT EXISTS monitor_checks (id INTEGER PRIMARY KEY AUTOINCREMENT, monitor_id INTEGER NOT NULL, status TEXT NOT NULL, response_time INTEGER, status_code INTEGER, error TEXT, checked_at TEXT DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (monitor_id) REFERENCES monitors(id))");
     console.log('创建监控状态历史表...');
     await env.DB.exec("CREATE TABLE IF NOT EXISTS monitor_status_history (id INTEGER PRIMARY KEY AUTOINCREMENT, monitor_id INTEGER NOT NULL, status TEXT NOT NULL, timestamp TEXT DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (monitor_id) REFERENCES monitors(id))");
     console.log('创建客户端表...');
-    await env.DB.exec("CREATE TABLE IF NOT EXISTS agents (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, token TEXT NOT NULL UNIQUE, created_by INTEGER NOT NULL, status TEXT DEFAULT 'inactive', created_at TEXT NOT NULL, updated_at TEXT NOT NULL, hostname TEXT, ip_address TEXT, os TEXT, version TEXT, cpu_usage REAL, memory_total INTEGER, memory_used INTEGER, disk_total INTEGER, disk_used INTEGER, network_rx INTEGER, network_tx INTEGER, cpu_arch TEXT, cpu_model_name TEXT, cpu_cores INTEGER, load1 REAL, load5 REAL, load15 REAL, boot_time TEXT, network_rx_total INTEGER, network_tx_total INTEGER, agent_version TEXT, country TEXT, connected_at TEXT, last_payload TEXT, traffic_limit INTEGER, expiry_time TEXT, category TEXT, tags TEXT, public INTEGER DEFAULT 1, FOREIGN KEY (created_by) REFERENCES users(id))");
+    await env.DB.exec("CREATE TABLE IF NOT EXISTS agents (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, token TEXT NOT NULL UNIQUE, created_by INTEGER NOT NULL, status TEXT DEFAULT 'inactive', created_at TEXT NOT NULL, updated_at TEXT NOT NULL, hostname TEXT, ip_address TEXT, os TEXT, version TEXT, cpu_usage REAL, memory_total INTEGER, memory_used INTEGER, disk_total INTEGER, disk_used INTEGER, network_rx INTEGER, network_tx INTEGER, cpu_arch TEXT, cpu_model_name TEXT, cpu_cores INTEGER, load1 REAL, load5 REAL, load15 REAL, boot_time TEXT, network_rx_total INTEGER, network_tx_total INTEGER, agent_version TEXT, country TEXT, connected_at TEXT, last_payload TEXT, traffic_limit INTEGER, expiry_time TEXT, start_time TEXT, duration_value INTEGER, duration_unit TEXT, category TEXT, tags TEXT, public INTEGER DEFAULT 1, FOREIGN KEY (created_by) REFERENCES users(id))");
     console.log('创建状态页配置表...');
     await env.DB.exec("CREATE TABLE IF NOT EXISTS status_page_config (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, title TEXT NOT NULL DEFAULT '系统状态', description TEXT DEFAULT '系统当前运行状态', logo_url TEXT DEFAULT '', custom_css TEXT DEFAULT '', created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (user_id) REFERENCES users(id))");
     console.log('创建状态页监控项关联表...');
     await env.DB.exec("CREATE TABLE IF NOT EXISTS status_page_monitors (config_id INTEGER NOT NULL, monitor_id INTEGER NOT NULL, PRIMARY KEY (config_id, monitor_id), FOREIGN KEY (config_id) REFERENCES status_page_config(id) ON DELETE CASCADE, FOREIGN KEY (monitor_id) REFERENCES monitors(id) ON DELETE CASCADE)");
     console.log('创建状态页客户端关联表...');
     await env.DB.exec("CREATE TABLE IF NOT EXISTS status_page_agents (config_id INTEGER NOT NULL, agent_id INTEGER NOT NULL, PRIMARY KEY (config_id, agent_id), FOREIGN KEY (config_id) REFERENCES status_page_config(id) ON DELETE CASCADE, FOREIGN KEY (agent_id) REFERENCES agents(id) ON DELETE CASCADE)");
+    console.log('创建分组表...');
+    await env.DB.exec("CREATE TABLE IF NOT EXISTS agent_groups (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE, created_at TEXT NOT NULL)");
+    console.log('创建通知配置表...');
+    await env.DB.exec("CREATE TABLE IF NOT EXISTS webhook_config (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL UNIQUE, webhook_url TEXT DEFAULT '', webhook_method TEXT DEFAULT 'POST', webhook_content_type TEXT DEFAULT 'json', webhook_body_down TEXT DEFAULT '{\"name\":\"{name}\",\"status\":\"故障\"}', webhook_body_up TEXT DEFAULT '{\"name\":\"{name}\",\"status\":\"已恢复\"}', webhook_headers TEXT DEFAULT '', webhook_tls_verify INTEGER DEFAULT 1, notify_down INTEGER DEFAULT 1, notify_up INTEGER DEFAULT 1, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, FOREIGN KEY (user_id) REFERENCES users(id))");
 }
 // 创建管理员用户
 async function createAdminUser(env) {
@@ -233,4 +237,3 @@ initDb.get('/init-db', async (c) => {
     }
 });
 exports.default = initDb;
-//# sourceMappingURL=database.js.map

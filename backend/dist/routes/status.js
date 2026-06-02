@@ -3,29 +3,27 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const hono_1 = require("hono");
 const jwt_1 = require("hono/jwt");
 const jwt_2 = require("../utils/jwt");
+const tasks_1 = require("../tasks");
 // 创建 Hono 路由
 const app = new hono_1.Hono();
-// 保护管理员路由
-const adminRoutes = new hono_1.Hono()
-    .use('*', async (c, next) => {
+// JWT auth middleware (applied per-route, not globally)
+const requireAuth = async (c, next) => {
     try {
-        const jwtMiddleware = (0, jwt_1.jwt)({ alg: "HS256",
-            secret: (0, jwt_2.getJwtSecret)(c)
-        });
+        const jwtMiddleware = (0, jwt_1.jwt)({ alg: "HS256", secret: (0, jwt_2.getJwtSecret)(c) });
         await jwtMiddleware(c, next);
         const payload = c.get('jwtPayload');
         if (!payload || !payload.id) {
             return c.json({ error: '未授权' }, 401);
         }
-        // 这里不再调用next()，防止重复调用
     }
     catch (error) {
-        console.error('JWT认证错误:', error);
         return c.json({ error: '认证失败' }, 401);
     }
-});
+};
+// Admin routes (each protected by requireAuth)
+const adminRoutes = new hono_1.Hono();
 // 获取状态页配置
-adminRoutes.get('/config', async (c) => {
+adminRoutes.get('/config', requireAuth, async (c) => {
     const payload = c.get('jwtPayload');
     const userId = payload.id;
     try {
@@ -70,7 +68,7 @@ adminRoutes.get('/config', async (c) => {
     }
 });
 // 保存状态页配置
-adminRoutes.post('/config', async (c) => {
+adminRoutes.post('/config', requireAuth, async (c) => {
     const payload = c.get('jwtPayload');
     const userId = payload.id;
     const data = await c.req.json();
@@ -145,31 +143,295 @@ adminRoutes.post('/config', async (c) => {
         return c.json({ error: '保存状态页配置失败' }, 500);
     }
 });
-// 公共路由 - 获取公开状态页数据
+// 获取 webhook 通知配置
+adminRoutes.get('/webhook', requireAuth, async (c) => {
+    const payload = c.get('jwtPayload');
+    try {
+        let cfg = await c.env.DB.prepare('SELECT * FROM webhook_config WHERE user_id = ?').bind(payload.id).first();
+        if (!cfg) {
+            const now = new Date().toISOString();
+            await c.env.DB.prepare(`INSERT INTO webhook_config (user_id, created_at, updated_at) VALUES (?, ?, ?)`).bind(payload.id, now, now).run();
+            cfg = await c.env.DB.prepare('SELECT * FROM webhook_config WHERE user_id = ?').bind(payload.id).first();
+        }
+        return c.json({ success: true, config: cfg });
+    }
+    catch (e) {
+        return c.json({ success: false, message: '获取通知配置失败' }, 500);
+    }
+});
+// 保存 webhook 通知配置
+adminRoutes.post('/webhook', requireAuth, async (c) => {
+    const payload = c.get('jwtPayload');
+    try {
+        const data = await c.req.json();
+        const now = new Date().toISOString();
+        const existing = await c.env.DB.prepare('SELECT id FROM webhook_config WHERE user_id = ?').bind(payload.id).first();
+        if (existing) {
+            await c.env.DB.prepare(`UPDATE webhook_config SET webhook_url=?, webhook_method=?, webhook_content_type=?, webhook_body_down=?, webhook_body_up=?, webhook_headers=?, webhook_tls_verify=?, notify_down=?, notify_up=?, agent_notify_down=?, agent_notify_up=?, agent_webhook_body_down=?, agent_webhook_body_up=?, api_webhook_body_down=?, api_webhook_body_up=?, updated_at=? WHERE user_id=?`)
+                .bind(data.webhookUrl || '', data.webhookMethod || 'POST', data.webhookContentType || 'json', data.webhookBodyDown || '', data.webhookBodyUp || '', data.webhookHeaders || '', data.webhookTlsVerify ? 1 : 0, data.notifyDown ? 1 : 0, data.notifyUp ? 1 : 0, data.agentNotifyDown ? 1 : 0, data.agentNotifyUp ? 1 : 0, data.agentWebhookBodyDown || '', data.agentWebhookBodyUp || '', data.apiWebhookBodyDown || '', data.apiWebhookBodyUp || '', now, payload.id).run();
+        }
+        else {
+            await c.env.DB.prepare(`INSERT INTO webhook_config (user_id, webhook_url, webhook_method, webhook_content_type, webhook_body_down, webhook_body_up, webhook_headers, webhook_tls_verify, notify_down, notify_up, agent_notify_down, agent_notify_up, agent_webhook_body_down, agent_webhook_body_up, api_webhook_body_down, api_webhook_body_up, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
+                .bind(payload.id, data.webhookUrl || '', data.webhookMethod || 'POST', data.webhookContentType || 'json', data.webhookBodyDown || '', data.webhookBodyUp || '', data.webhookHeaders || '', data.webhookTlsVerify ? 1 : 0, data.notifyDown ? 1 : 0, data.notifyUp ? 1 : 0, data.agentNotifyDown ? 1 : 0, data.agentNotifyUp ? 1 : 0, data.agentWebhookBodyDown || '', data.agentWebhookBodyUp || '', data.apiWebhookBodyDown || '', data.apiWebhookBodyUp || '', now, now).run();
+        }
+        return c.json({ success: true, message: '通知配置已保存' });
+    }
+    catch (e) {
+        return c.json({ success: false, message: '保存通知配置失败' }, 500);
+    }
+});
+// 真实通知测试 — 走与定时任务完全相同的发送路径（使用已保存的配置 + 真实开关/模板）
+// 用它可定位「为什么不通知」：会返回精确原因（开关关闭 / 未配置 URL / Webhook 返回码 等）
+adminRoutes.post('/notify-test', requireAuth, async (c) => {
+    const payload = c.get('jwtPayload');
+    const userId = payload.id;
+    try {
+        const { type, event, subjectId } = await c.req.json();
+        const ev = event === 'up' ? 'up' : 'down';
+        if (type === 'agent') {
+            let agent = null;
+            if (subjectId) {
+                agent = await c.env.DB.prepare('SELECT * FROM agents WHERE id = ?').bind(subjectId).first();
+            }
+            if (!agent) {
+                // 合成对象 — created_by 必须为当前用户，否则查不到通知配置
+                agent = { id: 0, name: '测试客户端', hostname: 'test.example.com', ip_address: '127.0.0.1', os: 'Linux' };
+            }
+            agent.created_by = userId;
+            const r = await (0, tasks_1.sendAgentNotification)(c.env, agent, ev);
+            return c.json({ success: r.ok, reason: r.reason, status: r.status });
+        }
+        // API 监控
+        let monitor = null;
+        if (subjectId) {
+            monitor = await c.env.DB.prepare('SELECT * FROM monitors WHERE id = ?').bind(subjectId).first();
+        }
+        if (!monitor) {
+            monitor = {
+                id: 0, name: '测试监控', url: 'https://example.com', method: 'GET',
+                expected_status: 200, response_time: 120, uptime: 100, status: ev === 'down' ? 'up' : 'down',
+                interval: 60, timeout: 30, tags: '', headers: '', body: '', active: 1,
+            };
+        }
+        monitor.created_by = userId;
+        const r = await (0, tasks_1.sendNotification)(c.env, monitor, ev);
+        return c.json({ success: r.ok, reason: r.reason, status: r.status });
+    }
+    catch (e) {
+        return c.json({ success: false, reason: e.message || '测试失败' }, 500);
+    }
+});
+// 公共路由 - 获取单个监控的检查记录（可选认证）
+app.get('/monitor/:id/checks', async (c) => {
+    try {
+        const monitorId = parseInt(c.req.param('id'));
+        const limit = Math.min(parseInt(c.req.query('limit') || '10') || 10, 50);
+        let isAuthenticated = false;
+        const authHeader = c.req.header('Authorization');
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            try {
+                const token = authHeader.slice(7);
+                const secret = (0, jwt_2.getJwtSecret)(c);
+                await (0, jwt_1.verify)(token, secret);
+                isAuthenticated = true;
+            }
+            catch { /* ignore */ }
+        }
+        // Verify monitor exists and is accessible
+        const monitor = await c.env.DB.prepare('SELECT id, public FROM monitors WHERE id = ?').bind(monitorId).first();
+        if (!monitor)
+            return c.json({ success: false, message: '监控不存在' }, 404);
+        if (!isAuthenticated && !monitor.public)
+            return c.json({ success: false, message: '无权访问' }, 403);
+        const checks = await c.env.DB.prepare(`SELECT status, response_time, status_code, checked_at
+       FROM monitor_checks WHERE monitor_id = ?
+       ORDER BY checked_at DESC LIMIT ?`).bind(monitorId, limit).all();
+        return c.json({ success: true, checks: (checks.results || []).reverse() });
+    }
+    catch (error) {
+        console.error('获取监控检查记录失败:', error);
+        return c.json({ success: false, message: '获取检查记录失败' }, 500);
+    }
+});
+// ── Webhook 发送函数 ──────────────────────────────────────
+async function sendWebhookNotification(env, userId, event, vars) {
+    try {
+        const cfg = await env.DB.prepare('SELECT * FROM webhook_config WHERE user_id = ?').bind(userId).first();
+        if (!cfg || !cfg.webhook_url)
+            return;
+        if (event === 'down' && !cfg.notify_down)
+            return;
+        if (event === 'up' && !cfg.notify_up)
+            return;
+        const template = event === 'down' ? (cfg.webhook_body_down || '') : (cfg.webhook_body_up || '');
+        let body = template;
+        for (const [k, v] of Object.entries(vars)) {
+            body = body.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
+        }
+        const reqHeaders = {};
+        if (cfg.webhook_headers) {
+            cfg.webhook_headers.split('\n').forEach((line) => {
+                const idx = line.indexOf(':');
+                if (idx > 0)
+                    reqHeaders[line.slice(0, idx).trim()] = line.slice(idx + 1).trim();
+            });
+        }
+        if (cfg.webhook_method === 'POST') {
+            reqHeaders['Content-Type'] = cfg.webhook_content_type === 'json' ? 'application/json' : 'text/plain';
+        }
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000);
+        const res = await fetch(cfg.webhook_url, {
+            method: cfg.webhook_method || 'POST',
+            headers: reqHeaders,
+            body: cfg.webhook_method !== 'GET' ? body : undefined,
+            signal: controller.signal,
+        });
+        clearTimeout(timeout);
+        console.log(`Webhook sent: ${event} → ${cfg.webhook_url} → ${res.status}`);
+    }
+    catch (e) {
+        console.error(`Webhook failed (${event}):`, e.message);
+    }
+}
+// Webhook 测试代理（绕过浏览器 CORS）
+app.post('/webhook-test', async (c) => {
+    try {
+        const { url, method, headers, body, content_type, tls_verify } = await c.req.json();
+        if (!url)
+            return c.json({ success: false, message: '缺少 URL' }, 400);
+        const fetchHeaders = { ...headers };
+        if (method === 'POST' && body) {
+            fetchHeaders['Content-Type'] = content_type === 'json' ? 'application/json' : 'text/plain';
+        }
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000);
+        const res = await fetch(url, {
+            method: method || 'POST',
+            headers: fetchHeaders,
+            body: method !== 'GET' ? body : undefined,
+            signal: controller.signal,
+        });
+        clearTimeout(timeout);
+        const resBody = await res.text().catch(() => '');
+        return c.json({
+            success: true,
+            status: res.status,
+            statusText: res.statusText,
+            body: resBody.slice(0, 500),
+        });
+    }
+    catch (e) {
+        return c.json({ success: false, message: e.message || '请求失败' });
+    }
+});
+// 健康检查
+app.get('/health', async (c) => {
+    try {
+        const u = await c.env.DB.prepare('SELECT COUNT(*) as count FROM users').first();
+        const m = await c.env.DB.prepare('SELECT COUNT(*) as count FROM monitors').first();
+        const a = await c.env.DB.prepare('SELECT COUNT(*) as count FROM agents').first();
+        return c.json({ status: 'ok', users: u?.count || 0, monitors: m?.count || 0, agents: a?.count || 0 });
+    }
+    catch (e) {
+        return c.json({ status: 'error', message: e.message }, 500);
+    }
+});
+// 公共路由 - 获取状态页数据（登录用户看全部，游客只看公开）
 app.get('/data', async (c) => {
     try {
-        // Get all public agents and monitors directly
-        const monitors = await c.env.DB.prepare("SELECT * FROM monitors WHERE active = 1 AND public = 1 ORDER BY created_at DESC").all();
-        const agents = await c.env.DB.prepare("SELECT * FROM agents WHERE public = 1 ORDER BY created_at DESC").all();
-        // Enrich agents with computed fields
+        // Check if user is authenticated via JWT
+        let isAuthenticated = false;
+        const authHeader = c.req.header('Authorization');
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            try {
+                const token = authHeader.slice(7);
+                const secret = (0, jwt_2.getJwtSecret)(c);
+                await (0, jwt_1.verify)(token, secret);
+                isAuthenticated = true;
+            }
+            catch { /* ignore invalid tokens */ }
+        }
+        const monitorQuery = isAuthenticated
+            ? "SELECT * FROM monitors WHERE active = 1 ORDER BY sort_order ASC, created_at DESC"
+            : "SELECT * FROM monitors WHERE active = 1 AND public = 1 ORDER BY sort_order ASC, created_at DESC";
+        const agentQuery = isAuthenticated
+            ? "SELECT * FROM agents ORDER BY sort_order ASC, created_at DESC"
+            : "SELECT * FROM agents WHERE public = 1 ORDER BY sort_order ASC, created_at DESC";
+        const monitors = await c.env.DB.prepare(monitorQuery).all();
+        const agents = await c.env.DB.prepare(agentQuery).all();
+        // Batch load all monitor status history in one query
+        const monitorList = (monitors.results || []);
+        const historyMap = new Map();
+        if (monitorList.length > 0) {
+            try {
+                const ids = monitorList.map((m) => m.id);
+                // Query 24*N rows at once — SQLite has no IN limit at this scale
+                const placeholders = ids.map(() => '?').join(',');
+                const allHistory = await c.env.DB.prepare(`SELECT monitor_id, status, timestamp FROM monitor_status_history
+           WHERE monitor_id IN (${placeholders})
+           ORDER BY monitor_id, timestamp DESC`).bind(...ids).all();
+                for (const row of (allHistory.results || [])) {
+                    if (!historyMap.has(row.monitor_id))
+                        historyMap.set(row.monitor_id, []);
+                    const arr = historyMap.get(row.monitor_id);
+                    if (arr.length < 24)
+                        arr.push(row);
+                }
+            }
+            catch { /* fallback: empty history */ }
+        }
+        const enrichedMonitors = monitorList.map((monitor) => {
+            const { url, ...rest } = monitor;
+            const hist = historyMap.get(monitor.id) || [];
+            return { ...rest, history: hist.reverse() };
+        });
+        // Slim agent fields — only return what the frontend actually renders
+        const agentFields = ['id', 'name', 'status', 'created_at', 'updated_at',
+            'cpu_usage', 'memory_total', 'memory_used', 'disk_total', 'disk_used',
+            'network_rx', 'network_tx', 'network_rx_total', 'network_tx_total',
+            'hostname', 'os', 'version', 'cpu_arch', 'cpu_model_name',
+            'cpu_cores', 'load1', 'load5', 'load15', 'boot_time', 'agent_version',
+            'country', 'connected_at', 'traffic_limit', 'expiry_time', 'start_time',
+            'duration_value', 'duration_unit', 'category', 'tags', 'public',
+            'process_count', 'tcp_count', 'udp_count'];
         const enrichedAgents = (agents.results || []).map((agent) => {
-            const memoryPercent = agent.memory_total && agent.memory_used
-                ? (agent.memory_used / agent.memory_total) * 100 : null;
-            const diskPercent = agent.disk_total && agent.disk_used
-                ? (agent.disk_used / agent.disk_total) * 100 : null;
+            const picked = {};
+            for (const k of agentFields)
+                picked[k] = agent[k];
+            const memoryPercent = picked.memory_total && picked.memory_used
+                ? (picked.memory_used / picked.memory_total) * 100 : null;
+            const diskPercent = picked.disk_total && picked.disk_used
+                ? (picked.disk_used / picked.disk_total) * 100 : null;
             return {
-                ...agent,
-                cpu: agent.cpu_usage || 0,
+                ...picked,
+                cpu: picked.cpu_usage || 0,
                 memory: memoryPercent || 0,
                 disk: diskPercent || 0,
             };
         });
+        // Read saved status page config (use first available)
+        let pageConfig = { title: '系统状态', description: '实时监控系统运行状态', logoUrl: '', customCss: '' };
+        try {
+            const config = await c.env.DB.prepare('SELECT * FROM status_page_config LIMIT 1').first();
+            if (config) {
+                pageConfig = {
+                    title: config.title || pageConfig.title,
+                    description: config.description || pageConfig.description,
+                    logoUrl: config.logo_url || '',
+                    customCss: config.custom_css || '',
+                };
+            }
+        }
+        catch { /* use defaults */ }
         return c.json({
             success: true,
             data: {
-                title: '系统状态',
-                description: '实时监控系统运行状态',
-                monitors: monitors.results || [],
+                title: pageConfig.title,
+                description: pageConfig.description,
+                logoUrl: pageConfig.logoUrl,
+                customCss: pageConfig.customCss,
+                monitors: enrichedMonitors,
                 agents: enrichedAgents,
             }
         });
@@ -181,4 +443,3 @@ app.get('/data', async (c) => {
 });
 app.route('/', adminRoutes);
 exports.default = app;
-//# sourceMappingURL=status.js.map

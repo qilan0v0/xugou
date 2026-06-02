@@ -247,4 +247,3 @@ users.post('/:id/change-password', async (c) => {
     }
 });
 exports.default = users;
-//# sourceMappingURL=users.js.map

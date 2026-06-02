@@ -1,5 +1,5 @@
 // 导出所有定时任务
-import monitorTask from './monitor-task';
+import monitorTask, { sendNotification } from './monitor-task';
 import { checkAgentsStatus, sendAgentNotification } from './agent-task';
 
 // 统一的定时任务处理函数
@@ -21,4 +21,5 @@ export {
   monitorTask,
   checkAgentsStatus,
   sendAgentNotification,
+  sendNotification,
 }; 
