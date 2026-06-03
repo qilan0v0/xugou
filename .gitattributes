@@ -1,0 +1,5 @@
+# 保证容器内执行的脚本始终为 LF 行尾（CRLF 会破坏 shebang 与 socat 执行）
+*.sh            text eol=lf
+entrypoint.sh   text eol=lf
+agent/web/serve.sh text eol=lf
+Dockerfile      text eol=lf
