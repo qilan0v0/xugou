@@ -52,6 +52,8 @@ type StatusPayload struct {
 	DiskUsed     uint64                `json:"disk_used"`
 	NetworkRX    uint64                `json:"network_rx"`
 	NetworkTX    uint64                `json:"network_tx"`
+	NetworkRXTotal uint64              `json:"network_rx_total"`
+	NetworkTXTotal uint64              `json:"network_tx_total"`
 	Hostname     string                `json:"hostname"`
 	IPAddresses  []string              `json:"ip_addresses"`
 	IPAddress    string                `json:"ip_address"`
@@ -198,6 +200,8 @@ func (r *HTTPReporter) Report(ctx context.Context, info *collector.SystemInfo) e
 		DiskUsed:     diskUsed,
 		NetworkRX:    uint64(networkRXRate),
 		NetworkTX:    uint64(networkTXRate),
+		NetworkRXTotal: currentNetworkRX,
+		NetworkTXTotal: currentNetworkTX,
 		Hostname:     info.Hostname,
 		IPAddresses:  []string{localIP},
 		IPAddress:    localIP,
