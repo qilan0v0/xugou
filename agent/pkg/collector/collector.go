@@ -156,36 +156,65 @@ func (c *DefaultCollector) Collect(ctx context.Context) (*SystemInfo, error) {
 	}
 
 	// 获取磁盘信息
-	partitions, err := disk.Partitions(false)
-	if err != nil {
-		return nil, fmt.Errorf("获取磁盘分区信息失败: %w", err)
+	// 用 all=true 枚举，跳过伪/虚拟文件系统并按设备去重。
+	// 容器（overlay 根、设备名非 /dev/*）用 all=false 会被过滤掉导致 0/0，
+	// 因此最后兜底直接测量根目录 "/"。
+	seenDisk := make(map[string]bool)
+	rootCovered := false
+	if partitions, err := disk.Partitions(true); err == nil {
+		for _, partition := range partitions {
+			if isVirtualFS(partition.Fstype) {
+				continue
+			}
+			if partition.Device != "" && seenDisk[partition.Device] {
+				continue
+			}
+			usage, err := disk.Usage(partition.Mountpoint)
+			if err != nil || usage.Total == 0 {
+				continue
+			}
+			if partition.Device != "" {
+				seenDisk[partition.Device] = true
+			}
+			if partition.Mountpoint == "/" {
+				rootCovered = true
+			}
+			info.DiskInfo = append(info.DiskInfo, DiskInfo{
+				Device:     partition.Device,
+				MountPoint: partition.Mountpoint,
+				Total:      usage.Total,
+				Used:       usage.Used,
+				Free:       usage.Free,
+				UsageRate:  usage.UsedPercent,
+				FSType:     partition.Fstype,
+			})
+		}
+	}
+	// 兜底：若没有分区覆盖到根目录（典型：容器 overlay 根被跳过），直接测量 "/"
+	if !rootCovered {
+		if usage, err := disk.Usage("/"); err == nil && usage.Total > 0 {
+			info.DiskInfo = append(info.DiskInfo, DiskInfo{
+				Device:     "overlay",
+				MountPoint: "/",
+				Total:      usage.Total,
+				Used:       usage.Used,
+				Free:       usage.Free,
+				UsageRate:  usage.UsedPercent,
+				FSType:     usage.Fstype,
+			})
+		}
 	}
 
-	for _, partition := range partitions {
-		usage, err := disk.Usage(partition.Mountpoint)
-		if err != nil {
-			continue
-		}
-
-		diskInfo := DiskInfo{
-			Device:     partition.Device,
-			MountPoint: partition.Mountpoint,
-			Total:      usage.Total,
-			Used:       usage.Used,
-			Free:       usage.Free,
-			UsageRate:  usage.UsedPercent,
-			FSType:     partition.Fstype,
-		}
-		info.DiskInfo = append(info.DiskInfo, diskInfo)
-	}
-
-	// 获取网络信息
+	// 获取网络信息（跳过回环 lo，避免把内部流量计入总流量）
 	netIOCounters, err := net.IOCounters(true)
 	if err != nil {
 		return nil, fmt.Errorf("获取网络信息失败: %w", err)
 	}
 
 	for _, netIO := range netIOCounters {
+		if netIO.Name == "lo" {
+			continue
+		}
 		networkInfo := NetworkInfo{
 			Interface:   netIO.Name,
 			BytesSent:   netIO.BytesSent,
@@ -239,4 +268,19 @@ func (c *DefaultCollector) Collect(ctx context.Context) (*SystemInfo, error) {
 	info.AgentVersion = Version
 
 	return info, nil
+}
+
+// isVirtualFS 判断是否为伪/虚拟文件系统（不计入磁盘统计）。
+// 注意：容器根 overlay 在此被跳过，由 disk.Usage("/") 兜底测量，
+// 既能避免宿主机上重复计算 overlay 挂载，又能保证容器内能取到磁盘。
+func isVirtualFS(fstype string) bool {
+	switch fstype {
+	case "tmpfs", "devtmpfs", "devfs", "overlay", "overlayfs", "aufs",
+		"proc", "sysfs", "cgroup", "cgroup2", "pstore", "bpf", "tracefs",
+		"debugfs", "securityfs", "configfs", "fusectl", "mqueue", "hugetlbfs",
+		"ramfs", "nsfs", "autofs", "binfmt_misc", "squashfs", "fuse.lxcfs",
+		"rpc_pipefs", "selinuxfs", "efivarfs", "none", "":
+		return true
+	}
+	return false
 }
