@@ -48,9 +48,11 @@ cp serv00/public_app.js ../../app.js
 ```bash
 docker run -d -p 8080:8080 \
   -e QLTZ_SERVER=https://your-server.com \
-  -e QLTZ_TOKEN=your-token \
+  -e QLTZ_UUID=your-token \
   ghcr.io/qilan0v0/qltz-agent:latest
 ```
+
+镜像内置 web 状态页（默认 8080），多架构（amd64/arm64），构建时自动拉取最新 Release。完整环境变量与说明见 [agent/README.docker.md](./agent/README.docker.md)
 
 ### Cloudflare Workers
 

@@ -51,7 +51,7 @@ Cache-Control: no-cache
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="refresh" content="30">
-<title>Qltz Agent — Status</title>
+<title>柒蓝轻量监控 Agent — 状态</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#0d1117;color:#c9d1d9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;padding:24px;min-height:100vh}
@@ -75,47 +75,47 @@ h1{font-size:20px;font-weight:600;color:#f0f6fc;margin-bottom:8px}
 </style>
 </head>
 <body>
-<h1>🔍 Qltz Agent</h1>
-<p class="sub">System monitoring probe — <span id="time">$NOW</span> &nbsp; <a class="refresh" href="/">↻ refresh</a></p>
+<h1>🔍 柒蓝轻量监控 Agent</h1>
+<p class="sub">系统监控探针 — <span id="time">$NOW</span> &nbsp; <a class="refresh" href="/">↻ 刷新</a></p>
 
 <div class="grid">
 <div class="card">
-<h3>System</h3>
-<div class="metric"><span class="label">Hostname</span><span class="value">$HOSTNAME</span></div>
-<div class="metric"><span class="label">OS</span><span class="value">$OS_INFO</span></div>
-<div class="metric"><span class="label">Kernel</span><span class="value">$KERNEL</span></div>
-<div class="metric"><span class="label">CPU Cores</span><span class="value">$CPU_COUNT</span></div>
-<div class="metric"><span class="label">Processes</span><span class="value">$PROC_COUNT</span></div>
+<h3>系统</h3>
+<div class="metric"><span class="label">主机名</span><span class="value">$HOSTNAME</span></div>
+<div class="metric"><span class="label">操作系统</span><span class="value">$OS_INFO</span></div>
+<div class="metric"><span class="label">内核</span><span class="value">$KERNEL</span></div>
+<div class="metric"><span class="label">CPU 核心</span><span class="value">$CPU_COUNT</span></div>
+<div class="metric"><span class="label">进程数</span><span class="value">$PROC_COUNT</span></div>
 </div>
 
 <div class="card">
-<h3>CPU Load</h3>
+<h3>CPU 负载</h3>
 <div class="val">$CPU_LOAD</div>
-<div style="color:#8b949e;font-size:12px;margin-top:4px">1min / 5min / 15min</div>
+<div style="color:#8b949e;font-size:12px;margin-top:4px">1分钟 / 5分钟 / 15分钟</div>
 </div>
 
 <div class="card">
-<h3>Memory</h3>
+<h3>内存</h3>
 <div class="val">$MEM_USED<span class="unit">MB</span></div>
-<div style="color:#8b949e;font-size:12px;margin-top:4px">of $MEM_TOTAL MB — ${MEM_PCT}% used</div>
+<div style="color:#8b949e;font-size:12px;margin-top:4px">共 $MEM_TOTAL MB — 已用 ${MEM_PCT}%</div>
 </div>
 
 <div class="card">
-<h3>Disk (/)</h3>
+<h3>磁盘 (/)</h3>
 <div class="val">$DISK_INFO</div>
 </div>
 
 <div class="card">
 <h3>Agent</h3>
-<div class="metric"><span class="label">Version</span><span class="value">$AGENT_VER</span></div>
+<div class="metric"><span class="label">版本</span><span class="value">$AGENT_VER</span></div>
 <div class="metric"><span class="label">PID</span><span class="value">$AGENT_PID</span></div>
-<div class="metric"><span class="label">Status</span><span class="value"><span class="badge badge-ok">RUNNING</span></span></div>
-<div class="metric"><span class="label">Interval</span><span class="value">${QLTZ_INTERVAL:-60}s</span></div>
-<div class="metric"><span class="label">Server</span><span class="value">${QLTZ_SERVER:-console}</span></div>
+<div class="metric"><span class="label">状态</span><span class="value"><span class="badge badge-ok">运行中</span></span></div>
+<div class="metric"><span class="label">上报间隔</span><span class="value">${QLTZ_INTERVAL:-60}秒</span></div>
+<div class="metric"><span class="label">服务器</span><span class="value">${QLTZ_SERVER:-未设置}</span></div>
 </div>
 </div>
 
-<div class="footer">Qltz Agent &copy; 2025 — auto-refresh every 30s — <span id="gen">generated at $NOW</span></div>
+<div class="footer">柒蓝轻量监控 Agent &copy; 2026 — 每 30 秒自动刷新 — <span id="gen">生成于 $NOW</span></div>
 </body>
 </html>
 EOF
