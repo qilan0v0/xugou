@@ -65,16 +65,18 @@ jobs:
             AGENT_VER="${{ inputs.agent_version }}"
           else
             # 未指定：通过 GitHub API 解析最新 Release 标签
+            # 注意：本项目的 Release 多为 prerelease，/releases/latest 会忽略它们而返回 404，
+            # 因此改用 /releases 列表取第一个（按发布时间倒序，含 prerelease）。
             echo "未指定版本，正在获取最新 Release..."
             AGENT_VER="$(curl -fsSL \
               -H 'Accept: application/vnd.github+json' \
               -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
-              'https://api.github.com/repos/${{ github.repository }}/releases/latest' \
+              'https://api.github.com/repos/${{ github.repository }}/releases?per_page=1' \
               | grep -m1 '"tag_name"' | sed -E 's/.*"tag_name": *"([^"]+)".*/\1/')"
           fi
 
           if [[ -z "$AGENT_VER" ]]; then
-            echo "::error::无法确定 Agent 版本（最新 Release 获取失败）"
+            echo "::error::无法确定 Agent 版本：仓库可能还没有任何 Release，请先发布 Release 或手动填写版本标签"
             exit 1
           fi
 
