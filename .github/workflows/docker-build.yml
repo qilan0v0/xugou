@@ -11,10 +11,10 @@ on:
         type: string
         default: ''
       binary_prefix:
-        description: '二进制资产名前缀（最终下载 前缀-linux-架构）'
+        description: '二进制资产名前缀（最终下载 前缀-linux-架构，当前 Release 为 XA）'
         required: false
         type: string
-        default: 'qltz-agent'
+        default: 'XA'
       image_tag:
         description: '镜像标签（留空 = 按版本号自动生成）'
         required: false
@@ -122,7 +122,7 @@ jobs:
           push: ${{ github.event_name == 'release' || inputs.push }}
           build-args: |
             AGENT_VERSION=${{ steps.meta.outputs.agent_version }}
-            BINARY_PREFIX=${{ inputs.binary_prefix || 'qltz-agent' }}
+            BINARY_PREFIX=${{ inputs.binary_prefix || 'XA' }}
             REPO=${{ github.repository }}
           tags: |
             ${{ steps.meta.outputs.repository }}:${{ steps.meta.outputs.image_tag }}

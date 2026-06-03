@@ -135,7 +135,7 @@ docker run --rm ghcr.io/qilan0v0/qltz-agent:latest version
   - 手动触发（Actions → 「构建 Agent 探针镜像」→ Run workflow）
   - 发布新 Release 时自动触发
 - **版本选择**：手动触发时「Agent Release 版本标签」**留空即自动使用最新的 Release**；也可填写指定标签（如 `v20260519-042217`）
-- **多架构**：默认同时构建 `linux/amd64` 和 `linux/arm64`，每个架构在构建时下载与之匹配的二进制（`qltz-agent-linux-amd64` / `qltz-agent-linux-arm64`）
+- **多架构**：默认同时构建 `linux/amd64` 和 `linux/arm64`，每个架构在构建时下载与之匹配的二进制（当前 Release 资产为 `XA-linux-amd64` / `XA-linux-arm64`）
 - **镜像标签**：自动打 `:版本号` 和 `:latest` 两个标签，推送到 `ghcr.io/<owner>/qltz-agent`
 
 构建参数（`build-args`）：
@@ -143,6 +143,8 @@ docker run --rm ghcr.io/qilan0v0/qltz-agent:latest version
 | 参数 | 说明 |
 |------|------|
 | `AGENT_VERSION` | Release 标签（工作流自动解析最新或使用指定值） |
-| `BINARY_PREFIX` | 资产名前缀，默认 `qltz-agent`，下载 `前缀-linux-架构` |
-| `AGENT_BINARY` | 完整资产名（留空则按前缀+架构拼装；用于兼容旧的单一资产名如 `XA-linux-amd64`） |
+| `BINARY_PREFIX` | 资产名前缀，默认 `XA`，下载 `前缀-linux-架构` |
+| `AGENT_BINARY` | 完整资产名（留空则按前缀+架构拼装并尝试候选名） |
 | `TARGETARCH` | 由 buildx 自动注入（`amd64` / `arm64`） |
+
+> 下载时按 `XA-linux-<arch>` → `qltz-agent-linux-<arch>` 的顺序尝试候选名，第一个存在的即使用，因此 Release 二进制命名从 `XA` 改为 `qltz-agent` 后无需改动工作流。

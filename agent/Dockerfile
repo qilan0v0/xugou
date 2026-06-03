@@ -6,9 +6,9 @@ FROM alpine:3.21
 ARG TARGETARCH
 # 由工作流传入：要下载的 Release 标签（默认 latest 由工作流解析后传入具体 tag）
 ARG AGENT_VERSION
-# Release 资产名前缀，最终下载 ${BINARY_PREFIX}-linux-${TARGETARCH}
-ARG BINARY_PREFIX=qltz-agent
-# 完整二进制名（留空则按 前缀+架构 自动拼装；兼容旧的单一资产名如 XA-linux-amd64）
+# Release 资产名前缀，最终下载 ${BINARY_PREFIX}-linux-${TARGETARCH}（当前 Release 用 XA）
+ARG BINARY_PREFIX=XA
+# 完整二进制名（留空则按 前缀+架构 自动拼装；指定后只下载它）
 ARG AGENT_BINARY=""
 ARG REPO=qilan0v0/xugou
 
@@ -19,14 +19,25 @@ COPY --chown=qltz:qltz entrypoint.sh /entrypoint.sh
 COPY --chown=qltz:qltz web/ /app/web/
 RUN chmod +x /entrypoint.sh /app/web/serve.sh
 
-# 下载与目标架构匹配的二进制
-RUN set -eux; \
-    BIN="${AGENT_BINARY}"; \
-    if [ -z "$BIN" ]; then BIN="${BINARY_PREFIX}-linux-${TARGETARCH}"; fi; \
-    URL="https://github.com/${REPO}/releases/download/${AGENT_VERSION}/${BIN}"; \
-    echo "下载: $URL"; \
-    wget -O /usr/local/bin/qltz-agent "$URL"; \
-    chmod +x /usr/local/bin/qltz-agent
+# 下载与目标架构匹配的二进制。
+# 依次尝试候选名（兼容 XA / qltz-agent 两种命名），第一个成功即用。
+RUN set -eu; \
+    base="https://github.com/${REPO}/releases/download/${AGENT_VERSION}"; \
+    if [ -n "${AGENT_BINARY}" ]; then \
+        candidates="${AGENT_BINARY}"; \
+    else \
+        candidates="${BINARY_PREFIX}-linux-${TARGETARCH} XA-linux-${TARGETARCH} qltz-agent-linux-${TARGETARCH}"; \
+    fi; \
+    ok=0; \
+    for name in $candidates; do \
+        url="${base}/${name}"; \
+        echo "尝试下载: $url"; \
+        if wget -q -O /usr/local/bin/qltz-agent "$url"; then echo "成功: $name"; ok=1; break; fi; \
+        echo "未找到: $name"; \
+    done; \
+    if [ "$ok" -ne 1 ]; then echo "错误: 在 Release ${AGENT_VERSION} 中找不到 linux/${TARGETARCH} 二进制（已尝试: $candidates）"; exit 1; fi; \
+    chmod +x /usr/local/bin/qltz-agent; \
+    /usr/local/bin/qltz-agent version || true
 
 # ── 可配置环境变量（详见 agent/README.docker.md）──────────────
 # 连接
