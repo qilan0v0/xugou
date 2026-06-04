@@ -64,6 +64,12 @@ npm run build:node
 
 # 手动重启（或等 40 分钟自动重启）
 pkill -9 -f "dist/index.node" 2>/dev/null
+
+
+cd ~/domains/qilan3.serv00.net/public_nodejs/xugou
+  git fetch origin && git reset --hard origin/main
+  cd backend && npm run build:node
+  pkill -9 -f "dist/index.node"
 ```
 
 ## 架构
