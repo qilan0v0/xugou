@@ -161,14 +161,26 @@ app.post('/api/agents/status', async (c) => {
     }
 
     const now = new Date().toISOString();
-    const prev = await env.DB.prepare('SELECT status, updated_at, connected_at FROM agents WHERE id = ?').bind(agent.id).first() as {status: string; updated_at: string; connected_at: string | null} | null;
+    const prev = await env.DB.prepare('SELECT status, updated_at, connected_at, boot_time FROM agents WHERE id = ?').bind(agent.id).first() as {status: string; updated_at: string; connected_at: string | null; boot_time: string | null} | null;
     const currentStatus = prev?.status;
-    // Detect reconnect: gap 2min~10min = real reconnection; >10min = likely backend restart, skip notification
+    // Detect reconnect: gap 2min~4min = real reconnection; >4min = likely backend restart, skip notification
     const gapMs = prev?.updated_at ? Date.now() - new Date(prev.updated_at).getTime() : 0;
     const wasDisconnected = gapMs > 120000 && gapMs < 240000;
+    // wasInactive 仅用于上线通知判定（保持原行为，避免后端重启误报上线）
     const wasInactive = isNewAgent || (currentStatus === 'inactive') || (wasDisconnected && (!currentStatus || currentStatus !== 'active')) || (!currentStatus && !prev?.connected_at);
-    if (wasInactive) {
-      env.DB.prepare('UPDATE agents SET connected_at = ? WHERE id = ?').bind(now, agent.id).run();
+
+    // connected_at 表示「当前连接会话」起点，与通知判定解耦，避免「连接时长」超过开机时长。
+    const newBootMs = bt ? new Date(bt).getTime() : 0;
+    const prevBootMs = prev?.boot_time ? new Date(prev.boot_time).getTime() : 0;
+    // 重启：boot_time 明显前移
+    const rebooted = newBootMs > 0 && prevBootMs > 0 && Math.abs(newBootMs - prevBootMs) > 60000;
+    // 陈旧：已存的 connected_at 早于本次开机时间（说明中间漏检了一次重启）
+    const connStaleBeforeBoot = newBootMs > 0 && !!prev?.connected_at && new Date(prev.connected_at).getTime() < newBootMs - 60000;
+    if (wasInactive || rebooted || connStaleBeforeBoot) {
+      // 重启/陈旧 → 自开机起算（连接时长≈运行时长）；普通重连/新客户端 → 从现在起算
+      const bootOk = newBootMs > 0 && newBootMs <= Date.now();
+      const connectedAt = ((rebooted || connStaleBeforeBoot) && bootOk) ? new Date(newBootMs).toISOString() : now;
+      env.DB.prepare('UPDATE agents SET connected_at = ? WHERE id = ?').bind(connectedAt, agent.id).run();
     }
 
     const result = env.DB.prepare(
