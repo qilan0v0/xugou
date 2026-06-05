@@ -351,7 +351,7 @@ const AgentCard = React.memo(({ agent, onClick, size = 'large' }: AgentCardProps
             icon={<TimerIcon />} iconColor="bg-teal-500/10 text-teal-600"
             label={t('agent.uptime')}
             value={uptimeStr || '--'}
-            sub={connectStr ? `${t('agent.connectDuration')}: ${connectStr}` : undefined}
+            sub={connectStr || undefined}
           />
         </div>
       </div>
