@@ -217,13 +217,13 @@ const StatusPage = () => {
         </div>
 
         {/* Search bar */}
-        <div className="mb-4 relative">
-          <span className="absolute left-1.5 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-lg bg-slate-200/70 dark:bg-white/[0.08] text-slate-500">
-            <Search size={15} />
-          </span>
+        <div className="mb-4 flex items-center rounded-xl border-2 border-slate-200/60 dark:border-slate-700/60 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm transition-all focus-within:border-blue-400 dark:focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-500/10">
+          <div className="flex items-center justify-center w-10 h-full shrink-0 text-slate-400">
+            <Search size={16} />
+          </div>
           <input type="text" value={search} onChange={e => setSearch(e.target.value)}
             placeholder="搜索服务器、API服务、标签..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border-2 border-slate-200/60 dark:border-slate-700/60 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm text-sm text-slate-700 dark:text-slate-300 placeholder:text-slate-400 focus:outline-none focus:border-blue-400 dark:focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-sm" />
+            className="flex-1 min-w-0 pr-3 py-2.5 bg-transparent text-sm text-slate-700 dark:text-slate-300 placeholder:text-slate-400 focus:outline-none" />
         </div>
 
         {/* Tab switcher */}
