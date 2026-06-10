@@ -168,10 +168,12 @@ app.post('/api/agents/status', async (c) => {
         const rebooted = newBootMs > 0 && prevBootMs > 0 && Math.abs(newBootMs - prevBootMs) > 60000;
         // 陈旧：已存的 connected_at 早于本次开机时间（说明中间漏检了一次重启）
         const connStaleBeforeBoot = newBootMs > 0 && !!prev?.connected_at && new Date(prev.connected_at).getTime() < newBootMs - 60000;
-        if (wasInactive || rebooted || connStaleBeforeBoot) {
-            // 重启/陈旧 → 自开机起算（连接时长≈运行时长）；普通重连/新客户端 → 从现在起算
+        // 缺失：老客户端可能一直在线、从未写过 connected_at（导致前端无连接时长）
+        const connMissing = !isNewAgent && !prev?.connected_at;
+        if (wasInactive || rebooted || connStaleBeforeBoot || connMissing) {
+            // 重启/陈旧/缺失 → 自开机起算（连接时长≈运行时长）；普通重连/新客户端 → 从现在起算
             const bootOk = newBootMs > 0 && newBootMs <= Date.now();
-            const connectedAt = ((rebooted || connStaleBeforeBoot) && bootOk) ? new Date(newBootMs).toISOString() : now;
+            const connectedAt = ((rebooted || connStaleBeforeBoot || connMissing) && bootOk) ? new Date(newBootMs).toISOString() : now;
             env.DB.prepare('UPDATE agents SET connected_at = ? WHERE id = ?').bind(connectedAt, agent.id).run();
         }
         const result = env.DB.prepare(`UPDATE agents SET status='active', cpu_usage=?, memory_total=?, memory_used=?, disk_total=?, disk_used=?, network_rx=?, network_tx=?, hostname=?, ip_address=?, os=?, version=?, cpu_arch=?, cpu_model_name=?, cpu_cores=?, load1=?, load5=?, load15=?, boot_time=?, network_rx_total=?, network_tx_total=?, agent_version=?, country=?, updated_at=?, last_payload=?, process_count=?, tcp_count=?, udp_count=? WHERE id=?`).bind(cpu, memTotal, memUsed, diskTotal, diskUsed, netRx, netTx, (0, jwt_1.toD1Primitive)(body.hostname), (0, jwt_1.toD1Primitive)(body.ip_address ?? (Array.isArray(body.ip_addresses) ? body.ip_addresses[0] : null) ?? (Array.isArray(body.ip) ? body.ip[0] : body.ip) ?? body.IP), (0, jwt_1.toD1Primitive)(body.os), (0, jwt_1.toD1Primitive)(body.version), cpuArch, cpuModelName, cpuCores, l1, l5, l15, bt, netRxTotal, netTxTotal, av, country, now, raw.slice(0, 2000), body.process_count ?? null, body.tcp_count ?? null, body.udp_count ?? null, agent.id).run();
