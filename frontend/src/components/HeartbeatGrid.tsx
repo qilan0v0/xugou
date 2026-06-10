@@ -20,14 +20,14 @@ const HeartbeatGrid = ({ history = [] }: { history?: (MonitorStatusHistory | str
   const emptyCount = Math.max(0, 24 - displayHistory.length);
 
   return (
-    <div className="flex items-center gap-[3px]">
+    <div className="flex items-center gap-[2px] sm:gap-[3px]">
       {displayHistory.map((status, i) => (
         <div key={i}
-          className={`w-[6px] h-4 rounded-sm shrink-0 ${getColor(status)}`}
+          className={`w-[4px] sm:w-[6px] h-3 sm:h-4 rounded-sm shrink-0 ${getColor(status)}`}
         />
       ))}
       {Array.from({ length: emptyCount }).map((_, i) => (
-        <div key={`e-${i}`} className="w-[6px] h-4 rounded-sm shrink-0 bg-slate-200 dark:bg-white/[0.08]" />
+        <div key={`e-${i}`} className="w-[4px] sm:w-[6px] h-3 sm:h-4 rounded-sm shrink-0 bg-slate-200 dark:bg-white/[0.08]" />
       ))}
     </div>
   );
