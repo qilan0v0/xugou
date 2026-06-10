@@ -254,10 +254,14 @@ const StatusPage = () => {
           </div>
         </div>
 
-        {/* ── 服务器状态 tab ── */}
-        {activeTab === 'agents' && (
-          <section>
-            <div className="flex justify-end items-center mb-4">
+        {/* Tab content with slide animation */}
+        <div className="overflow-hidden">
+          <div className={`flex transition-transform duration-300 ease-in-out ${
+            activeTab === 'agents' ? 'translate-x-0' : '-translate-x-1/2'
+          }`}>
+            {/* ── 服务器状态 tab ── */}
+            <section className="w-full shrink-0 pr-2">
+              <div className="flex justify-end items-center mb-4">
               {/* Card size toggle */}
               <div className="flex items-center bg-slate-200 dark:bg-slate-700 rounded-lg p-0.5">
                 {(['small', 'medium', 'large'] as const).map((s) => {
@@ -305,11 +309,9 @@ const StatusPage = () => {
               </div>
             )}
           </section>
-        )}
 
-        {/* ── API服务状态 tab ── */}
-        {activeTab === 'monitors' && (
-          <section>
+          {/* ── API服务状态 tab ── */}
+          <section className="w-full shrink-0 pl-2">
             {monitorsLoading && !monitorsLoadedRef.current ? (
               <div className="flex justify-center py-12"><LoadingSpinner size="sm" /></div>
             ) : filteredMonitors.length === 0 ? (
@@ -322,7 +324,7 @@ const StatusPage = () => {
               </div>
             )}
           </section>
-        )}
+        </div>
       </div>
 
       {selectedAgent && (
@@ -331,6 +333,7 @@ const StatusPage = () => {
       {selectedMonitor && (
         <MonitorDetailModal monitorId={selectedMonitor.id} monitorName={selectedMonitor.name} onClose={() => setSelectedMonitor(null)} />
       )}
+    </div>
     </div>
   );
 };
