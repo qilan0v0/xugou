@@ -227,7 +227,8 @@ const StatusPage = () => {
         </div>
 
         {/* Tab switcher */}
-        <div className="flex gap-1 mb-5 bg-slate-100 dark:bg-white/[0.06] rounded-xl p-1 w-fit">
+        <div className="flex justify-center mb-5">
+          <div className="flex gap-1 bg-slate-100 dark:bg-white/[0.06] rounded-xl p-1">
           <button
             onClick={() => switchTab('agents')}
             className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-all ${
@@ -250,6 +251,7 @@ const StatusPage = () => {
             <Activity size={15} />
             API服务状态
           </button>
+          </div>
         </div>
 
         {/* ── 服务器状态 tab ── */}
