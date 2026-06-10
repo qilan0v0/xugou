@@ -61,21 +61,34 @@ const StatusPage = () => {
     const interval = setInterval(fetchData, 60000);
 
     let sseDebounce: any = null;
-    const es = new EventSource((ENV_API_BASE_URL || '') + '/api/events');
-    const refresh = () => {
-      if (sseDebounce) clearTimeout(sseDebounce);
-      sseDebounce = setTimeout(() => fetchData(), 300);
-    };
-    es.addEventListener('agent-update', refresh);
-    es.addEventListener('monitor-update', refresh);
+    let reconnectTimer: any = null;
+    let sseTimeout: any = null;
+    let es: EventSource | null = null;
 
-    // Disconnect SSE after 30 minutes, keep polling at 60s
-    const sseTimeout = setTimeout(() => { es.close(); }, 30 * 60 * 1000);
+    const connectSSE = () => {
+      es = new EventSource((ENV_API_BASE_URL || '') + '/api/events');
+      const refresh = () => {
+        if (sseDebounce) clearTimeout(sseDebounce);
+        sseDebounce = setTimeout(() => fetchData(), 300);
+      };
+      es.addEventListener('agent-update', refresh);
+      es.addEventListener('monitor-update', refresh);
+      es.onerror = () => {
+        es?.close();
+        es = null;
+        if (reconnectTimer) clearTimeout(reconnectTimer);
+        reconnectTimer = setTimeout(connectSSE, 3000);
+      };
+      // Disconnect SSE after 30 minutes, keep polling at 60s
+      sseTimeout = setTimeout(() => { es?.close(); es = null; }, 30 * 60 * 1000);
+    };
+    connectSSE();
 
     return () => {
       clearInterval(interval);
       clearTimeout(sseTimeout);
-      es.close();
+      clearTimeout(reconnectTimer);
+      es?.close();
     };
   }, []);
 

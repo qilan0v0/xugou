@@ -7,6 +7,7 @@ import { getAgent, Agent, deleteAgent } from '../../api/agents';
 import CountryFlag from '../../components/CountryFlag';
 import ClientResourceSection from '../../components/ClientResourceSection';
 import { useTranslation } from 'react-i18next';
+import { ENV_API_BASE_URL } from '../../config';
 
 interface AgentWithResources extends Agent {
   uptime: number; uptimeStr: string; connectStr?: string; cpuUsage?: number; memoryUsage?: number; diskUsage?: number; networkRx?: number; networkTx?: number;
@@ -47,7 +48,37 @@ const AgentDetail = () => {
   };
 
   useEffect(() => {
-    if (id && !isNaN(Number(id))) { fetchData(); const i = setInterval(fetchData, 60000); return () => clearInterval(i); }
+    if (id && !isNaN(Number(id))) {
+      fetchData();
+      const i = setInterval(fetchData, 60000);
+      // SSE for real-time agent updates
+      let reconnectTimer: any = null;
+      let sseDebounce: any = null;
+      let sseTimeout: any = null;
+      let es: EventSource | null = null;
+      const refresh = () => {
+        if (sseDebounce) clearTimeout(sseDebounce);
+        sseDebounce = setTimeout(() => fetchData(), 500);
+      };
+      const connectSSE = () => {
+        es = new EventSource((ENV_API_BASE_URL || '') + '/api/events');
+        es.addEventListener('agent-update', refresh);
+        es.onerror = () => {
+          es?.close();
+          es = null;
+          if (reconnectTimer) clearTimeout(reconnectTimer);
+          reconnectTimer = setTimeout(connectSSE, 3000);
+        };
+        sseTimeout = setTimeout(() => { es?.close(); es = null; }, 30 * 60 * 1000);
+      };
+      connectSSE();
+      return () => {
+        clearInterval(i);
+        clearTimeout(sseTimeout);
+        clearTimeout(reconnectTimer);
+        es?.close();
+      };
+    }
     else { setError(t('agents.notFoundId', { id })); setLoading(false); }
   }, [id]);
 
