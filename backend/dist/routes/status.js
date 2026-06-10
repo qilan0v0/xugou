@@ -368,7 +368,7 @@ app.get('/data', async (c) => {
                 const ids = monitorList.map((m) => m.id);
                 // Query 24*N rows at once — SQLite has no IN limit at this scale
                 const placeholders = ids.map(() => '?').join(',');
-                const allHistory = await c.env.DB.prepare(`SELECT monitor_id, status, timestamp FROM monitor_status_history
+                const allHistory = await c.env.DB.prepare(`SELECT monitor_id, status FROM monitor_status_history
            WHERE monitor_id IN (${placeholders})
            ORDER BY monitor_id, timestamp DESC`).bind(...ids).all();
                 for (const row of (allHistory.results || [])) {
@@ -376,7 +376,7 @@ app.get('/data', async (c) => {
                         historyMap.set(row.monitor_id, []);
                     const arr = historyMap.get(row.monitor_id);
                     if (arr.length < 24)
-                        arr.push(row);
+                        arr.push(row.status);
                 }
             }
             catch { /* fallback: empty history */ }

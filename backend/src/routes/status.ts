@@ -521,21 +521,21 @@ app.get('/data', async (c) => {
 
     // Batch load all monitor status history in one query
     const monitorList = (monitors.results || []);
-    const historyMap = new Map<number, {status: string; timestamp: string}[]>();
+    const historyMap = new Map<number, string[]>();
     if (monitorList.length > 0) {
       try {
         const ids = monitorList.map((m: any) => m.id);
         // Query 24*N rows at once — SQLite has no IN limit at this scale
         const placeholders = ids.map(() => '?').join(',');
         const allHistory = await c.env.DB.prepare(
-          `SELECT monitor_id, status, timestamp FROM monitor_status_history
+          `SELECT monitor_id, status FROM monitor_status_history
            WHERE monitor_id IN (${placeholders})
            ORDER BY monitor_id, timestamp DESC`
-        ).bind(...ids).all<{monitor_id: number; status: string; timestamp: string}>();
+        ).bind(...ids).all<{monitor_id: number; status: string}>();
         for (const row of (allHistory.results || [])) {
           if (!historyMap.has(row.monitor_id)) historyMap.set(row.monitor_id, []);
           const arr = historyMap.get(row.monitor_id)!;
-          if (arr.length < 24) arr.push(row);
+          if (arr.length < 24) arr.push(row.status);
         }
       } catch { /* fallback: empty history */ }
     }
