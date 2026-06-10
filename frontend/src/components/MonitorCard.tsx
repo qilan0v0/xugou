@@ -1,7 +1,6 @@
 import React from 'react';
 import { Monitor } from '../api/monitors';
 import HeartbeatGrid from './HeartbeatGrid';
-import { useTranslation } from 'react-i18next';
 
 interface MonitorCardProps {
   monitor: Monitor;
@@ -9,8 +8,6 @@ interface MonitorCardProps {
 }
 
 const MonitorCard = React.memo(({ monitor, onClick }: MonitorCardProps) => {
-  const { t } = useTranslation();
-
   const currentStatus = monitor.status || 'pending';
 
   const statusConfig: Record<string, { text: string; dot: string }> = {
@@ -21,7 +18,6 @@ const MonitorCard = React.memo(({ monitor, onClick }: MonitorCardProps) => {
   };
 
   const cfg = statusConfig[currentStatus] || statusConfig.pending;
-  const label = t(`monitorCard.status.${currentStatus}`, currentStatus);
 
   // Uptime pill color
   const uptimeColor = (() => {
@@ -48,10 +44,7 @@ const MonitorCard = React.memo(({ monitor, onClick }: MonitorCardProps) => {
       {/* Middle: Name + tags + meta */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className={`inline-flex items-center gap-1 text-xs font-medium ${cfg.text}`}>
-            <span className={`w-2 h-2 rounded-full shrink-0 ${cfg.dot}`} />
-            {label}
-          </span>
+          <span className={`w-2 h-2 rounded-full shrink-0 ${cfg.dot}`} />
           <span className="text-sm font-semibold text-slate-900 dark:text-white truncate">
             {monitor.name}
           </span>
