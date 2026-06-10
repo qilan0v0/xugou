@@ -65,6 +65,13 @@ app.use('*', async (c, next) => {
     c.env = env;
     await next();
 });
+// 禁止 CDN / 浏览器缓存 API 响应（确保前端每次请求拿到最新数据）
+app.use('/api/*', async (c, next) => {
+    c.header('Cache-Control', 'no-cache, no-store, must-revalidate');
+    c.header('Pragma', 'no-cache');
+    c.header('Expires', '0');
+    await next();
+});
 app.get('/', (c) => c.json({ message: 'QLTZ API (Node.js)' }));
 app.post('/api/agents/status', async (c) => {
     try {
