@@ -186,17 +186,15 @@ app.post('/api/agents/status', async (c) => {
     const gapSec = Math.round(gapMs / 1000);
     const gapValid = gapMs > 0 && !isNaN(gapMs);
     const wasOffline = currentStatus === 'inactive' || (gapValid && gapMs > 120000);
+    const shouldReset = isNewAgent || connMissing || wasOffline;
+    const newConnectedAt = shouldReset ? now : (prev?.connected_at || now);
     // [诊断] 每次上报打印（协助排查连接时长不重置的问题）
-    console.log(`[conn] agent=${agent.id} status=${currentStatus || '?'} gap=${gapSec}s connMissing=${connMissing} isNew=${isNewAgent} -> reset=${isNewAgent || connMissing || wasOffline}`);
-    if (isNewAgent || connMissing || wasOffline) {
-      console.log(`[连接] agent=${agent.id} 重置连接时长 (missing=${connMissing}, status=${currentStatus || '?'}, gap=${gapSec}s)`);
-      env.DB.prepare('UPDATE agents SET connected_at = ? WHERE id = ?').bind(now, agent.id).run();
-    }
+    console.log(`[conn] agent=${agent.id} status=${currentStatus || '?'} gap=${gapSec}s old_conn=${prev?.connected_at || 'null'} connMissing=${connMissing} isNew=${isNewAgent} -> reset=${shouldReset} new_conn=${newConnectedAt}`);
 
     const result = env.DB.prepare(
-      `UPDATE agents SET status='active', cpu_usage=?, memory_total=?, memory_used=?, disk_total=?, disk_used=?, network_rx=?, network_tx=?, hostname=?, ip_address=?, os=?, version=?, cpu_arch=?, cpu_model_name=?, cpu_cores=?, load1=?, load5=?, load15=?, boot_time=?, network_rx_total=?, network_tx_total=?, agent_version=?, country=?, updated_at=?, last_payload=?, process_count=?, tcp_count=?, udp_count=? WHERE id=?`
+      `UPDATE agents SET status='active', connected_at=?, cpu_usage=?, memory_total=?, memory_used=?, disk_total=?, disk_used=?, network_rx=?, network_tx=?, hostname=?, ip_address=?, os=?, version=?, cpu_arch=?, cpu_model_name=?, cpu_cores=?, load1=?, load5=?, load15=?, boot_time=?, network_rx_total=?, network_tx_total=?, agent_version=?, country=?, updated_at=?, last_payload=?, process_count=?, tcp_count=?, udp_count=? WHERE id=?`
     ).bind(
-      cpu, memTotal, memUsed, diskTotal, diskUsed, netRx, netTx,
+      newConnectedAt, cpu, memTotal, memUsed, diskTotal, diskUsed, netRx, netTx,
       toD1Primitive(body.hostname),
       toD1Primitive(body.ip_address ?? (Array.isArray(body.ip_addresses) ? body.ip_addresses[0] : null) ?? (Array.isArray(body.ip) ? body.ip[0] : body.ip) ?? body.IP),
       toD1Primitive(body.os), toD1Primitive(body.version),
