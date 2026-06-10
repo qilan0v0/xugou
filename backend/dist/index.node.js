@@ -166,12 +166,14 @@ app.post('/api/agents/status', async (c) => {
         // 重置时机：缺失 / 之前被标记离线 / 上报中断过久(>4分钟，兜底后端宕机期间漏标的情况)。
         // 持续在线则保持不变，连接时长从首次连接持续累加。
         const connMissing = !prev?.connected_at;
-        // 离线判定：之前被标记 inactive，或上报中断 >150 秒（>离线阈值2分钟，兜底标记未及时更新/后端宕机）
-        const wasOffline = currentStatus === 'inactive' || (gapMs > 150000);
+        // 离线判定：之前被标记 inactive，或上报中断 >120 秒（匹配定时任务离线阈值2分钟）
+        const gapSec = Math.round(gapMs / 1000);
+        const gapValid = gapMs > 0 && !isNaN(gapMs);
+        const wasOffline = currentStatus === 'inactive' || (gapValid && gapMs > 120000);
+        // [诊断] 每次上报打印（协助排查连接时长不重置的问题）
+        console.log(`[conn] agent=${agent.id} status=${currentStatus || '?'} gap=${gapSec}s connMissing=${connMissing} isNew=${isNewAgent} -> reset=${isNewAgent || connMissing || wasOffline}`);
         if (isNewAgent || connMissing || wasOffline) {
-            if (!isNewAgent) {
-                console.log(`[连接] agent=${agent.id} 重置连接时长 (missing=${connMissing}, status=${currentStatus || '?'}, gap=${Math.round(gapMs / 1000)}s)`);
-            }
+            console.log(`[连接] agent=${agent.id} 重置连接时长 (missing=${connMissing}, status=${currentStatus || '?'}, gap=${gapSec}s)`);
             env.DB.prepare('UPDATE agents SET connected_at = ? WHERE id = ?').bind(now, agent.id).run();
         }
         const result = env.DB.prepare(`UPDATE agents SET status='active', cpu_usage=?, memory_total=?, memory_used=?, disk_total=?, disk_used=?, network_rx=?, network_tx=?, hostname=?, ip_address=?, os=?, version=?, cpu_arch=?, cpu_model_name=?, cpu_cores=?, load1=?, load5=?, load15=?, boot_time=?, network_rx_total=?, network_tx_total=?, agent_version=?, country=?, updated_at=?, last_payload=?, process_count=?, tcp_count=?, udp_count=? WHERE id=?`).bind(cpu, memTotal, memUsed, diskTotal, diskUsed, netRx, netTx, (0, jwt_1.toD1Primitive)(body.hostname), (0, jwt_1.toD1Primitive)(body.ip_address ?? (Array.isArray(body.ip_addresses) ? body.ip_addresses[0] : null) ?? (Array.isArray(body.ip) ? body.ip[0] : body.ip) ?? body.IP), (0, jwt_1.toD1Primitive)(body.os), (0, jwt_1.toD1Primitive)(body.version), cpuArch, cpuModelName, cpuCores, l1, l5, l15, bt, netRxTotal, netTxTotal, av, country, now, raw.slice(0, 2000), body.process_count ?? null, body.tcp_count ?? null, body.udp_count ?? null, agent.id).run();
