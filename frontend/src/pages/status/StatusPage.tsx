@@ -282,14 +282,25 @@ const StatusPage = () => {
 
             {/* Category filter */}
             {cats.length > 0 && (
-              <div className="flex gap-2 mb-4 flex-wrap">
+              <div className="relative grid mb-4 bg-slate-200 dark:bg-white/[0.08] rounded-lg p-1"
+                style={{ gridTemplateColumns: `repeat(${cats.length + 1}, 1fr)`, width: 'fit-content' }}>
+                <div className={`absolute top-1 bottom-1 rounded-md bg-white dark:bg-slate-700 shadow-sm transition-all duration-300 ease-in-out`}
+                  style={{
+                    width: `calc(100% / ${cats.length + 1})`,
+                    transform: `translateX(${(categoryFilter ? cats.indexOf(categoryFilter) + 1 : 0) * 100}%)`,
+                  }}
+                />
                 <button onClick={() => setCategoryFilter('')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${!categoryFilter ? 'bg-blue-500/10 text-blue-600' : 'text-slate-500 hover:text-slate-700 bg-slate-100 dark:bg-white/5'}`}>
+                  className={`relative z-10 px-3 py-1.5 rounded-md text-xs font-medium transition-colors duration-150 text-center whitespace-nowrap ${
+                    !categoryFilter ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                  }`}>
                   全部 <span className="text-[10px] opacity-60">{agents.length}</span>
                 </button>
                 {cats.map(cat => (
                   <button key={cat} onClick={() => setCategoryFilter(cat)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${categoryFilter === cat ? 'bg-blue-500/10 text-blue-600' : 'text-slate-500 hover:text-slate-700 bg-slate-100 dark:bg-white/5'}`}>
+                    className={`relative z-10 px-3 py-1.5 rounded-md text-xs font-medium transition-colors duration-150 text-center whitespace-nowrap ${
+                      categoryFilter === cat ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                    }`}>
                     {cat} <span className="text-[10px] opacity-60">{catCounts[cat]}</span>
                   </button>
                 ))}
