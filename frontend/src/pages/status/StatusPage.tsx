@@ -228,40 +228,41 @@ const StatusPage = () => {
 
         {/* Tab switcher */}
         <div className="flex justify-center mb-5">
-          <div className="flex gap-1 bg-slate-200 dark:bg-white/[0.08] rounded-xl p-1">
-          <button
-            onClick={() => switchTab('agents')}
-            className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-all ${
+          <div className="relative flex gap-1 bg-slate-200 dark:bg-white/[0.08] rounded-xl p-1">
+            <div className={`absolute top-1 bottom-1 rounded-lg bg-white dark:bg-slate-700 shadow-sm transition-all duration-300 ease-in-out ${
               activeTab === 'agents'
-                ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm'
-                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-            }`}
-          >
-            <Server size={15} />
-            服务器状态
-          </button>
-          <button
-            onClick={() => switchTab('monitors')}
-            className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-all ${
-              activeTab === 'monitors'
-                ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm'
-                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-            }`}
-          >
-            <Activity size={15} />
-            API服务状态
-          </button>
+                ? 'left-1 right-[50%]'
+                : 'left-[50%] right-1'
+            }`} />
+            <button
+              onClick={() => switchTab('agents')}
+              className={`relative z-10 flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-colors duration-150 ${
+                activeTab === 'agents'
+                  ? 'text-blue-600 dark:text-blue-400'
+                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+              }`}
+            >
+              <Server size={15} />
+              服务器状态
+            </button>
+            <button
+              onClick={() => switchTab('monitors')}
+              className={`relative z-10 flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-colors duration-150 ${
+                activeTab === 'monitors'
+                  ? 'text-blue-600 dark:text-blue-400'
+                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+              }`}
+            >
+              <Activity size={15} />
+              API服务状态
+            </button>
           </div>
         </div>
 
-        {/* Tab content with slide animation */}
-        <div className="overflow-hidden">
-          <div className={`flex transition-transform duration-300 ease-in-out ${
-            activeTab === 'agents' ? 'translate-x-0' : '-translate-x-1/2'
-          }`}>
-            {/* ── 服务器状态 tab ── */}
-            <section className="w-full shrink-0 pr-2">
-              <div className="flex justify-end items-center mb-4">
+        {/* ── 服务器状态 tab ── */}
+        {activeTab === 'agents' && (
+          <section>
+            <div className="flex justify-end items-center mb-4">
               {/* Card size toggle */}
               <div className="flex items-center bg-slate-200 dark:bg-slate-700 rounded-lg p-0.5">
                 {(['small', 'medium', 'large'] as const).map((s) => {
@@ -309,9 +310,11 @@ const StatusPage = () => {
               </div>
             )}
           </section>
+        )}
 
-          {/* ── API服务状态 tab ── */}
-          <section className="w-full shrink-0 pl-2">
+        {/* ── API服务状态 tab ── */}
+        {activeTab === 'monitors' && (
+          <section>
             {monitorsLoading && !monitorsLoadedRef.current ? (
               <div className="flex justify-center py-12"><LoadingSpinner size="sm" /></div>
             ) : filteredMonitors.length === 0 ? (
@@ -324,8 +327,7 @@ const StatusPage = () => {
               </div>
             )}
           </section>
-        </div>
-      </div>
+        )}
 
       {selectedAgent && (
         <AgentDetailModal agent={selectedAgent} onClose={() => setSelectedAgent(null)} />
