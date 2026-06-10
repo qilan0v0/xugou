@@ -257,8 +257,7 @@ const StatusPage = () => {
         {/* ── 服务器状态 tab ── */}
         {activeTab === 'agents' && (
           <section>
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white section-heading">{t('statusPage.agentStatus')}</h2>
+            <div className="flex justify-end items-center mb-4">
               {/* Card size toggle */}
               <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg p-0.5">
                 {(['small', 'medium', 'large'] as const).map((s) => {
@@ -311,7 +310,6 @@ const StatusPage = () => {
         {/* ── API服务状态 tab ── */}
         {activeTab === 'monitors' && (
           <section>
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white section-heading mb-4">{t('statusPage.apiServices')}</h2>
             {monitorsLoading && !monitorsLoadedRef.current ? (
               <div className="flex justify-center py-12"><LoadingSpinner size="sm" /></div>
             ) : filteredMonitors.length === 0 ? (
