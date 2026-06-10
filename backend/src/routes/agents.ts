@@ -611,11 +611,20 @@ agents.delete('/:id', async (c) => {
       return c.json({ success: false, message: '无权删除此客户端' }, 403);
     }
     
+    // 先删除依赖该客户端的子表记录，避免外键约束(ON) 导致删除失败
+    // 这些表可能在旧库不存在，逐个 try 即可
+    for (const sql of [
+      'DELETE FROM agent_metrics_history WHERE agent_id = ?',
+      'DELETE FROM status_page_agents WHERE agent_id = ?',
+    ]) {
+      try { await c.env.DB.prepare(sql).bind(agent.id).run(); } catch (e) { /* 表可能不存在，忽略 */ }
+    }
+
     // 执行删除客户端
     const result = await c.env.DB.prepare(
       'DELETE FROM agents WHERE id = ?'
     ).bind(agent.id).run();
-    
+
     if (!result.success) {
       throw new Error('删除客户端失败: ' + (result.error || 'unknown'));
     }
