@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getStatusPageData, StatusAgent } from '../../api/status';
 import { Monitor } from '../../api/monitors';
@@ -11,12 +11,13 @@ import CustomInjector from '../../components/CustomInjector';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import LanguageSelector from "../../components/LanguageSelector";
-import { SunIcon, MoonIcon, CubeIcon, CheckCircledIcon, CrossCircledIcon, GlobeIcon, ArrowUpIcon } from '@radix-ui/react-icons';
-import { LayoutGrid, Rows3, List } from 'lucide-react';
+import { SunIcon, MoonIcon } from '@radix-ui/react-icons';
+import { LayoutGrid, Rows3, List, Server, Activity, CheckCircle, XCircle, Box, Globe, ArrowUp } from 'lucide-react';
 import { ENV_API_BASE_URL } from '../../config';
 import { useTranslation } from 'react-i18next';
 
 const CARD_SIZE_KEY = 'qltz_agent_card_size';
+const TAB_KEY = 'qltz_status_tab';
 
 const StatusPage = () => {
   const navigate = useNavigate();
@@ -26,6 +27,9 @@ const StatusPage = () => {
   const [cardSize, setCardSize] = useState<'small' | 'medium' | 'large'>(
     () => (localStorage.getItem(CARD_SIZE_KEY) as 'small' | 'medium' | 'large') || 'large'
   );
+  const [activeTab, setActiveTab] = useState<'agents' | 'monitors'>(
+    () => (localStorage.getItem(TAB_KEY) as 'agents' | 'monitors') || 'agents'
+  );
   const [data, setData] = useState<{ title: string; description: string; logoUrl: string; customCss: string; monitors: Monitor[]; agents: StatusAgent[] }>({ title: '系统状态', description: '', logoUrl: '', customCss: '', monitors: [], agents: [] });
   const [error, setError] = useState<string | null>(null);
   const [fetched, setFetched] = useState(false);
@@ -33,30 +37,50 @@ const StatusPage = () => {
   const [selectedMonitor, setSelectedMonitor] = useState<Monitor | null>(null);
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
+  const [monitorsLoading, setMonitorsLoading] = useState(false);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await getStatusPageData();
-        if (res.success && res.data) {
-          setError(null);
-          setData({
-            title: res.data.title || '系统状态',
-            description: res.data.description || '',
-            logoUrl: res.data.logoUrl || '',
-            customCss: res.data.customCss || '',
-            monitors: res.data.monitors || [],
-            agents: res.data.agents || [],
-          });
-        } else if (!fetched) {
-          setError(res.message || t('statusPage.fetchError'));
-        }
-      } catch (err: any) {
-        if (!fetched) setError(t('statusPage.fetchError'));
-      } finally {
-        setFetched(true);
+  // Track if monitors have been loaded at least once for the fade-in
+  const monitorsLoadedRef = useRef(false);
+
+  // Universal fetch (summary + current tab)
+  const fetchData = async () => {
+    try {
+      const res = await getStatusPageData();
+      if (res.success && res.data) {
+        setError(null);
+        setData(prev => ({
+          title: res.data!.title || prev.title,
+          description: res.data!.description || prev.description,
+          logoUrl: res.data!.logoUrl || prev.logoUrl,
+          customCss: res.data!.customCss || prev.customCss,
+          agents: res.data!.agents || prev.agents,
+          monitors: activeTab === 'monitors' ? (res.data!.monitors || prev.monitors) : prev.monitors,
+        }));
+      } else if (!fetched) {
+        setError(res.message || t('statusPage.fetchError'));
       }
-    };
+    } catch (err: any) {
+      if (!fetched) setError(t('statusPage.fetchError'));
+    } finally {
+      setFetched(true);
+    }
+  };
+
+  // Extra monitor-only fetch (only when monitors tab is active)
+  const fetchMonitors = async () => {
+    setMonitorsLoading(true);
+    try {
+      const res = await getStatusPageData();
+      if (res.success && res.data?.monitors) {
+        setData(prev => ({ ...prev, monitors: res.data!.monitors! }));
+        monitorsLoadedRef.current = true;
+      }
+    } catch { /* ignore */ }
+    finally { setMonitorsLoading(false); }
+  };
+
+  // Main effect: initial fetch + SSE + polling
+  useEffect(() => {
     fetchData();
     const interval = setInterval(fetchData, 60000);
 
@@ -69,7 +93,6 @@ const StatusPage = () => {
     es.addEventListener('agent-update', refresh);
     es.addEventListener('monitor-update', refresh);
 
-    // Disconnect SSE after 30 minutes, keep polling at 60s
     const sseTimeout = setTimeout(() => { es.close(); }, 30 * 60 * 1000);
 
     return () => {
@@ -78,6 +101,19 @@ const StatusPage = () => {
       es.close();
     };
   }, []);
+
+  // Monitors tab: fetch monitors data when tab becomes active
+  useEffect(() => {
+    if (activeTab === 'monitors') {
+      fetchMonitors();
+    }
+  }, [activeTab]);
+
+  // Tab switch handler
+  const switchTab = (tab: 'agents' | 'monitors') => {
+    setActiveTab(tab);
+    localStorage.setItem(TAB_KEY, tab);
+  };
 
   // Dynamically set browser title and favicon from config
   useEffect(() => {
@@ -95,6 +131,34 @@ const StatusPage = () => {
     localStorage.setItem('qltz_page_config', JSON.stringify({ title: data.title, logoUrl: data.logoUrl }));
   }, [data.title, data.logoUrl]);
 
+  // Search filter — matches both agents and monitors
+  const filteredAgents = data.agents.filter(a => {
+    if (categoryFilter && a.category !== categoryFilter) return false;
+    if (!search.trim()) return true;
+    const q = search.toLowerCase();
+    return [a.name, a.hostname, a.os, a.tags].join(' ').toLowerCase().includes(q);
+  });
+
+  const filteredMonitors = data.monitors.filter(m => {
+    if (!search.trim()) return true;
+    const q = search.toLowerCase();
+    return [m.name, m.tags].join(' ').toLowerCase().includes(q);
+  });
+
+  // Summary stats
+  const agents = data.agents || [];
+  const monitors = data.monitors || [];
+  const totalRx = agents.reduce((s: number, a: any) => s + (a.network_rx_total || 0), 0);
+  const totalTx = agents.reduce((s: number, a: any) => s + (a.network_tx_total || 0), 0);
+  const fmt = (bytes: number) => { if (!bytes) return '0 B'; const u = ['B','KB','MB','GB','TB']; let i=0,v=bytes; while(v>=1024&&i<u.length-1){v/=1024;i++;} return v.toFixed(1)+' '+u[i]; };
+  const online = agents.filter((a: any) => a.status === 'active').length;
+  const offline = agents.length - online;
+  const regions = [...new Set(agents.map((a: any) => a.country).filter(Boolean))].length;
+  const upMonitors = monitors.filter((m: any) => m.status === 'up').length;
+  const cats = [...new Set(agents.map(a => a.category).filter(Boolean))] as string[];
+  const catCounts: Record<string, number> = {};
+  cats.forEach(c => { catCounts[c] = agents.filter(a => a.category === c).length; });
+
   if (error) return <div className="flex justify-center items-center min-h-[50vh]"><span className="text-red-500">{error}</span></div>;
   if (!fetched) return <div className="flex justify-center items-center min-h-[50vh]"><LoadingSpinner /></div>;
 
@@ -109,7 +173,7 @@ const StatusPage = () => {
               <img src={data.logoUrl} alt="" className="w-7 h-7 rounded-lg object-cover" />
             ) : (
               <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center">
-                <CubeIcon className="w-3.5 h-3.5 text-white" />
+                <Box className="w-3.5 h-3.5 text-white" />
               </div>
             )}
             <span className="text-base font-bold text-slate-900 dark:text-white tracking-tight">{data.title}</span>
@@ -130,139 +194,135 @@ const StatusPage = () => {
 
       <div className="max-w-[1400px] mx-auto px-4 pt-6 pb-16">
         {/* Summary cards */}
-        {(() => {
-          const agents = data.agents || [];
-          const monitors = data.monitors || [];
-          const totalRx = agents.reduce((s: number, a: any) => s + (a.network_rx_total || 0), 0);
-          const totalTx = agents.reduce((s: number, a: any) => s + (a.network_tx_total || 0), 0);
-          const fmt = (bytes: number) => { if (!bytes) return '0 B'; const u = ['B','KB','MB','GB','TB']; let i=0,v=bytes; while(v>=1024&&i<u.length-1){v/=1024;i++;} return v.toFixed(1)+' '+u[i]; };
-          const online = agents.filter((a: any) => a.status === 'active').length;
-          const offline = agents.length - online;
-          const regions = [...new Set(agents.map((a: any) => a.country).filter(Boolean))].length;
-          const upMonitors = monitors.filter((m: any) => m.status === 'up').length;
-          const cards = [
-            { label: '服务器', value: agents.length, bg: 'bg-blue-500/10', text: 'text-blue-600', icon: <CubeIcon /> },
-            { label: '在线', value: online, bg: 'bg-emerald-500/10', text: 'text-emerald-600', icon: <CheckCircledIcon /> },
-            { label: '离线', value: offline, bg: 'bg-slate-500/10', text: 'text-slate-500', icon: <CrossCircledIcon /> },
-            { label: '地区', value: regions, bg: 'bg-purple-500/10', text: 'text-purple-600', icon: <GlobeIcon /> },
-            { label: '服务', value: `${upMonitors}/${monitors.length}`, bg: 'bg-amber-500/10', text: 'text-amber-600', icon: <CheckCircledIcon /> },
-            { label: '总流量', value: fmt(totalTx + totalRx), sub: `↑${fmt(totalTx)}  ↓${fmt(totalRx)}`, bg: 'bg-orange-500/10', text: 'text-orange-600', icon: <ArrowUpIcon /> },
-          ];
-          return (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
-              {cards.map((card: any, i: number) => (
-                <div key={i} className="glass rounded-xl p-3 flex items-center gap-2">
-                  <div className={`w-8 h-8 rounded-lg ${card.bg} ${card.text} flex items-center justify-center flex-shrink-0`}>
-                    {card.icon}
-                  </div>
-                  <div className="min-w-0">
-                    <div className="text-[10px] text-slate-500 truncate">{card.label}</div>
-                    <div className="text-sm font-bold text-slate-900 dark:text-white truncate">{card.value}</div>
-                    {card.sub && <div className="text-[10px] text-slate-400 truncate">{card.sub}</div>}
-                  </div>
-                </div>
-              ))}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-4">
+          {[
+            { label: '服务器', value: agents.length, bg: 'bg-blue-500/10', text: 'text-blue-600', icon: <Server size={16} /> },
+            { label: '在线', value: online, bg: 'bg-emerald-500/10', text: 'text-emerald-600', icon: <CheckCircle size={16} /> },
+            { label: '离线', value: offline, bg: 'bg-slate-500/10', text: 'text-slate-500', icon: <XCircle size={16} /> },
+            { label: '地区', value: regions, bg: 'bg-purple-500/10', text: 'text-purple-600', icon: <Globe size={16} /> },
+            { label: '服务', value: `${upMonitors}/${monitors.length}`, bg: 'bg-amber-500/10', text: 'text-amber-600', icon: <Activity size={16} /> },
+            { label: '总流量', value: fmt(totalTx + totalRx), sub: `↑${fmt(totalTx)}  ↓${fmt(totalRx)}`, bg: 'bg-orange-500/10', text: 'text-orange-600', icon: <ArrowUp size={16} /> },
+          ].map((card, i) => (
+            <div key={i} className="glass rounded-xl p-3 flex items-center gap-2">
+              <div className={`w-8 h-8 rounded-lg ${card.bg} ${card.text} flex items-center justify-center flex-shrink-0`}>
+                {card.icon}
+              </div>
+              <div className="min-w-0">
+                <div className="text-[10px] text-slate-500 truncate">{card.label}</div>
+                <div className="text-sm font-bold text-slate-900 dark:text-white truncate">{card.value}</div>
+                {(card as any).sub && <div className="text-[10px] text-slate-400 truncate">{(card as any).sub}</div>}
+              </div>
             </div>
-          );
-        })()}
+          ))}
+        </div>
 
-        {data.monitors.length > 0 && (
-          <section className="mb-8">
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white section-heading mb-4">{t('statusPage.apiServices')}</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {data.monitors.map(m => <MonitorCard key={m.id} monitor={m} onClick={() => setSelectedMonitor(m)} />)}
+        {/* Search bar */}
+        <div className="mb-4 relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 6.5C10 8.433 8.433 10 6.5 10C4.567 10 3 8.433 3 6.5C3 4.567 4.567 3 6.5 3C8.433 3 10 4.567 10 6.5ZM9.30884 10.0159C8.53901 10.6318 7.56251 11 6.5 11C4.01472 11 2 8.98528 2 6.5C2 4.01472 4.01472 2 6.5 2C8.98528 2 11 4.01472 11 6.5C11 7.56251 10.6318 8.53901 10.0159 9.30884L12.8536 12.1464C13.0488 12.3417 13.0488 12.6583 12.8536 12.8536C12.6583 13.0488 12.3417 13.0488 12.1464 12.8536L9.30884 10.0159Z" fill="currentColor" fillRule="evenodd" clipRule="evenodd"/></svg>
+          </span>
+          <input type="text" value={search} onChange={e => setSearch(e.target.value)}
+            placeholder="搜索服务器、API服务、标签..."
+            className="w-full pl-9 pr-4 py-2.5 rounded-xl border-2 border-slate-200/60 dark:border-slate-700/60 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm text-sm text-slate-700 dark:text-slate-300 placeholder:text-slate-400 focus:outline-none focus:border-blue-400 dark:focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-sm" />
+        </div>
+
+        {/* Tab switcher */}
+        <div className="flex gap-1 mb-5 bg-slate-100 dark:bg-white/[0.06] rounded-xl p-1 w-fit">
+          <button
+            onClick={() => switchTab('agents')}
+            className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-all ${
+              activeTab === 'agents'
+                ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm'
+                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+            }`}
+          >
+            <Server size={15} />
+            服务器状态
+          </button>
+          <button
+            onClick={() => switchTab('monitors')}
+            className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-all ${
+              activeTab === 'monitors'
+                ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm'
+                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+            }`}
+          >
+            <Activity size={15} />
+            API服务状态
+          </button>
+        </div>
+
+        {/* ── 服务器状态 tab ── */}
+        {activeTab === 'agents' && (
+          <section>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white section-heading">{t('statusPage.agentStatus')}</h2>
+              {/* Card size toggle */}
+              <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg p-0.5">
+                {(['small', 'medium', 'large'] as const).map((s) => {
+                  const Icon = s === 'small' ? List : s === 'medium' ? Rows3 : LayoutGrid;
+                  return (
+                    <button key={s}
+                      onClick={() => { setCardSize(s); localStorage.setItem(CARD_SIZE_KEY, s); }}
+                      className={`p-1.5 rounded-md transition-colors ${cardSize === s ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
+                      title={s === 'small' ? '小卡片' : s === 'medium' ? '中卡片' : '大卡片'}
+                    >
+                      <Icon size={14} />
+                    </button>
+                  );
+                })}
+              </div>
             </div>
+
+            {/* Category filter */}
+            {cats.length > 0 && (
+              <div className="flex gap-2 mb-4 flex-wrap">
+                <button onClick={() => setCategoryFilter('')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${!categoryFilter ? 'bg-blue-500/10 text-blue-600' : 'text-slate-500 hover:text-slate-700 bg-slate-100 dark:bg-white/5'}`}>
+                  全部 <span className="text-[10px] opacity-60">{agents.length}</span>
+                </button>
+                {cats.map(cat => (
+                  <button key={cat} onClick={() => setCategoryFilter(cat)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${categoryFilter === cat ? 'bg-blue-500/10 text-blue-600' : 'text-slate-500 hover:text-slate-700 bg-slate-100 dark:bg-white/5'}`}>
+                    {cat} <span className="text-[10px] opacity-60">{catCounts[cat]}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {filteredAgents.length === 0 ? (
+              <div className="glass p-8 text-center"><p className="text-sm text-slate-500">没有匹配的客户端</p></div>
+            ) : (
+              <div className={`${
+                cardSize === 'small' ? 'flex flex-col gap-2 overflow-x-scroll scrollbar-hidden' :
+                cardSize === 'large' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' :
+                'grid grid-cols-1 lg:grid-cols-2 gap-2'
+              }`}>
+                {filteredAgents.map(agent => (
+                  <AgentCard key={agent.id} agent={agent} size={cardSize} onClick={() => setSelectedAgent(agent)} />
+                ))}
+              </div>
+            )}
           </section>
         )}
 
-        {/* Agent section — header always visible */}
-        <section>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white section-heading">{t('statusPage.agentStatus')}</h2>
-            {/* Card size toggle */}
-            <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg p-0.5">
-              <button
-                onClick={() => { setCardSize('small'); localStorage.setItem(CARD_SIZE_KEY, 'small'); }}
-                className={`p-1.5 rounded-md transition-colors ${cardSize === 'small' ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
-                title="小卡片"
-              >
-                <List size={14} />
-              </button>
-              <button
-                onClick={() => { setCardSize('medium'); localStorage.setItem(CARD_SIZE_KEY, 'medium'); }}
-                className={`p-1.5 rounded-md transition-colors ${cardSize === 'medium' ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
-                title="中卡片"
-              >
-                <Rows3 size={14} />
-              </button>
-              <button
-                onClick={() => { setCardSize('large'); localStorage.setItem(CARD_SIZE_KEY, 'large'); }}
-                className={`p-1.5 rounded-md transition-colors ${cardSize === 'large' ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
-                title="大卡片"
-              >
-                <LayoutGrid size={14} />
-              </button>
-            </div>
-          </div>
-          {data.agents.length > 0 ? (() => {
-            const cats = [...new Set(data.agents.map(a => a.category).filter(Boolean))] as string[];
-            let filtered = data.agents;
-            if (categoryFilter) filtered = filtered.filter(a => a.category === categoryFilter);
-            if (search.trim()) {
-              const q = search.toLowerCase();
-              filtered = filtered.filter(a => {
-                const hay = [a.name, a.hostname, a.os, a.tags].join(' ').toLowerCase();
-                return hay.includes(q);
-              });
-            }
-            return (
-              <>
-                {/* Search */}
-                <div className="mb-3 relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 6.5C10 8.433 8.433 10 6.5 10C4.567 10 3 8.433 3 6.5C3 4.567 4.567 3 6.5 3C8.433 3 10 4.567 10 6.5ZM9.30884 10.0159C8.53901 10.6318 7.56251 11 6.5 11C4.01472 11 2 8.98528 2 6.5C2 4.01472 4.01472 2 6.5 2C8.98528 2 11 4.01472 11 6.5C11 7.56251 10.6318 8.53901 10.0159 9.30884L12.8536 12.1464C13.0488 12.3417 13.0488 12.6583 12.8536 12.8536C12.6583 13.0488 12.3417 13.0488 12.1464 12.8536L9.30884 10.0159Z" fill="currentColor" fillRule="evenodd" clipRule="evenodd"/></svg>
-                  </span>
-                  <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="搜索名称、主机名、标签..." className="w-full pl-9 pr-4 py-2.5 rounded-xl border-2 border-slate-200/60 dark:border-slate-700/60 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm text-sm text-slate-700 dark:text-slate-300 placeholder:text-slate-400 focus:outline-none focus:border-blue-400 dark:focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-sm" />
-                </div>
-                {/* Category filter */}
-                {(() => {
-                  const allAgentCount = data.agents.length;
-                  const catCounts: Record<string, number> = {};
-                  cats.forEach(c => { catCounts[c] = data.agents.filter(a => a.category === c).length; });
-                  return cats.length > 0 ? (
-                  <div className="flex gap-2 mb-4 flex-wrap">
-                    <button onClick={() => setCategoryFilter('')}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${!categoryFilter ? 'bg-blue-500/10 text-blue-600' : 'text-slate-500 hover:text-slate-700 bg-slate-100 dark:bg-white/5'}`}>
-                      全部 <span className="text-[10px] opacity-60">{allAgentCount}</span>
-                    </button>
-                    {cats.map(cat => (
-                      <button key={cat} onClick={() => setCategoryFilter(cat)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${categoryFilter === cat ? 'bg-blue-500/10 text-blue-600' : 'text-slate-500 hover:text-slate-700 bg-slate-100 dark:bg-white/5'}`}>
-                        {cat} <span className="text-[10px] opacity-60">{catCounts[cat]}</span>
-                      </button>
-                    ))}
-                  </div>) : null; })()}
-                {filtered.length === 0 ? (
-                  <div className="glass p-8 text-center"><p className="text-sm text-slate-500">没有匹配的客户端</p></div>
-                ) : (
-                  <div className={`${
-  cardSize === 'small' ? 'flex flex-col gap-2 overflow-x-scroll scrollbar-hidden' :
-  cardSize === 'large' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' :
-  'grid grid-cols-1 lg:grid-cols-2 gap-2'
-}`}>
-                    {filtered.map(agent => (
-                      <AgentCard key={agent.id} agent={agent} size={cardSize} onClick={() => setSelectedAgent(agent)} />
-                    ))}
-                  </div>
-                )}
-              </>
-            );
-          })() : (
-            <div className="glass p-8 text-center border-dashed">
-              <p className="text-sm text-slate-500">暂无可展示的客户端</p>
-            </div>
-          )}
-        </section>
+        {/* ── API服务状态 tab ── */}
+        {activeTab === 'monitors' && (
+          <section>
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white section-heading mb-4">{t('statusPage.apiServices')}</h2>
+            {monitorsLoading && !monitorsLoadedRef.current ? (
+              <div className="flex justify-center py-12"><LoadingSpinner size="sm" /></div>
+            ) : filteredMonitors.length === 0 ? (
+              <div className="glass p-8 text-center"><p className="text-sm text-slate-500">没有匹配的API服务</p></div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {filteredMonitors.map(m => (
+                  <MonitorCard key={m.id} monitor={m} onClick={() => setSelectedMonitor(m)} />
+                ))}
+              </div>
+            )}
+          </section>
+        )}
       </div>
 
       {selectedAgent && (
