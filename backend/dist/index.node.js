@@ -169,18 +169,17 @@ app.post('/api/agents/status', async (c) => {
         // wasInactive 仅用于上线通知判定（保持原行为，避免后端重启误报上线）
         const wasInactive = isNewAgent || (currentStatus === 'inactive') || (wasDisconnected && (!currentStatus || currentStatus !== 'active')) || (!currentStatus && !prev?.connected_at);
         // connected_at = 当前连接会话起点，取「上报时间」(now)，与系统开机时间无关。
-        // 这样能真实反映断线重连：连接时长不会恒等于系统运行时长，也不会缺失。
-        // 重置时机：缺失 / 之前被标记离线 / 上报中断过久(>4分钟，兜底后端宕机期间漏标的情况)。
+        // 重置时机：缺失 / 之前被标记离线 / 上报中断过久 / 系统重启(boot_time变化)
         // 持续在线则保持不变，连接时长从首次连接持续累加。
         const connMissing = !prev?.connected_at;
-        // 离线判定：之前被标记 inactive，或上报中断 >120 秒（匹配定时任务离线阈值2分钟）
         const gapSec = Math.round(gapMs / 1000);
         const gapValid = gapMs > 0 && !isNaN(gapMs);
-        const wasOffline = currentStatus === 'inactive' || (gapValid && gapMs > 120000);
+        const bootChanged = prev?.boot_time && bt && prev.boot_time !== bt;
+        const wasOffline = currentStatus === 'inactive' || (gapValid && gapMs > 120000) || !!bootChanged;
         const shouldReset = isNewAgent || connMissing || wasOffline;
         const newConnectedAt = shouldReset ? now : (prev?.connected_at || now);
         // [诊断] 每次上报打印（协助排查连接时长不重置的问题）
-        console.log(`[conn] agent=${agent.id} status=${currentStatus || '?'} gap=${gapSec}s old_conn=${prev?.connected_at || 'null'} connMissing=${connMissing} isNew=${isNewAgent} -> reset=${shouldReset} new_conn=${newConnectedAt}`);
+        console.log(`[conn] agent=${agent.id} status=${currentStatus || '?'} gap=${gapSec}s old_conn=${prev?.connected_at || 'null'} boot_chg=${!!bootChanged} connMissing=${connMissing} isNew=${isNewAgent} -> reset=${shouldReset} new_conn=${newConnectedAt}`);
         const result = env.DB.prepare(`UPDATE agents SET status='active', connected_at=?, cpu_usage=?, memory_total=?, memory_used=?, disk_total=?, disk_used=?, network_rx=?, network_tx=?, hostname=?, ip_address=?, os=?, version=?, cpu_arch=?, cpu_model_name=?, cpu_cores=?, load1=?, load5=?, load15=?, boot_time=?, network_rx_total=?, network_tx_total=?, agent_version=?, country=?, updated_at=?, last_payload=?, process_count=?, tcp_count=?, udp_count=? WHERE id=?`).bind(newConnectedAt, cpu, memTotal, memUsed, diskTotal, diskUsed, netRx, netTx, (0, jwt_1.toD1Primitive)(body.hostname), (0, jwt_1.toD1Primitive)(body.ip_address ?? (Array.isArray(body.ip_addresses) ? body.ip_addresses[0] : null) ?? (Array.isArray(body.ip) ? body.ip[0] : body.ip) ?? body.IP), (0, jwt_1.toD1Primitive)(body.os), (0, jwt_1.toD1Primitive)(body.version), cpuArch, cpuModelName, cpuCores, l1, l5, l15, bt, netRxTotal, netTxTotal, av, country, now, raw.slice(0, 2000), body.process_count ?? null, body.tcp_count ?? null, body.udp_count ?? null, agent.id).run();
         if (!result.success) {
             console.error('Status update failed:', result.error);
