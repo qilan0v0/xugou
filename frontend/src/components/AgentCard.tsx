@@ -44,7 +44,10 @@ const AgentCard = React.memo(({ agent, onClick, size = 'large' }: AgentCardProps
   const uptime = agent.boot_time ? Math.max(0, Date.now() - new Date(agent.boot_time).getTime()) : 0;
   const uptimeStr = formatDuration(uptime);
   const connectMs = agent.connected_at ? Math.max(0, Date.now() - new Date(agent.connected_at).getTime()) : 0;
-  const connectStr = connectMs ? formatDuration(connectMs) : '';
+  // 仅当「连接时长」明显短于「系统运行时长」时才显示（说明客户端是开机后才连上/重连过）。
+  // 自启客户端开机即连上，连接时长≈运行时长，再显示一行就成了重复的系统运行时长。
+  const showConnect = connectMs > 0 && (uptime <= 0 || uptime - connectMs > 300000);
+  const connectStr = showConnect ? formatDuration(connectMs) : '';
   const isOnline = agent.status === 'active';
   const netRx = agent.network_rx || 0;
   const netTx = agent.network_tx || 0;
