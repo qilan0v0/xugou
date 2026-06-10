@@ -174,8 +174,12 @@ app.post('/api/agents/status', async (c) => {
     // 重置时机：缺失 / 之前被标记离线 / 上报中断过久(>4分钟，兜底后端宕机期间漏标的情况)。
     // 持续在线则保持不变，连接时长从首次连接持续累加。
     const connMissing = !prev?.connected_at;
-    const wasOffline = currentStatus === 'inactive' || gapMs > 240000;
+    // 离线判定：之前被标记 inactive，或上报中断 >150 秒（>离线阈值2分钟，兜底标记未及时更新/后端宕机）
+    const wasOffline = currentStatus === 'inactive' || (gapMs > 150000);
     if (isNewAgent || connMissing || wasOffline) {
+      if (!isNewAgent) {
+        console.log(`[连接] agent=${agent.id} 重置连接时长 (missing=${connMissing}, status=${currentStatus || '?'}, gap=${Math.round(gapMs/1000)}s)`);
+      }
       env.DB.prepare('UPDATE agents SET connected_at = ? WHERE id = ?').bind(now, agent.id).run();
     }
 
