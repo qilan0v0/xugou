@@ -228,7 +228,7 @@ const StatusPage = () => {
 
         {/* Tab switcher */}
         <div className="flex justify-center mb-5">
-          <div className="flex gap-1 bg-slate-100 dark:bg-white/[0.06] rounded-xl p-1">
+          <div className="flex gap-1 bg-slate-200 dark:bg-white/[0.08] rounded-xl p-1">
           <button
             onClick={() => switchTab('agents')}
             className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-all ${
@@ -259,7 +259,7 @@ const StatusPage = () => {
           <section>
             <div className="flex justify-end items-center mb-4">
               {/* Card size toggle */}
-              <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg p-0.5">
+              <div className="flex items-center bg-slate-200 dark:bg-slate-700 rounded-lg p-0.5">
                 {(['small', 'medium', 'large'] as const).map((s) => {
                   const Icon = s === 'small' ? List : s === 'medium' ? Rows3 : LayoutGrid;
                   return (
