@@ -19,7 +19,7 @@ const checkAgentsStatus = async (env) => {
             const timeDiff = now.getTime() - lastUpdateTime.getTime();
             if (timeDiff > inactiveThreshold) {
                 console.log(`[离线] ${agent.name} (${agent.hostname || '?'}) 超过2分钟未上报，设置为离线`);
-                await env.DB.prepare("UPDATE agents SET status = 'inactive' WHERE id = ?").bind(agent.id).run();
+                await env.DB.prepare("UPDATE agents SET status = 'inactive', connected_at = NULL WHERE id = ?").bind(agent.id).run();
                 // 发送离线通知
                 sendAgentNotification(env, agent, 'down');
             }
