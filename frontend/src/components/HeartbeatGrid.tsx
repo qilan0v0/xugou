@@ -1,10 +1,6 @@
 import { MonitorStatusHistory } from '../api/monitors';
-import { useTranslation } from 'react-i18next';
 
-const HeartbeatGrid = ({ uptime, history = [] }: { uptime: number, history?: (MonitorStatusHistory | string)[] }) => {
-  const { t } = useTranslation();
-  const normalizedUptime = Math.min(Math.max(uptime, 0), 100);
-
+const HeartbeatGrid = ({ history = [] }: { history?: (MonitorStatusHistory | string)[] }) => {
   const getColor = (status: string) => {
     switch (status) {
       case 'up': return 'bg-emerald-500';
@@ -14,39 +10,25 @@ const HeartbeatGrid = ({ uptime, history = [] }: { uptime: number, history?: (Mo
     }
   };
 
-  let displayHistory: { status: string; timestamp?: string }[] = [];
+  let displayHistory: string[] = [];
   if (Array.isArray(history)) {
     displayHistory = history.slice(0, 24).map(item =>
-      typeof item === 'string' ? { status: item } : item
+      typeof item === 'string' ? item : item.status
     );
   }
 
   const emptyCount = Math.max(0, 24 - displayHistory.length);
 
   return (
-    <div>
-      <div className="flex gap-1 sm:gap-1.5">
-        {displayHistory.map((item, i) => (
-          <div key={i}
-            className={`w-[7px] h-[7px] sm:w-2.5 sm:h-2.5 rounded-full shrink-0 ${getColor(item.status)} transition-all hover:scale-125 cursor-pointer`}
-            title={`${item.timestamp ? new Date(item.timestamp).toLocaleString() : t('heartbeatGrid.unknownTime')}: ${item.status}`}
-          />
-        ))}
-        {Array.from({ length: emptyCount }).map((_, i) => (
-          <div key={`e-${i}`} className="w-[7px] h-[7px] sm:w-2.5 sm:h-2.5 rounded-full shrink-0 bg-slate-200 dark:bg-white/5" />
-        ))}
-      </div>
-      <div className="flex justify-between items-center mt-3">
-        <span className="text-xs text-slate-500">{t('heartbeatGrid.uptime')}: {normalizedUptime.toFixed(2)}%</span>
-        <div className="flex gap-3 items-center">
-          <span className="flex items-center gap-1 text-xs text-slate-500">
-            <span className="w-2 h-2 rounded-full bg-emerald-500" /> {t('heartbeatGrid.up')}
-          </span>
-          <span className="flex items-center gap-1 text-xs text-slate-500">
-            <span className="w-2 h-2 rounded-full bg-red-500" /> {t('heartbeatGrid.down')}
-          </span>
-        </div>
-      </div>
+    <div className="flex items-center gap-[3px]">
+      {displayHistory.map((status, i) => (
+        <div key={i}
+          className={`w-[6px] h-4 rounded-sm shrink-0 ${getColor(status)}`}
+        />
+      ))}
+      {Array.from({ length: emptyCount }).map((_, i) => (
+        <div key={`e-${i}`} className="w-[6px] h-4 rounded-sm shrink-0 bg-slate-200 dark:bg-white/[0.08]" />
+      ))}
     </div>
   );
 };
