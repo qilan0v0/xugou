@@ -145,11 +145,11 @@ export default function AgentDetailModal({ agent, onClose, showToken }: AgentDet
           {/* System Info — full width, 2-3 column grid */}
           <div className="glass rounded-xl p-4">
             <h3 className="font-semibold text-sm text-slate-900 dark:text-white mb-3">系统信息</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-1.5 text-xs">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-1.5 text-xs">
               {/* 系统（长字段整行显示，允许换行） */}
-              <div className="flex items-start gap-2 col-span-full"><Server size={14} className="text-indigo-500 shrink-0 mt-0.5" /><span className="text-slate-500 shrink-0">系统:</span><span className="text-slate-700 dark:text-slate-300 break-all">{agent.os || '--'}</span></div>
-              <div className="flex items-start gap-2 col-span-full"><Tag size={14} className="text-violet-500 shrink-0 mt-0.5" /><span className="text-slate-500 shrink-0">版本:</span><span className="text-slate-700 dark:text-slate-300 break-all">{agent.version || '--'}</span></div>
-              {agent.cpu_model_name && <div className="flex items-start gap-2 col-span-full"><Cpu size={14} className="text-orange-500 shrink-0 mt-0.5" /><span className="text-slate-500 shrink-0">CPU型号:</span><span className="text-slate-700 dark:text-slate-300 break-all">{agent.cpu_model_name}</span></div>}
+              <div className="flex items-start gap-2 col-span-full sm:col-span-3"><Server size={14} className="text-indigo-500 shrink-0 mt-0.5" /><span className="text-slate-500 shrink-0">系统:</span><span className="text-slate-700 dark:text-slate-300 break-all">{agent.os || '--'}</span></div>
+              <div className="flex items-start gap-2 col-span-full sm:col-span-3"><Tag size={14} className="text-violet-500 shrink-0 mt-0.5" /><span className="text-slate-500 shrink-0">版本:</span><span className="text-slate-700 dark:text-slate-300 break-all">{agent.version || '--'}</span></div>
+              {agent.cpu_model_name && <div className="flex items-start gap-2 col-span-full sm:col-span-3"><Cpu size={14} className="text-orange-500 shrink-0 mt-0.5" /><span className="text-slate-500 shrink-0">CPU型号:</span><span className="text-slate-700 dark:text-slate-300 break-all">{agent.cpu_model_name}</span></div>}
 
               {/* 时间 */}
               {agent.boot_time && <div className="flex items-center gap-2"><Power size={14} className="text-amber-500 shrink-0" /><span className="text-slate-500 shrink-0">启动:</span><span className="text-slate-700 dark:text-slate-300 truncate">{formatDateTime(agent.boot_time)}</span></div>}
@@ -157,14 +157,14 @@ export default function AgentDetailModal({ agent, onClose, showToken }: AgentDet
               {connectStr && <div className="flex items-center gap-2"><Plug size={14} className="text-cyan-500 shrink-0" /><span className="text-slate-500 shrink-0">连接:</span><span className="text-slate-700 dark:text-slate-300 truncate">{connectStr}</span></div>}
 
               {/* CPU / 负载 */}
-              {agent.cpu_usage != null && <div className="flex items-center gap-2"><Gauge size={14} className="text-green-500 shrink-0" /><span className="text-slate-500 shrink-0">CPU使用:</span><span className="text-slate-700 dark:text-slate-300">{agent.cpu_usage.toFixed(1)}%</span></div>}
-              {agent.cpu_cores != null && <div className="flex items-center gap-2"><Cpu size={14} className="text-emerald-500 shrink-0" /><span className="text-slate-500 shrink-0">CPU核心:</span><span className="text-slate-700 dark:text-slate-300">{agent.cpu_cores} 核</span></div>}
-              {agent.cpu_arch && <div className="flex items-center gap-2"><CircuitBoard size={14} className="text-lime-500 shrink-0" /><span className="text-slate-500 shrink-0">CPU架构:</span><span className="text-slate-700 dark:text-slate-300">{agent.cpu_arch}</span></div>}
+              {agent.cpu_usage != null && <div className="flex items-center gap-2"><Gauge size={14} className="text-green-500 shrink-0" /><span className="text-slate-500 shrink-0">CPU:</span><span className="text-slate-700 dark:text-slate-300">{agent.cpu_usage.toFixed(1)}%</span></div>}
+              {agent.cpu_cores != null && <div className="flex items-center gap-2"><Cpu size={14} className="text-emerald-500 shrink-0" /><span className="text-slate-500 shrink-0">核心:</span><span className="text-slate-700 dark:text-slate-300">{agent.cpu_cores} 核</span></div>}
+              {agent.cpu_arch && <div className="flex items-center gap-2"><CircuitBoard size={14} className="text-lime-500 shrink-0" /><span className="text-slate-500 shrink-0">架构:</span><span className="text-slate-700 dark:text-slate-300">{agent.cpu_arch}</span></div>}
               {(agent.load1 != null) && <div className="flex items-center gap-2"><Activity size={14} className="text-rose-500 shrink-0" /><span className="text-slate-500 shrink-0">负载:</span><span className="text-slate-700 dark:text-slate-300 truncate">{[agent.load1, agent.load5, agent.load15].map(v => v?.toFixed(2) ?? '-').join(' / ')}</span></div>}
 
               {/* 内存 / 磁盘 */}
-              {agent.memory_total != null && <div className="flex items-center gap-2"><MemoryStick size={14} className="text-blue-500 shrink-0" /><span className="text-slate-500">内存:</span><span className="text-slate-700 dark:text-slate-300">{formatSize(agent.memory_used || 0)} / {formatSize(agent.memory_total)}</span></div>}
-              {agent.disk_total != null && <div className="flex items-center gap-2"><HardDrive size={14} className="text-red-500 shrink-0" /><span className="text-slate-500">磁盘:</span><span className="text-slate-700 dark:text-slate-300">{formatSize(agent.disk_used || 0)} / {formatSize(agent.disk_total)}</span></div>}
+              {agent.memory_total != null && <div className="flex items-center gap-2"><MemoryStick size={14} className="text-blue-500 shrink-0" /><span className="text-slate-500">内存:</span><span className="text-slate-700 dark:text-slate-300 truncate">{formatSize(agent.memory_used || 0)} / {formatSize(agent.memory_total)}</span></div>}
+              {agent.disk_total != null && <div className="flex items-center gap-2"><HardDrive size={14} className="text-red-500 shrink-0" /><span className="text-slate-500">磁盘:</span><span className="text-slate-700 dark:text-slate-300 truncate">{formatSize(agent.disk_used || 0)} / {formatSize(agent.disk_total)}</span></div>}
 
               {/* 网络速率 */}
               {agent.network_rx != null && <div className="flex items-center gap-2"><Download size={14} className="text-cyan-500 shrink-0" /><span className="text-slate-500">下载:</span><span className="text-slate-700 dark:text-slate-300">{agent.network_rx.toFixed(1)} KB/s</span></div>}
