@@ -6,6 +6,7 @@ import AgentCard from '../../components/AgentCard';
 import AgentDetailModal from '../../components/AgentDetailModal';
 import MonitorCard from '../../components/MonitorCard';
 import MonitorDetailModal from '../../components/MonitorDetailModal';
+import WorldMap from '../../components/WorldMap';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import CustomInjector from '../../components/CustomInjector';
 import { useAuth } from '../../contexts/AuthContext';
@@ -258,6 +259,18 @@ const StatusPage = () => {
             </button>
           </div>
         </div>
+
+        {/* World map */}
+        {agents.length > 0 && (
+          <div className="mb-6">
+            <WorldMap servers={agents.map((a: any) => ({
+              id: a.id,
+              name: a.name,
+              country: a.country,
+              status: a.status,
+            }))} />
+          </div>
+        )}
 
         {/* ── 服务器状态 tab ── */}
         {activeTab === 'agents' && (
