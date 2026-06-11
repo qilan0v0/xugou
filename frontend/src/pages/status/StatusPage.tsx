@@ -229,16 +229,19 @@ const StatusPage = () => {
 
         {/* Tab switcher */}
         <div className="flex justify-center mb-5">
-          <div className="relative flex bg-slate-200 dark:bg-white/[0.08] rounded-xl p-1">
-            <div className={`absolute top-1 bottom-1 rounded-lg bg-white dark:bg-slate-700 shadow-sm transition-all duration-300 ease-in-out`}
+          <div className="relative grid grid-cols-3 bg-slate-200 dark:bg-white/[0.08] rounded-xl overflow-hidden">
+            {/* Sliding indicator */}
+            <div className={`absolute inset-0 p-0.5 transition-all duration-300 ease-in-out`}
               style={{
-                width: 'calc(33.333% - 4px)',
-                transform: activeTab === 'agents' ? 'translateX(2px)' : activeTab === 'monitors' ? 'translateX(calc(33.333% + 2px))' : 'translateX(calc(66.666% + 2px))',
+                width: '33.333%',
+                transform: activeTab === 'agents' ? 'translateX(0)' : activeTab === 'monitors' ? 'translateX(100%)' : 'translateX(200%)',
               }}
-            />
+            >
+              <div className="w-full h-full rounded-[10px] bg-white dark:bg-slate-700 shadow-sm" />
+            </div>
             <button
               onClick={() => switchTab('agents')}
-              className={`relative z-10 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150 flex-1 whitespace-nowrap ${
+              className={`relative z-10 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-colors duration-150 ${
                 activeTab === 'agents'
                   ? 'text-blue-600 dark:text-blue-400'
                   : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
@@ -249,7 +252,7 @@ const StatusPage = () => {
             </button>
             <button
               onClick={() => switchTab('monitors')}
-              className={`relative z-10 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150 flex-1 whitespace-nowrap ${
+              className={`relative z-10 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-colors duration-150 ${
                 activeTab === 'monitors'
                   ? 'text-blue-600 dark:text-blue-400'
                   : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
@@ -260,7 +263,7 @@ const StatusPage = () => {
             </button>
             <button
               onClick={() => switchTab('map')}
-              className={`relative z-10 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150 flex-1 whitespace-nowrap ${
+              className={`relative z-10 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-colors duration-150 ${
                 activeTab === 'map'
                   ? 'text-blue-600 dark:text-blue-400'
                   : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
