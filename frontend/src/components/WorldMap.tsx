@@ -68,10 +68,9 @@ export default function WorldMap({ servers }: WorldMapProps) {
 
   const mapSvg = (
     <svg
-      width={width}
-      height={height}
       viewBox={`0 0 ${width} ${height}`}
-      className="w-full h-auto"
+      className="w-full h-auto max-h-[60vh]"
+      preserveAspectRatio="xMidYMid meet"
     >
       <rect x="0" y="0" width={width} height={height} fill="transparent" />
       {filteredFeatures.map((feature: any, index: number) => {
@@ -130,10 +129,7 @@ export default function WorldMap({ servers }: WorldMapProps) {
           {countryList.length} 个地区
         </span>
       </div>
-      <div
-        ref={containerRef}
-        className="relative w-full overflow-x-auto"
-      >
+      <div ref={containerRef} className="relative w-full">
         {mapSvg}
         {/* Tooltip */}
         {tooltip && (
