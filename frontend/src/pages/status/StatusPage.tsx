@@ -28,8 +28,8 @@ const StatusPage = () => {
   const [cardSize, setCardSize] = useState<'small' | 'medium' | 'large'>(
     () => (localStorage.getItem(CARD_SIZE_KEY) as 'small' | 'medium' | 'large') || 'large'
   );
-  const [activeTab, setActiveTab] = useState<'agents' | 'monitors'>(
-    () => (localStorage.getItem(TAB_KEY) as 'agents' | 'monitors') || 'agents'
+  const [activeTab, setActiveTab] = useState<'agents' | 'monitors' | 'map'>(
+    () => (localStorage.getItem(TAB_KEY) as 'agents' | 'monitors' | 'map') || 'agents'
   );
   const [data, setData] = useState<{ title: string; description: string; logoUrl: string; customCss: string; monitors: Monitor[]; agents: StatusAgent[] }>({ title: '系统状态', description: '', logoUrl: '', customCss: '', monitors: [], agents: [] });
   const [error, setError] = useState<string | null>(null);
@@ -55,7 +55,7 @@ const StatusPage = () => {
           logoUrl: res.data!.logoUrl || prev.logoUrl,
           customCss: res.data!.customCss || prev.customCss,
           agents: res.data!.agents || prev.agents,
-          monitors: activeTab === 'monitors' ? (res.data!.monitors || prev.monitors) : prev.monitors,
+          monitors: activeTab === 'monitors' ? (res.data!.monitors || prev.monitors) : (prev.monitors || []),
         }));
       } else if (!fetched) {
         setError(res.message || t('statusPage.fetchError'));
@@ -111,7 +111,7 @@ const StatusPage = () => {
   }, [activeTab]);
 
   // Tab switch handler
-  const switchTab = (tab: 'agents' | 'monitors') => {
+  const switchTab = (tab: 'agents' | 'monitors' | 'map') => {
     setActiveTab(tab);
     localStorage.setItem(TAB_KEY, tab);
   };
@@ -229,15 +229,16 @@ const StatusPage = () => {
 
         {/* Tab switcher */}
         <div className="flex justify-center mb-5">
-          <div className="relative flex gap-1 bg-slate-200 dark:bg-white/[0.08] rounded-xl p-1">
-            <div className={`absolute top-1 bottom-1 rounded-lg bg-white dark:bg-slate-700 shadow-sm transition-all duration-300 ease-in-out ${
-              activeTab === 'agents'
-                ? 'left-1 right-[50%]'
-                : 'left-[50%] right-1'
-            }`} />
+          <div className="relative flex bg-slate-200 dark:bg-white/[0.08] rounded-xl p-1">
+            <div className={`absolute top-1 bottom-1 rounded-lg bg-white dark:bg-slate-700 shadow-sm transition-all duration-300 ease-in-out`}
+              style={{
+                width: 'calc(33.333% - 4px)',
+                transform: activeTab === 'agents' ? 'translateX(2px)' : activeTab === 'monitors' ? 'translateX(calc(33.333% + 2px))' : 'translateX(calc(66.666% + 2px))',
+              }}
+            />
             <button
               onClick={() => switchTab('agents')}
-              className={`relative z-10 flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-colors duration-150 ${
+              className={`relative z-10 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150 flex-1 whitespace-nowrap ${
                 activeTab === 'agents'
                   ? 'text-blue-600 dark:text-blue-400'
                   : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
@@ -248,7 +249,7 @@ const StatusPage = () => {
             </button>
             <button
               onClick={() => switchTab('monitors')}
-              className={`relative z-10 flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-colors duration-150 ${
+              className={`relative z-10 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150 flex-1 whitespace-nowrap ${
                 activeTab === 'monitors'
                   ? 'text-blue-600 dark:text-blue-400'
                   : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
@@ -257,20 +258,19 @@ const StatusPage = () => {
               <Activity size={15} />
               API服务状态
             </button>
+            <button
+              onClick={() => switchTab('map')}
+              className={`relative z-10 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150 flex-1 whitespace-nowrap ${
+                activeTab === 'map'
+                  ? 'text-blue-600 dark:text-blue-400'
+                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+              }`}
+            >
+              <Globe size={15} />
+              服务器地图
+            </button>
           </div>
         </div>
-
-        {/* World map */}
-        {agents.length > 0 && (
-          <div className="mb-6">
-            <WorldMap servers={agents.map((a: any) => ({
-              id: a.id,
-              name: a.name,
-              country: a.country,
-              status: a.status,
-            }))} />
-          </div>
-        )}
 
         {/* ── 服务器状态 tab ── */}
         {activeTab === 'agents' && (
@@ -348,6 +348,24 @@ const StatusPage = () => {
                 {filteredMonitors.map(m => (
                   <MonitorCard key={m.id} monitor={m} onClick={() => setSelectedMonitor(m)} />
                 ))}
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* ── 服务器地图 tab ── */}
+        {activeTab === 'map' && (
+          <section>
+            {agents.length > 0 ? (
+              <WorldMap servers={agents.map((a: any) => ({
+                id: a.id,
+                name: a.name,
+                country: a.country,
+                status: a.status,
+              }))} />
+            ) : (
+              <div className="glass p-8 text-center">
+                <p className="text-sm text-slate-500">暂无可展示的服务器分布</p>
               </div>
             )}
           </section>
