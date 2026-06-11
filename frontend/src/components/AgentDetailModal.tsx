@@ -143,7 +143,8 @@ export default function AgentDetailModal({ agent, onClose, showToken }: AgentDet
           )}
 
           {/* System Info — full width, 2-3 column grid */}
-          <div className="glass rounded-xl p-4">
+          {/* system info */}
+          <div className="-mx-6 px-6 py-4 bg-slate-50/80 dark:bg-white/[0.02] border-y border-slate-200/60 dark:border-white/[0.06]">
             <h3 className="font-semibold text-sm text-slate-900 dark:text-white mb-3">系统信息</h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-1.5 text-xs">
               {/* 系统（长字段整行显示，允许换行） */}
