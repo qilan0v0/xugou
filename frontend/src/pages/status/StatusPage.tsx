@@ -217,14 +217,32 @@ const StatusPage = () => {
           ))}
         </div>
 
-        {/* Search bar */}
-        <div className="mb-4 flex items-center rounded-xl border-2 border-slate-200/60 dark:border-slate-700/60 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm transition-all focus-within:border-blue-400 dark:focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-500/10">
-          <div className="flex items-center justify-center w-10 h-full shrink-0 text-slate-400">
-            <Search size={16} />
+        {/* Search bar + card size toggle */}
+        <div className="mb-4 flex items-center gap-3">
+          <div className="flex-1 flex items-center rounded-xl border-2 border-slate-200/60 dark:border-slate-700/60 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm transition-all focus-within:border-blue-400 dark:focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-500/10">
+            <div className="flex items-center justify-center w-10 h-full shrink-0 text-slate-400">
+              <Search size={16} />
+            </div>
+            <input type="text" value={search} onChange={e => setSearch(e.target.value)}
+              placeholder="搜索服务器、API服务、标签..."
+              className="flex-1 min-w-0 pr-3 py-2.5 bg-transparent text-sm text-slate-700 dark:text-slate-300 placeholder:text-slate-400 focus:outline-none" />
           </div>
-          <input type="text" value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="搜索服务器、API服务、标签..."
-            className="flex-1 min-w-0 pr-3 py-2.5 bg-transparent text-sm text-slate-700 dark:text-slate-300 placeholder:text-slate-400 focus:outline-none" />
+          {activeTab === 'agents' && (
+            <div className="flex items-center bg-slate-200 dark:bg-slate-700 rounded-lg p-0.5 shrink-0">
+              {(['small', 'medium', 'large'] as const).map((s) => {
+                const Icon = s === 'small' ? List : s === 'medium' ? Rows3 : LayoutGrid;
+                return (
+                  <button key={s}
+                    onClick={() => { setCardSize(s); localStorage.setItem(CARD_SIZE_KEY, s); }}
+                    className={`p-1.5 rounded-md transition-colors ${cardSize === s ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
+                    title={s === 'small' ? '小卡片' : s === 'medium' ? '中卡片' : '大卡片'}
+                  >
+                    <Icon size={14} />
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Tab switcher */}
@@ -278,24 +296,6 @@ const StatusPage = () => {
         {/* ── 服务器状态 tab ── */}
         {activeTab === 'agents' && (
           <section>
-            <div className="flex justify-end items-center mb-4">
-              {/* Card size toggle */}
-              <div className="flex items-center bg-slate-200 dark:bg-slate-700 rounded-lg p-0.5">
-                {(['small', 'medium', 'large'] as const).map((s) => {
-                  const Icon = s === 'small' ? List : s === 'medium' ? Rows3 : LayoutGrid;
-                  return (
-                    <button key={s}
-                      onClick={() => { setCardSize(s); localStorage.setItem(CARD_SIZE_KEY, s); }}
-                      className={`p-1.5 rounded-md transition-colors ${cardSize === s ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
-                      title={s === 'small' ? '小卡片' : s === 'medium' ? '中卡片' : '大卡片'}
-                    >
-                      <Icon size={14} />
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
             {/* Category filter */}
             {cats.length > 0 && (
               <div className="relative grid mb-4 bg-slate-200 dark:bg-white/[0.08] rounded-lg p-1"

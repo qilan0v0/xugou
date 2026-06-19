@@ -22,9 +22,8 @@ const MonitorCard = React.memo(({ monitor, onClick }: MonitorCardProps) => {
   // Uptime pill color
   const uptimeColor = (() => {
     if (currentStatus === 'down') return 'bg-red-500';
-    if (monitor.uptime >= 99.9) return 'bg-emerald-500';
-    if (monitor.uptime >= 99) return 'bg-emerald-400';
-    if (monitor.uptime >= 95) return 'bg-amber-500';
+    if (monitor.uptime >= 99) return 'bg-emerald-500';
+    if (monitor.uptime >= 50) return 'bg-amber-500';
     return 'bg-red-400';
   })();
 
