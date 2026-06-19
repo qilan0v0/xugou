@@ -88,7 +88,9 @@ const AgentCard = React.memo(({ agent, onClick, size = 'large' }: AgentCardProps
       <div className="text-[10px] leading-[14px] h-[14px]">
         {hasSub && <span className="text-slate-400">{sub}</span>}
       </div>
-      {hasBar && <ResourceBar value={Math.min(barValue!, 100)} color={barColor!} height={5} />}
+      {hasBar
+        ? <ResourceBar value={Math.min(barValue!, 100)} color={barColor!} height={5} />
+        : <div className="h-[5px]" aria-hidden />}
     </div>
   );};
 

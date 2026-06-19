@@ -1,0 +1,82 @@
+# Reasonix configuration.
+# Resolution order: flag > ./reasonix.toml > ~/.config/reasonix/config.toml > built-in defaults.
+# Secrets come from the environment via api_key_env; never put keys here.
+
+config_version = 2   # schema marker for diagnostics; old versions may ignore it
+default_model = "deepseek-flash"
+# language      = "zh"   # ui/model language; empty = auto-detect from $LANG / $REASONIX_LANG
+
+[agent]
+# system_prompt = """..."""   # omit to use the built-in prompt for this version
+# system_prompt_file = "prompts/system.md"   # overrides system_prompt when set
+max_steps         = 0   # executor tool-call rounds; 0 = no limit
+planner_max_steps = 12   # planner read-only tool-call rounds; 0 = no limit
+temperature       = 0.0
+auto_plan   = "off"   # off|on; off keeps plan mode manual
+# auto_plan_classifier = "deepseek-flash"   # optional; only used for borderline tasks
+soft_compact_ratio  = 0.5   # notice only; keeps cache-first prefix intact
+compact_ratio       = 0.8   # try compacting when prompt reaches this fraction
+compact_force_ratio = 0.9   # force compacting at this high-water mark
+# planner_model = "mimo"   # optional: enable two-model collaboration
+# subagent_model = "deepseek-pro"   # optional default for runAs=subagent skills
+# subagent_models = { review = "deepseek-pro", security_review = "deepseek-pro" }   # per-skill overrides
+# subagent_effort = "high"   # optional default effort for subagents
+# subagent_efforts = { review = "max", task = "high" }   # per-tool/skill effort overrides
+# output_style = "explanatory"   # explanatory | learning | concise | custom; empty = default
+
+[tools]
+enabled = []   # empty = all built-in tools
+bash_timeout_seconds = 120   # foreground safety cap; set 0 for no tool-local cap
+
+[codegraph]
+enabled      = true   # built-in MCP server; off by default for first-run sessions
+auto_install = true   # fetch the runtime when CodeGraph is enabled but missing
+# path       = ""   # empty = cache, then PATH, then a bundle beside reasonix
+
+[lsp]
+enabled = true   # language server tools; servers launch lazily when used
+# [lsp.servers.go]
+# command = "gopls"
+# args = []
+# extensions = [".go"]
+
+[skills]
+# paths = ["~/my-skills", "../shared/skills"]   # extra custom skill roots
+# excluded_paths = ["~/.agents/skills"]   # hide convention roots without deleting folders
+# max_depth = 3   # nested scan depth; set 1 for legacy root-only discovery
+# disabled_skills = ["review"]   # hide noisy or unwanted skills
+
+[permissions]
+# Per-call gating. mode = writer fallback when no rule matches: ask|allow|deny.
+# Readers always default to allow. Precedence: deny > ask > allow > fallback.
+# Rules are "Tool" or "Tool(specifier)"; e.g. Bash(go test:*), Edit(src/**).
+mode  = "ask"
+# deny = ["Bash(rm -rf*)", "Bash(git push*)"]   # hard-blocked in every mode
+allow = ["Bash(cd frontend && cat package.json)", "Bash(cd frontend && ls -la)", "Bash(cd frontend && cat .env.production)", "Bash(cd frontend && cat vite.config.ts)", "Bash(cd frontend && ls .wrangler/tmp/)", "Bash(cd frontend && npx wrangler --version 2>&1; echo \"---\"; npx wrangler pages project list 2>&1 | head -20)", "Bash(cd frontend && grep -n \"getAllAgents\\|getAgentById\" src/api/agents.ts)", "Bash(cd frontend && npm run build 2>&1)", "Bash(cd frontend && npx wrangler pages deploy dist --project-name xugou-frontend --branch main 2>&1)", "Bash(cd backend && git add frontend/src/ frontend/dist/ && git commit -m \"fix: 前端SSE重连机制+AgentDetail增加SSE实时更新\n\n- AgentsList/StatusPage/AgentDetail 三个页面统一添加 SSE onerror 重连 (3s 后自动重连)\n- AgentDetail 新增 SSE agent-update 监听，连接时长变化时秒级刷新\n- 修复 AgentDetail 缺少 ENV_API_BASE_URL 导入的问题\" && git push origin main 2>&1)", "Bash(cd backend && git add ../frontend/src/ ../frontend/dist/ && git commit -m \"fix: 前端SSE重连机制+AgentDetail增加SSE实时更新\" && git push origin main 2>&1)", "Bash(cd backend && git add ../frontend/src/ && git commit -m \"fix: 前端SSE重连机制+AgentDetail增加SSE实时更新\" && git push origin main 2>&1)", "Bash(cd backend && npm run build:node 2>&1)", "Bash(cd backend && git add src/index.node.ts dist/index.node.js && git commit -m \"fix: 添加 Cache-Control 禁止 API 响应被 CDN/浏览器缓存\n\n所有 /api/* 路由统一设置:\n- Cache-Control: no-cache, no-store, must-revalidate\n- Pragma: no-cache\n- Expires: 0\n\n防止 Cloudflare 等 CDN 缓存 GET /api/agents 等接口的响应数据\" && git push origin main 2>&1)", "Bash(cd backend && git diff HEAD~1 -- src/index.node.ts dist/index.node.js 2>&1)", "Bash(cd backend && git log --oneline -3 && git status --short src/index.node.ts dist/index.node.js)", "Bash(cd backend && npm run build:node 2>&1 && echo \"--- BUILD OK ---\" && git log --oneline -1 && echo \"--- LATEST COMMIT ---\" && git status --short src/index.node.ts dist/index.node.js)", "Bash(cd ../frontend && git status --short src/ && echo \"---\" && cat node_modules/.vite/deps/package.json 2>/dev/null || echo \"built assets exist:\" && ls dist/index.html 2>/dev/null)", "Bash(cd /e/A/github/xugou/frontend && ls dist/index.html 2>/dev/null && git status --short src/)", "Bash(cd backend && npm run build:node 2>&1 && echo \"BACKEND_OK\")", "Bash(cd frontend && npm run build 2>&1 && echo \"FRONTEND_OK\")", "Bash(cd backend && grep -A3 \"connected_at\" dist/index.node.js | head -15)", "Bash(cd backend && grep -c \"重置连接时长\" dist/index.node.js)", "Bash(cd frontend && git diff HEAD~1 -- src/pages/agents/AgentsList.tsx src/pages/status/StatusPage.tsx src/pages/agents/AgentDetail.tsx 2>/dev/null | head -80)", "Bash(cd backend && grep -A5 \"historyMap\" dist/routes/status.js | head -15)", "Bash(cd backend && grep -A2 \"history: hist.reverse\" dist/routes/status.js)", "Bash(cd backend && git add src/routes/status.ts dist/routes/status.js && git commit -m \"perf: /api/status/data 的 history 改为只返回 status 数组\n\n原来每条历史返回 { monitor_id, status, timestamp } 三个字段，\nmonitor_id 冗余（同父级ID），timestamp 在状态页列表不显示。\n改为只返回 status 字符串数组，响应体积减少 60%+。\" && git push origin main 2>&1)", "Bash(cd backend && grep \"SELECT.*monitor_id.*status.*FROM\" dist/routes/status.js)", "Bash(cd backend && grep -A3 \"SELECT monitor_id, status\" dist/routes/status.js)", "Bash(cd backend && grep -A3 \"SELECT monitor_id, status\" src/routes/status.ts)", "Bash(ls \"C:\\Users\\lg0001\\Downloads\\uptime-kuma-master\\uptime-kuma-master\" 2>/dev/null || echo \"not found\")", "Bash(ls \"C:\\Users\\lg0001\\Downloads\\uptime-kuma-master\\uptime-kuma-master\\src\\components\" 2>/dev/null | head -40)", "Bash(cat \"C:\\Users\\lg0001\\Downloads\\uptime-kuma-master\\uptime-kuma-master\\src\\pages\\StatusPage.vue\" 2>/dev/null || cat \"C:\\Users\\lg0001\\Downloads\\uptime-kuma-master\\uptime-kuma-master\\src\\pages\\*.vue\" 2>/dev/null | head -200)"]
+# ask = ["Edit(src/**)"]   # force a prompt even if otherwise allowed
+
+[sandbox]
+# Confine tool blast radius. File-writers (write_file/edit_file/multi_edit)
+# may only write under workspace_root (empty = current dir) + allow_write.
+# bash = "enforce" (default) jails each command in an OS sandbox (macOS now;
+# graceful fallback elsewhere); "off" disables it. network allows egress.
+# workspace_root = ""            # default: current working directory
+# allow_write = ["/tmp"]          # extra dirs writers may also modify
+bash    = "enforce"
+network = true
+
+[statusline]
+# A custom status line: a command whose first stdout line replaces the built-in
+# data row. It receives {"model","contextUsed","contextWindow","cwd"} as JSON on stdin.
+# command = "my-statusline.sh"
+
+# External MCP servers. type: "stdio" (default, a subprocess) | "http" | "sse".
+# ${VAR} / ${VAR:-default} are expanded from the environment in command/args/env/url/headers.
+# [[plugins]]
+# name    = "example"
+# command = "reasonix-plugin-example"
+# [[plugins]]                                  # a remote server over Streamable HTTP
+# name    = "stripe"
+# type    = "http"
+# url     = "https://mcp.stripe.com"
+# headers = { Authorization = "Bearer ${STRIPE_KEY}" }
