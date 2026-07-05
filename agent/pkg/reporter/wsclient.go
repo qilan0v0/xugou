@@ -1,16 +1,20 @@
 package reporter
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
+	"sync"
 	"time"
 
+	"github.com/gorilla/websocket"
 	"github.com/spf13/viper"
-	"golang.org/x/term"
 )
 
 // WSMessage 定义 WebSocket 消息格式
@@ -19,106 +23,212 @@ type WSMessage struct {
 	Data string `json:"data,omitempty"`
 	Cols int    `json:"cols,omitempty"`
 	Rows int    `json:"rows,omitempty"`
+	Code int    `json:"code,omitempty"`
 }
 
 // TerminalSession 管理一个终端会话
 type TerminalSession struct {
 	cmd    *exec.Cmd
-	stdin  *os.File
-	stdout *os.File
-	stderr *os.File
+	stdin  io.WriteCloser
 	done   chan struct{}
+	mu     sync.Mutex
 }
 
-// RunTerminal 启动 WebSocket 终端客户端
-func RunTerminal(ctx context.Context, wsURL string, token string) error {
-	// 这里简化实现：通过 websocket 连接接收 shell 指令
-	// 由于 agent 当前没有 gorilla/websocket 依赖，这里改用 stdin/stdout 直连
-	// 实际部署时可用 ncat / socat 等工具桥接，或安装 gorilla/websocket 后编译
+// RunWSClient 启动 WebSocket 客户端，保持长连接并处理终端指令
+func RunWSClient(ctx context.Context, serverURL, token string) {
+	wsBase := strings.Replace(serverURL, "http://", "ws://", 1)
+	wsBase = strings.Replace(wsBase, "https://", "wss://", 1)
+	wsURL := fmt.Sprintf("%s/api/ws/agent?token=%s", wsBase, token)
 
-	fmt.Println("[终端] 准备启动 shell 会话...")
-	fmt.Printf("[终端] 连接地址: %s\n", wsURL)
+	dialer := websocket.DefaultDialer
+	dialer.HandshakeTimeout = 10 * time.Second
 
-	shell := os.Getenv("SHELL")
-	if shell == "" {
-		shell = "/bin/sh"
-	}
-	// Windows 兼容
-	if _, err := os.Stat(shell); os.IsNotExist(err) {
-		if _, err := os.Stat("C:\\Windows\\System32\\cmd.exe"); err == nil {
-			shell = "cmd.exe"
-		} else {
-			shell = "/bin/sh"
+	var currentSession *TerminalSession
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
 		}
-	}
 
-	// 使用 exec 启动交互式 shell
-	cmd := exec.Command(shell)
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+		if viper.GetBool("debug") {
+			fmt.Printf("[WS] 连接 %s\n", wsURL)
+		}
 
-	// 设置终端原始模式（UNIX）
-	if term.IsTerminal(int(os.Stdin.Fd())) {
-		oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
+		conn, _, err := dialer.Dial(wsURL, nil)
 		if err != nil {
-			return fmt.Errorf("设置终端原始模式失败: %w", err)
+			if viper.GetBool("debug") {
+				fmt.Printf("[WS] 连接失败: %v，5秒后重试\n", err)
+			}
+			time.Sleep(5 * time.Second)
+			continue
 		}
-		defer term.Restore(int(os.Stdin.Fd()), oldState)
+
+		if viper.GetBool("debug") {
+			fmt.Println("[WS] 已连接")
+		}
+
+		// ping 保活
+		done := make(chan struct{})
+		go func() {
+			ticker := time.NewTicker(30 * time.Second)
+			defer ticker.Stop()
+			for {
+				select {
+				case <-ticker.C:
+					conn.WriteMessage(websocket.PingMessage, nil)
+				case <-done:
+					return
+				case <-ctx.Done():
+					return
+				}
+			}
+		}()
+
+		// 消息处理
+		err = func() error {
+			for {
+				_, message, err := conn.ReadMessage()
+				if err != nil {
+					return err
+				}
+
+				var msg WSMessage
+				if err := json.Unmarshal(message, &msg); err != nil {
+					continue
+				}
+
+				switch msg.Type {
+				case "shell-start":
+					if currentSession != nil {
+						currentSession.Close()
+					}
+					s := NewTerminalSession()
+					currentSession = s
+					go s.Run(func(output string, exitCode int) {
+						sendWS(conn, WSMessage{Type: "shell-output", Data: output})
+						if exitCode >= 0 {
+							sendWS(conn, WSMessage{Type: "shell-exit", Code: exitCode})
+						}
+					})
+
+				case "shell-input":
+					if currentSession != nil {
+						currentSession.Write(msg.Data)
+					}
+
+				case "shell-end":
+					if currentSession != nil {
+						currentSession.Close()
+						currentSession = nil
+					}
+
+				case "resize":
+					// pty resize - 暂不实现
+				}
+			}
+		}()
+
+		close(done)
+		conn.Close()
+
+		if currentSession != nil {
+			currentSession.Close()
+			currentSession = nil
+		}
+
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			time.Sleep(3 * time.Second)
+		}
+	}
+}
+
+func sendWS(conn *websocket.Conn, msg WSMessage) {
+	data, _ := json.Marshal(msg)
+	conn.WriteMessage(websocket.TextMessage, data)
+}
+
+// NewTerminalSession 创建终端会话
+func NewTerminalSession() *TerminalSession {
+	return &TerminalSession{done: make(chan struct{})}
+}
+
+// Run 启动 shell，读取输出并通过回调返回
+func (s *TerminalSession) Run(onOutput func(string, int)) {
+	s.mu.Lock()
+
+	shell := "/bin/sh"
+	if runtime.GOOS == "windows" {
+		shell = "cmd.exe"
+	}
+	if env := os.Getenv("SHELL"); env != "" {
+		shell = env
 	}
 
-	fmt.Printf("[终端] 启动 %s\n", shell)
-	err := cmd.Run()
+	cmd := exec.Command(shell)
+	stdin, _ := cmd.StdinPipe()
+	stdout, _ := cmd.StdoutPipe()
+	cmd.Stderr = cmd.Stdout // stderr 合并到 stdout
+
+	s.cmd = cmd
+	s.stdin = stdin
+	s.mu.Unlock()
+
+	if err := cmd.Start(); err != nil {
+		onOutput(fmt.Sprintf("shell error: %v\n", err), 1)
+		return
+	}
+
+	// 实时读取输出
+	go func() {
+		scanner := bufio.NewScanner(stdout)
+		scanner.Buffer(make([]byte, 64*1024), 64*1024)
+		for scanner.Scan() {
+			onOutput(scanner.Text()+"\r\n", -1)
+		}
+	}()
+
+	// 等待 done 信号关闭 stdin
+	go func() {
+		<-s.done
+		stdin.Close()
+	}()
+
+	err := cmd.Wait()
+	exitCode := 0
 	if err != nil {
-		return fmt.Errorf("shell 执行结束: %w", err)
-	}
-	return nil
-}
-
-// RunWSClient 运行 WebSocket 客户端（需要 gorilla/websocket 依赖时才编译）
-// 编译方式: go build -tags=wsclient
-// 当前使用简单的 TCP 直连作为替代方案
-func RunWSClient(ctx context.Context, serverURL, token string) error {
-	viper.Set("log_level", "info")
-
-	// 使用 websocat / ncat 等外部工具作为临时方案
-	// 或直接手动编译含 gorilla/websocket 的版本
-	fmt.Println("[WS] 终端功能需要编译含 websocket 支持的版本:")
-	fmt.Println("[WS]   go get github.com/gorilla/websocket")
-	fmt.Println("[WS]   go build -tags=wsclient -o qltz-agent-ws .")
-	fmt.Println("[WS]")
-	fmt.Println("[WS] 或者使用外部工具桥接:")
-	fmt.Printf("[WS]   websocat ws://%s/api/ws/agent?token=%s\n", serverURL, token)
-	return nil
-}
-
-// StringFromEnv 从环境变量获取字符串值
-func StringFromEnv(key, fallback string) string {
-	if v := os.Getenv(key); v != "" {
-		return v
-	}
-	return fallback
-}
-
-// SplitLines 分割多行文本
-func SplitLines(s string) []string {
-	lines := strings.Split(s, "\n")
-	result := make([]string, 0, len(lines))
-	for _, line := range lines {
-		if trimmed := strings.TrimSpace(line); trimmed != "" {
-			result = append(result, trimmed)
+		if e, ok := err.(*exec.ExitError); ok {
+			exitCode = e.ExitCode()
+		} else {
+			exitCode = 1
 		}
 	}
-	return result
+	onOutput("", exitCode)
 }
 
-func init() {
-	// 确保 agent 启动时打印终端功能提示
-	if viper.GetBool("debug") {
-		fmt.Println("[终端] 终端功能使用外部 WebSocket 桥接")
-		fmt.Println("[终端] 编译: go get github.com/gorilla/websocket && go build -tags=wsclient")
+// Write 向 shell 写入输入
+func (s *TerminalSession) Write(data string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.stdin != nil {
+		io.WriteString(s.stdin, data)
 	}
+}
 
-	// 自动注册 JSON 序列化
-	_ = json.Marshal
+// Close 关闭会话
+func (s *TerminalSession) Close() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	select {
+	case <-s.done:
+	default:
+		close(s.done)
+	}
+	if s.cmd != nil && s.cmd.Process != nil {
+		s.cmd.Process.Kill()
+	}
 }

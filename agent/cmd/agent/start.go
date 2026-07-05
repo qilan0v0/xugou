@@ -160,6 +160,13 @@ func runStart(cmd *cobra.Command, args []string) {
 	}
 	go collectAndReport(ctx, dataCollector, dataReporter)
 
+	// 启动 WebSocket 终端客户端（后台 goroutine）
+	go func() {
+		// 延迟 5 秒启动，等 HTTP 注册完成
+		time.Sleep(5 * time.Second)
+		reporter.RunWSClient(ctx, server, token)
+	}()
+
 	if debug { fmt.Println("Qltz Agent 已启动，按 Ctrl+C 停止") }
 
 	// 主循环
