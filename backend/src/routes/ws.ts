@@ -119,45 +119,66 @@ function handleTerminalConnection(ws: WebSocket, url: URL, env: { JWT_SECRET: st
   const agentId = parseInt(agentIdStr, 10);
   if (isNaN(agentId)) { ws.close(4004, 'invalid agentId'); return; }
 
-  const agentWs = agentWsMap.get(agentId);
-  if (!agentWs || agentWs.readyState !== WebSocket.OPEN) {
-    ws.close(4005, 'agent offline');
-    return;
-  }
+  // 等待 agent 上线（最多等 15 秒，每 1 秒检查一次）
+  let agentWs: WebSocket | null = null;
+  let retries = 0;
+  const maxRetries = 15;
+  const waitForAgent = () => {
+    agentWs = agentWsMap.get(agentId) || null;
+    if (agentWs && agentWs.readyState === WebSocket.OPEN) {
+      // Agent 在线，建立桥接
+      console.log(`[WS] Terminal bridge: user=${user.id} → agent=${agentId}`);
+      setupBridge(ws, agentWs, agentId);
+      return;
+    }
+    retries++;
+    if (retries >= maxRetries || ws.readyState !== WebSocket.OPEN) {
+      ws.close(4006, 'agent offline (timeout)');
+      return;
+    }
+    setTimeout(waitForAgent, 1000);
+  };
+  waitForAgent();
+}
 
-  console.log(`[WS] Terminal bridge: user=${user.id} → agent=${agentId}`);
-
-  // 通知 agent 开启 shell
+function setupBridge(ws: WebSocket, agentWsParam: WebSocket, agentId: number) {
+  let agentWs = agentWsParam;
   agentWs.send(JSON.stringify({ type: 'shell-start' }));
 
   let bridgeAlive = true;
 
-  const forwardToAgent = (data: WebSocket.RawData) => {
-    if (!bridgeAlive || agentWs.readyState !== WebSocket.OPEN) return;
-    try {
-      const msg = JSON.parse(data.toString());
-      agentWs.send(JSON.stringify({ type: 'shell-input', data: msg.data || '' }));
-    } catch { agentWs.send(data.toString()); }
+  const setupHandlers = () => {
+    const forwardToAgent = (data: WebSocket.RawData) => {
+      if (!bridgeAlive || agentWs.readyState !== WebSocket.OPEN) return;
+      try {
+        const msg = JSON.parse(data.toString());
+        agentWs.send(JSON.stringify({ type: 'shell-input', data: msg.data || '' }));
+      } catch { agentWs.send(data.toString()); }
+    };
+
+    const forwardToFrontend = (data: WebSocket.RawData) => {
+      if (!bridgeAlive || ws.readyState !== WebSocket.OPEN) return;
+      try {
+        const msg = JSON.parse(data.toString());
+        if (msg.type === 'shell-output' || msg.type === 'shell-exit') {
+          ws.send(data.toString());
+        }
+      } catch { /* ignore */ }
+    };
+
+    ws.on('message', forwardToAgent);
+    agentWs.on('message', forwardToFrontend);
+
+    return { forwardToAgent, forwardToFrontend };
   };
 
-  const forwardToFrontend = (data: WebSocket.RawData) => {
-    if (!bridgeAlive || ws.readyState !== WebSocket.OPEN) return;
-    try {
-      const msg = JSON.parse(data.toString());
-      if (msg.type === 'shell-output' || msg.type === 'shell-exit') {
-        ws.send(data.toString());
-      }
-    } catch { /* ignore non-JSON messages */ }
-  };
-
-  ws.on('message', forwardToAgent);
-  agentWs.on('message', forwardToFrontend);
+  let handlers = setupHandlers();
 
   const closeBridge = () => {
     if (!bridgeAlive) return;
     bridgeAlive = false;
-    ws.removeListener('message', forwardToAgent);
-    agentWs.removeListener('message', forwardToFrontend);
+    ws.removeListener('message', handlers.forwardToAgent);
+    agentWs.removeListener('message', handlers.forwardToFrontend);
   };
 
   ws.on('close', () => {
@@ -170,10 +191,32 @@ function handleTerminalConnection(ws: WebSocket, url: URL, env: { JWT_SECRET: st
 
   ws.on('error', closeBridge);
 
+  // Agent 断连时等待重连后自动恢复桥接
   agentWs.on('close', () => {
-    closeBridge();
-    if (ws.readyState === WebSocket.OPEN) {
-      ws.close(4006, 'agent disconnected');
-    }
+    if (!bridgeAlive) return;
+    console.log(`[WS] Agent ${agentId} lost, waiting for reconnect...`);
+    ws.removeListener('message', handlers.forwardToAgent);
+    let retries = 0;
+    const maxRetries = 30;
+    const check = () => {
+      retries++;
+      const newAgentWs = agentWsMap.get(agentId);
+      if (newAgentWs && newAgentWs.readyState === WebSocket.OPEN && newAgentWs !== agentWs) {
+        agentWs = newAgentWs;
+        handlers = setupHandlers();
+        agentWs.send(JSON.stringify({ type: 'shell-start' }));
+        // Setup close handler on new connection
+        agentWs.on('close', arguments.callee);
+        console.log(`[WS] Agent ${agentId} reconnected, bridge restored`);
+        return;
+      }
+      if (!bridgeAlive || ws.readyState !== WebSocket.OPEN || retries >= maxRetries) {
+        closeBridge();
+        if (ws.readyState === WebSocket.OPEN) ws.close(4006, 'agent disconnected');
+        return;
+      }
+      setTimeout(check, 2000);
+    };
+    setTimeout(check, 2000);
   });
 }

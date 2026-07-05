@@ -12,9 +12,11 @@ const monitors_1 = __importDefault(require("./routes/monitors"));
 const agents_1 = __importDefault(require("./routes/agents"));
 const users_1 = __importDefault(require("./routes/users"));
 const status_1 = __importDefault(require("./routes/status"));
+const settings_1 = __importDefault(require("./routes/settings"));
 const database_1 = __importDefault(require("./setup/database"));
 const tasks_1 = require("./tasks");
 const jwt_1 = require("./utils/jwt");
+const ws_1 = require("./routes/ws");
 // GeoIP cache (module-level, max 500 entries to limit memory)
 const countryCache = new Map();
 const MAX_CACHE_SIZE = 500;
@@ -225,6 +227,7 @@ app.route('/api/monitors', monitors_1.default);
 app.route('/api/agents', agents_1.default);
 app.route('/api/users', users_1.default);
 app.route('/api/status', status_1.default);
+app.route('/api/settings', settings_1.default);
 app.route('/api', database_1.default);
 app.get('/api/trigger-check', async (c) => {
     await tasks_1.monitorTask.scheduled(null, env, {});
@@ -324,6 +327,8 @@ broadcast = (type, data) => {
             process.exit(1);
         }
     });
+    // Attach WebSocket server for terminal feature
+    (0, ws_1.setupWebSocketServer)(server, env);
     server.listen(port, host, () => {
         console.log(`Qltz Node.js backend on http://${host}:${port}`);
     });
