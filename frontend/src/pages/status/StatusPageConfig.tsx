@@ -47,6 +47,7 @@ const StatusPageConfig = () => {
   const [apiBodyDown, setApiBodyDown] = useState('{"chat_id":"YOUR_CHAT_ID","text":"⚠️ *{name}* 故障\\n\\nURL: {url}\\n状态: {status}\\n响应: {response_time}ms\\n可用率: {uptime}","parse_mode":"Markdown"}');
   const [apiBodyUp, setApiBodyUp] = useState('{"chat_id":"YOUR_CHAT_ID","text":"✅ *{name}* 已恢复\\n\\nURL: {url}\\n状态: {status}\\n响应: {response_time}ms\\n可用率: {uptime}","parse_mode":"Markdown"}');
   const [adminCss, setAdminCss] = useState('');
+  const [apiBaseUrl, setApiBaseUrl] = useState(() => localStorage.getItem('custom_api_base_url') || '');
   const hasInit = useRef(false);
   const { t } = useTranslation();
 
@@ -136,6 +137,8 @@ const StatusPageConfig = () => {
         localStorage.setItem('qltz_page_config', JSON.stringify({
           title: config.title, logoUrl: config.logoUrl, adminCss,
         }));
+        // Save API base URL to localStorage
+        localStorage.setItem('custom_api_base_url', apiBaseUrl);
       }
       else { setToastMsg(res.message || t('statusPageConfig.saveError')); setToastType('error'); }
     } catch { setToastMsg(t('statusPageConfig.saveError')); setToastType('error'); }
@@ -200,6 +203,11 @@ const StatusPageConfig = () => {
                 <label className="block text-xs font-medium text-slate-500 mb-1.5">后台 CSS（管理页面生效）</label>
                 <textarea value={adminCss} onChange={e => setAdminCss(e.target.value)} placeholder="输入仅用于后台管理页面的自定义样式..." className={`${inputClass} font-mono`} rows={6} style={{ minHeight: '150px' }} />
                 <p className="text-xs text-slate-500 mt-1">仪表盘、API监控、客户端监控等管理页面生效，同样支持 &lt;script&gt;</p>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-500 mb-1.5">后端 API 地址</label>
+                <input value={apiBaseUrl} onChange={e => setApiBaseUrl(e.target.value)} placeholder="https://api.example.com" className={inputClass} />
+                <p className="text-xs text-slate-500 mt-1">修改后保存，前端将使用此地址连接后端 API。留空使用构建时默认值。变更后请手动刷新页面。</p>
               </div>
             </div>
           )}

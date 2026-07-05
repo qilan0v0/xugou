@@ -128,7 +128,7 @@ const Navbar = () => {
                         <PersonIcon className="w-3.5 h-3.5" />
                         {t('navbar.profile')}
                       </button>
-                      <button onClick={() => { navigate('/settings'); setMenuOpen(false); }}
+                      <button onClick={() => { navigate('/status/config'); setMenuOpen(false); }}
                         className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-white/5 transition-colors"
                       >
                         <PieChartIcon className="w-3.5 h-3.5" />
