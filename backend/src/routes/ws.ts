@@ -103,7 +103,31 @@ function handleTerminalConnection(ws: WebSocket, url: URL, env: { JWT_SECRET: st
 
       ws.on('close', () => { cleanup(); console.log(`[WS] Bridge closed: agent=${agentId}`); });
       ws.on('error', cleanup);
-      agentWs.on('close', () => { cleanup(); try { ws.close(); } catch {} });
+      
+      // Agent 断线后不关前端连接，等待重连后自动恢复
+      const onAgentClose = function() {
+        console.log(`[WS] Agent ${agentId} lost, waiting before retry...`);
+        ws.removeListener('message', fwdToAgent);
+        let alive2 = true;
+        const waitAndRebridge = () => {
+          if (!alive2 || ws.readyState !== WebSocket.OPEN) return;
+          const newAgentWs = agentWsMap.get(agentId);
+          if (newAgentWs && newAgentWs.readyState === WebSocket.OPEN && newAgentWs !== agentWs) {
+            (agentWs as any) = newAgentWs;
+            cleanup();
+            alive2 = false;
+            console.log(`[WS] Agent ${agentId} reconnected, rebridging...`);
+            newAgentWs.send(JSON.stringify({ type: 'shell-start' }));
+            ws.on('message', fwdToAgent);
+            newAgentWs.on('message', fwdToFrontend);
+            newAgentWs.on('close', onAgentClose);
+            return;
+          }
+          setTimeout(waitAndRebridge, 2000);
+        };
+        setTimeout(waitAndRebridge, 2000);
+      };
+      agentWs.on('close', onAgentClose);
       return;
     }
 
