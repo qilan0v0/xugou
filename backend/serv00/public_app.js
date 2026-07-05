@@ -1,4 +1,4 @@
-// Qltz Passenger entry — self-contained watchdog with HTTP proxy
+// Qltz Passenger entry — self-contained watchdog with HTTP + WebSocket proxy
 // Copy to: ~/domains/用户名.serv00.net/public_nodejs/app.js
 // Passenger detects the HTTP server and auto-starts on first request
 
@@ -99,6 +99,37 @@ const server = http.createServer(async (req, res) => {
     res.writeHead(500);
     res.end("Internal error");
   }
+});
+
+// WebSocket upgrade proxy — forward WS connections to backend
+server.on("upgrade", (req, clientSocket, head) => {
+  log("WS upgrade: " + req.url);
+
+  const backendSocket = net.connect(PORT, "127.0.0.1", () => {
+    const headers = ["Host: 127.0.0.1:" + PORT];
+    for (const [k, v] of Object.entries(req.headers)) {
+      if (k.toLowerCase() !== "host") headers.push(k + ": " + v);
+    }
+
+    backendSocket.write(
+      req.method + " " + req.url + " HTTP/1.1\r\n" +
+      headers.join("\r\n") + "\r\n\r\n"
+    );
+
+    if (head.length > 0) backendSocket.write(head);
+
+    backendSocket.pipe(clientSocket);
+    clientSocket.pipe(backendSocket);
+  });
+
+  backendSocket.on("error", (err) => {
+    log("Backend WS error: " + err.message);
+    clientSocket.end();
+  });
+  clientSocket.on("error", (err) => {
+    log("Client WS error: " + err.message);
+    backendSocket.end();
+  });
 });
 
 server.listen(PORT + 1, "0.0.0.0", () => {

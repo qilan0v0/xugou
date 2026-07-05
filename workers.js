@@ -4,9 +4,8 @@ export default {
     const targetHost = 'qilan3.serv00.net';
     const targetBase = 'https://' + targetHost;
 
-    // ---------- WebSocket proxy /ws ----------
+    // ---------- WebSocket proxy (any path) ----------
     if (
-      url.pathname === '/ws' &&
       request.headers.get('Upgrade')?.toLowerCase() === 'websocket'
     ) {
       const [client, server] = Object.values(new WebSocketPair());
@@ -21,9 +20,12 @@ export default {
       const clientOrigin = request.headers.get('Origin');
       if (clientOrigin) targetHeaders.set('Origin', clientOrigin);
 
+      // Preserve original path and query string when proxying
+      const targetUrl = targetBase + url.pathname + url.search;
+
       let targetResponse;
       try {
-        targetResponse = await fetch(targetBase + '/ws', { headers: targetHeaders });
+        targetResponse = await fetch(targetUrl, { headers: targetHeaders });
       } catch (err) {
         return new Response('Target connection failed: ' + err.message, { status: 502 });
       }

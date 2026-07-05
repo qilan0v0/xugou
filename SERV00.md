@@ -83,7 +83,7 @@ https://你的用户名.serv00.net
 
 | 组件 | 位置 | 说明 |
 |------|------|------|
-| Passenger 入口 | `public_nodejs/app.js` | 自带 HTTP 代理的看门狗，Passenger 自动托管 |
+| Passenger 入口 | `public_nodejs/app.js` | 自带 HTTP + WebSocket 代理的看门狗，Passenger 自动托管 |
 | 后端 | `backend/dist/index.node.js` | 编译后的 Hono API |
 | 数据库 | `backend/data/qltz.db` | better-sqlite3 原生模式 |
 
@@ -92,6 +92,7 @@ https://你的用户名.serv00.net
 - 每 40 分钟主动重启释放内存
 - 请求时发现后端不可用自动触发启动
 - 128MB Node.js 堆上限
+- **WebSocket 代理**：`server.on('upgrade')` 转发终端 WS 连接到后端
 
 ## 查看日志
 
