@@ -1,13 +1,15 @@
 import { useEffect } from 'react';
 import { Cross2Icon, CopyIcon, GlobeIcon, CheckIcon } from '@radix-ui/react-icons';
 import {
-  HardDrive, Server, Tag, Power, Clock, Plug, Gauge, Cpu, CircuitBoard,
+  TerminalIcon, HardDrive, Server, Tag, Power, Clock, Plug, Gauge, Cpu, CircuitBoard,
   Activity, MemoryStick, Download, Upload, ListTree, Network, Boxes,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Agent } from '../api/agents';
 import CountryFlag from './CountryFlag';
 import AgentCharts from './AgentCharts';
+import TerminalModal from './TerminalModal';
+import { useAuth } from '../contexts/AuthContext';
 import { ENV_API_BASE_URL } from '../config';
 
 const formatSize = (bytes: number): string => {
@@ -65,6 +67,9 @@ interface AgentDetailModalProps {
 }
 
 export default function AgentDetailModal({ agent, onClose, showToken }: AgentDetailModalProps) {
+  const { token: jwtToken } = useAuth();
+  const [showTerminal, setShowTerminal] = useState(false);
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -120,6 +125,13 @@ export default function AgentDetailModal({ agent, onClose, showToken }: AgentDet
               <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse-dot shadow-[0_0_6px_rgba(34,197,94,0.6)]' : 'bg-slate-400'}`} />
               {isOnline ? '在线' : '离线'}
             </span>
+            {isOnline && jwtToken && (
+              <button onClick={() => setShowTerminal(true)}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 transition-colors flex-shrink-0">
+                <TerminalIcon className="w-3 h-3" />
+                终端
+              </button>
+            )}
           </div>
 
           {/* quick info */}
@@ -191,6 +203,9 @@ export default function AgentDetailModal({ agent, onClose, showToken }: AgentDet
           {agent.id && <AgentCharts agentId={agent.id} />}
         </div>
       </div>
+      {showTerminal && jwtToken && (
+        <TerminalModal agentId={agent.id} agentName={agent.name} token={jwtToken} onClose={() => setShowTerminal(false)} />
+      )}
     </div>
   );
 }

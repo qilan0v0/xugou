@@ -13,6 +13,7 @@ import initDbRoutes from './setup/database';
 import { monitorTask, runScheduledTasks, checkAgentsStatus, sendAgentNotification } from './tasks';
 import { toD1Primitive, generateAgentName, addDuration } from './utils/jwt';
 import { rateLimit } from './utils/ratelimit';
+import { setupWebSocketServer } from './routes/ws';
 
 // GeoIP cache (module-level, max 500 entries to limit memory)
 const countryCache = new Map<string, string>();
@@ -360,6 +361,9 @@ broadcast = (type, data) => {
       process.exit(1);
     }
   });
+
+  // Attach WebSocket server for terminal feature
+  setupWebSocketServer(server, env);
 
   server.listen(port, host, () => {
     console.log(`Qltz Node.js backend on http://${host}:${port}`);
