@@ -112,11 +112,12 @@ export default function TerminalModal({ agentId, agentName, token, onClose }: Te
           }
         };
 
-        ws.onclose = () => {
+        ws.onclose = (event) => {
           setStatus('disconnected');
           reconnectCount++;
           const delay = Math.min(2000 * reconnectCount, 10000);
-          term.write(`\r\n\x1b[33m⚠ 终端已断开，${delay/1000}秒后重连 (${reconnectCount}/${MAX_RECONNECT})\x1b[0m\r\n`);
+          const reason = event.code ? ` (code=${event.code})` : '';
+          term.write(`\r\n\x1b[33m⚠ 终端已断开${reason}，${delay/1000}秒后重连 (${reconnectCount}/${MAX_RECONNECT})\x1b[0m\r\n`);
           reconnectTimerRef.current = setTimeout(connectWS, delay);
         };
 
