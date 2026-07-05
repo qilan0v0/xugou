@@ -66,6 +66,7 @@ jobs:
         CGO_ENABLED: '0'
       run: |
         cd agent
+        go mod tidy
         go build -v -ldflags="-X github.com/qltz/agent/cmd/agent.Version=${VERSION} -X github.com/qltz/agent/cmd/agent.GitCommit=${{ github.sha }} -X github.com/qltz/agent/cmd/agent.BuildDate=${BUILD_DATE} -X github.com/qltz/agent/pkg/collector.Version=${VERSION}" -o ${{ steps.vars.outputs.artifact }} .
 
     - name: Upload artifact
