@@ -18,17 +18,15 @@ export default function TerminalModal({ agentId, agentName, token, onClose }: Te
   const [status, setStatus] = useState<'connecting' | 'connected' | 'disconnected'>('connecting');
   const termRefObj = useRef<Terminal | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
-  const [hasConnectFailed, setHasConnectFailed] = useState(false);
+  const reconnectTimerRef = useRef<any>(null);
 
   useEffect(() => {
     if (!termRef.current) return;
 
-    // Build WS URL
     const base = ENV_API_BASE_URL || '';
     const wsBase = base.replace(/^http/, 'ws');
     const wsUrl = `${wsBase}/api/ws/terminal?agentId=${agentId}&token=${encodeURIComponent(token)}`;
 
-    // Init xterm.js
     const term = new Terminal({
       cursorBlink: true,
       cursorStyle: 'bar',
@@ -62,7 +60,6 @@ export default function TerminalModal({ agentId, agentName, token, onClose }: Te
     term.loadAddon(fitAddon);
     term.open(termRef.current);
 
-    // Fit terminal to container after open
     const doFit = () => {
       setTimeout(() => {
         try { fitAddon.fit(); } catch {}
@@ -77,14 +74,24 @@ export default function TerminalModal({ agentId, agentName, token, onClose }: Te
 
     termRefObj.current = term;
 
-    // WebSocket
     let ws: WebSocket | null = null;
+    let reconnectCount = 0;
+    const MAX_RECONNECT = 10;
+
     const connectWS = () => {
+      if (reconnectCount >= MAX_RECONNECT) {
+        term.write('\r\n\x1b[31m✕ 重连次数过多，请关闭重新打开\x1b[0m\r\n');
+        setStatus('disconnected');
+        return;
+      }
+
+      setStatus('connecting');
       try {
         ws = new WebSocket(wsUrl);
         wsRef.current = ws;
 
         ws.onopen = () => {
+          reconnectCount = 0;
           setStatus('connected');
           term.write('\r\n\x1b[32m✓ 终端连接已建立\x1b[0m\r\n');
           term.focus();
@@ -101,22 +108,20 @@ export default function TerminalModal({ agentId, agentName, token, onClose }: Te
               term.write(`\r\n\x1b[31m${msg.message || '未知错误'}\x1b[0m\r\n`);
             }
           } catch {
-            // plain text
             term.write(event.data);
           }
         };
 
         ws.onclose = () => {
           setStatus('disconnected');
-          if (!hasConnectFailed) {
-            term.write('\r\n\x1b[31m✕ 终端已断开\x1b[0m\r\n');
-          }
+          reconnectCount++;
+          const delay = Math.min(2000 * reconnectCount, 10000);
+          term.write(`\r\n\x1b[33m⚠ 终端已断开，${delay/1000}秒后重连 (${reconnectCount}/${MAX_RECONNECT})\x1b[0m\r\n`);
+          reconnectTimerRef.current = setTimeout(connectWS, delay);
         };
 
         ws.onerror = () => {
-          setHasConnectFailed(true);
           setStatus('disconnected');
-          term.write('\r\n\x1b[31m✕ 连接失败，Agent 可能离线或 Token 无效\x1b[0m\r\n');
         };
       } catch (e) {
         setStatus('disconnected');
@@ -126,14 +131,12 @@ export default function TerminalModal({ agentId, agentName, token, onClose }: Te
 
     connectWS();
 
-    // Key input: proxy keyboard to WebSocket
     const disposable = term.onData((data) => {
       if (ws?.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({ type: 'shell-input', data }));
       }
     });
 
-    // Send resize events
     const resizeDisposable = term.onResize(({ cols, rows }) => {
       if (ws?.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({ type: 'resize', cols, rows }));
@@ -146,10 +149,11 @@ export default function TerminalModal({ agentId, agentName, token, onClose }: Te
       disposable.dispose();
       resizeDisposable.dispose();
       resizeObserver.disconnect();
+      if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
       ws?.close();
       term.dispose();
     };
-  }, [agentId, token, hasConnectFailed]);
+  }, [agentId, token]);
 
   const statusColor = status === 'connected' ? 'bg-emerald-500' : status === 'connecting' ? 'bg-amber-500' : 'bg-red-500';
   const statusText = status === 'connected' ? '已连接' : status === 'connecting' ? '连接中...' : '已断开';

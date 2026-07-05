@@ -59,25 +59,34 @@ func RunWSClient(ctx context.Context, serverURL, token string) {
 		conn, _, err := dialer.Dial(wsURL, nil)
 		if err != nil {
 			if viper.GetBool("debug") {
-				fmt.Printf("[WS] 连接失败: %v，5秒后重试\n", err)
+				fmt.Printf("[WS] 连接失败: %v，3秒后重试\n", err)
 			}
-			time.Sleep(5 * time.Second)
+			time.Sleep(3 * time.Second)
 			continue
 		}
+
+		// 设置 pong 处理，保持连接活跃
+		conn.SetPongHandler(func(string) error {
+			conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+			return nil
+		})
+		conn.SetReadDeadline(time.Now().Add(60 * time.Second))
 
 		if viper.GetBool("debug") {
 			fmt.Println("[WS] 已连接")
 		}
 
-		// ping 保活
+		// ping 保活 goroutine
 		done := make(chan struct{})
 		go func() {
-			ticker := time.NewTicker(30 * time.Second)
+			ticker := time.NewTicker(25 * time.Second)
 			defer ticker.Stop()
 			for {
 				select {
 				case <-ticker.C:
-					conn.WriteMessage(websocket.PingMessage, nil)
+					if err := conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+						return
+					}
 				case <-done:
 					return
 				case <-ctx.Done():
@@ -86,13 +95,15 @@ func RunWSClient(ctx context.Context, serverURL, token string) {
 			}
 		}()
 
-		// 消息处理
+		// 消息处理循环
 		err = func() error {
 			for {
 				_, message, err := conn.ReadMessage()
 				if err != nil {
 					return err
 				}
+				// 重置读超时
+				conn.SetReadDeadline(time.Now().Add(60 * time.Second))
 
 				var msg WSMessage
 				if err := json.Unmarshal(message, &msg); err != nil {
@@ -142,7 +153,7 @@ func RunWSClient(ctx context.Context, serverURL, token string) {
 		case <-ctx.Done():
 			return
 		default:
-			time.Sleep(3 * time.Second)
+			time.Sleep(1 * time.Second) // 断开后快速重连
 		}
 	}
 }
@@ -172,7 +183,7 @@ func (s *TerminalSession) Run(onOutput func(string, int)) {
 	cmd := exec.Command(shell)
 	stdin, _ := cmd.StdinPipe()
 	stdout, _ := cmd.StdoutPipe()
-	cmd.Stderr = cmd.Stdout // stderr 合并到 stdout
+	cmd.Stderr = cmd.Stdout
 
 	s.cmd = cmd
 	s.stdin = stdin
@@ -183,7 +194,6 @@ func (s *TerminalSession) Run(onOutput func(string, int)) {
 		return
 	}
 
-	// 实时读取输出
 	go func() {
 		scanner := bufio.NewScanner(stdout)
 		scanner.Buffer(make([]byte, 64*1024), 64*1024)
@@ -192,7 +202,6 @@ func (s *TerminalSession) Run(onOutput func(string, int)) {
 		}
 	}()
 
-	// 等待 done 信号关闭 stdin
 	go func() {
 		<-s.done
 		stdin.Close()
