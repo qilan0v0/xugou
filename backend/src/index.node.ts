@@ -9,6 +9,7 @@ import monitorRoutes from './routes/monitors';
 import agentRoutes from './routes/agents';
 import userRoutes from './routes/users';
 import statusRoutes from './routes/status';
+import settingsRoutes from './routes/settings';
 import initDbRoutes from './setup/database';
 import { monitorTask, runScheduledTasks, checkAgentsStatus, sendAgentNotification } from './tasks';
 import { toD1Primitive, generateAgentName, addDuration } from './utils/jwt';
@@ -261,6 +262,7 @@ app.route('/api/monitors', monitorRoutes);
 app.route('/api/agents', agentRoutes);
 app.route('/api/users', userRoutes);
 app.route('/api/status', statusRoutes);
+app.route('/api/settings', settingsRoutes);
 app.route('/api', initDbRoutes);
 
 app.get('/api/trigger-check', async (c) => {

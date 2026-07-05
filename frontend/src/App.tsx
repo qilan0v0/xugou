@@ -23,6 +23,7 @@ const EditAgent = lazy(() => import('./pages/agents/EditAgent'));
 const GroupsList = lazy(() => import('./pages/agents/GroupsList'));
 const UserProfile = lazy(() => import('./pages/users/UserProfile'));
 const StatusPageConfig = lazy(() => import('./pages/status/StatusPageConfig'));
+const SettingsPage = lazy(() => import('./pages/settings/SettingsPage'));
 
 const Lazy = ({ children }: { children: React.ReactNode }) => (
   <Suspense fallback={<div className="flex justify-center items-center min-h-[50vh]"><LoadingSpinner /></div>}>
@@ -56,6 +57,7 @@ function App() {
         <Route path="/agents/groups" element={<ProtectedRoute><Layout><Lazy><GroupsList /></Lazy></Layout></ProtectedRoute>} />
         <Route path="/agents/:id" element={<ProtectedRoute><Layout><Lazy><AgentDetail /></Lazy></Layout></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Layout><Lazy><UserProfile /></Lazy></Layout></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute><Layout><Lazy><SettingsPage /></Lazy></Layout></ProtectedRoute>} />
         <Route path="*" element={<Layout><NotFound /></Layout>} />
       </Routes>
     </LanguageProvider>
