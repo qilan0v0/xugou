@@ -68,6 +68,7 @@ function handleTerminalConnection(ws, url, env) {
     }
     const user = verifyJWT(token, env.JWT_SECRET);
     if (!user) {
+        console.log(`[WS] Terminal auth failed for token starting with: ${token?.slice(0, 10)}...`);
         ws.close(4003, 'unauthorized');
         return;
     }

@@ -58,7 +58,11 @@ function handleTerminalConnection(ws: WebSocket, url: URL, env: { JWT_SECRET: st
   if (!token || !agentIdStr) { ws.close(4001, 'missing token or agentId'); return; }
 
   const user = verifyJWT(token, env.JWT_SECRET);
-  if (!user) { ws.close(4003, 'unauthorized'); return; }
+  if (!user) { 
+    console.log(`[WS] Terminal auth failed for token starting with: ${token?.slice(0, 10)}...`);
+    ws.close(4003, 'unauthorized'); 
+    return; 
+  }
 
   const agentId = parseInt(agentIdStr, 10);
   if (isNaN(agentId)) { ws.close(4004, 'invalid agentId'); return; }
