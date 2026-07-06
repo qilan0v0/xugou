@@ -85,7 +85,7 @@ function handleTerminalConnection(ws, url, env) {
     // 等待 agent 在线（最多 10 秒）
     let retries = 0;
     let grpcStream = null;
-    const tryBridge = () => {
+    const tryBridge = async () => {
         // 先查 WebSocket agent 连接
         let agentWs = agentWsMap.get(agentId);
         if (agentWs && agentWs.readyState === ws_1.default.OPEN) {

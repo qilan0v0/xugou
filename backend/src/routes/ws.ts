@@ -76,7 +76,7 @@ function handleTerminalConnection(ws: WebSocket, url: URL, env: { JWT_SECRET: st
   // 等待 agent 在线（最多 10 秒）
   let retries = 0;
   let grpcStream: any = null;
-  const tryBridge = () => {
+  const tryBridge = async () => {
     // 先查 WebSocket agent 连接
     let agentWs = agentWsMap.get(agentId);
     if (agentWs && agentWs.readyState === WebSocket.OPEN) {
