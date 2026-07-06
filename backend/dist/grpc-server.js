@@ -139,12 +139,10 @@ function startGrpcServer(env, broadcast, countryCache) {
                         // Test: verify serialization by sending a simple task
                         try {
                             const testTask = { id: 1, type: 4, data: '{}' };
-                            // Check what handler.serialize produces
-                            const handler = nezhaProto.proto.NezhaService.service.RequestTask;
-                            const buf = handler.responseSerialize(testTask);
-                            console.log(`[gRPC] Task serialize OK: ${buf.length} bytes hex=${buf.toString('hex')}`);
-                            call.write(testTask);
-                            console.log(`[gRPC] Sent test task to agent=${agentId}`);
+                            // Use call.sendMessage directly instead of stream.write
+                            // to avoid potential Duplex stream issues
+                            call.call.sendMessage(testTask, () => { });
+                            console.log(`[gRPC] Sent test task via sendMessage to agent=${agentId}`);
                         }
                         catch (e) {
                             console.log(`[gRPC] Test task write error: ${e.message}`);
