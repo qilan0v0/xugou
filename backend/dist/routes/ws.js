@@ -165,6 +165,7 @@ function handleTerminalConnection(ws, url, env) {
         }
         // 尝试 Nezha gRPC IOStream 桥接
         grpcStream = grpc_server_1.gNezhaIOStreamMap.get(agentId);
+        console.log(`[WS] Bridge attempt: agent=${agentId} wsAgent=${agentWs ? 'found' : 'none'} ioStream=${grpcStream ? 'found' : 'none'} taskStream=${grpc_server_1.gNezhaTaskStreamMap.has(agentId) ? 'found' : 'none'} retry=${retries}`);
         if (!grpcStream || !grpcStream.writable) {
             // IOStream 还没打开，通过 RequestTask 触发
             const taskStream = grpc_server_1.gNezhaTaskStreamMap.get(agentId);

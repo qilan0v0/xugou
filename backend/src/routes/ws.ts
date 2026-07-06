@@ -149,6 +149,7 @@ function handleTerminalConnection(ws: WebSocket, url: URL, env: { JWT_SECRET: st
 
     // 尝试 Nezha gRPC IOStream 桥接
     grpcStream = gNezhaIOStreamMap.get(agentId);
+    console.log(`[WS] Bridge attempt: agent=${agentId} wsAgent=${agentWs ? 'found' : 'none'} ioStream=${grpcStream ? 'found' : 'none'} taskStream=${gNezhaTaskStreamMap.has(agentId) ? 'found' : 'none'} retry=${retries}`);
     if (!grpcStream || !grpcStream.writable) {
       // IOStream 还没打开，通过 RequestTask 触发
       const taskStream = gNezhaTaskStreamMap.get(agentId);
