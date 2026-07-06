@@ -20,8 +20,8 @@ const getJwtSecret = (c) => {
     if (typeof process === 'undefined') {
         return c.env.JWT_SECRET || 'your-secret-key-change-in-production';
     }
-    // 在Node.js环境中，使用process.env
-    return process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+    // 在Node.js环境中，优先从context.env（config.json）读取，兼容process.env
+    return c?.env?.JWT_SECRET || process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 };
 exports.getJwtSecret = getJwtSecret;
 /**
