@@ -152,19 +152,22 @@ function handleTerminalConnection(ws: WebSocket, url: URL, env: { JWT_SECRET: st
     grpcStream = gNezhaIOStreamMap.get(agentId);
     console.log(`[WS] Bridge attempt: agent=${agentId} retry=${retries}`);
     console.log(`[WS]   agentWsMap=${gNezhaIOStreamMap.has(agentId) ? 'found' : 'none'} taskStream=${gNezhaTaskStreamMap.has(agentId) ? 'found' : 'none'} ioStream=${gNezhaIOStreamMap.has(agentId) ? 'found' : 'none'}`);
-    if (!grpcStream || !grpcStream.writable) {
+    if (!grpcStream) {
       // IOStream 还没打开，通过 RequestTask 触发
       const taskStream = gNezhaTaskStreamMap.get(agentId);
-      if (taskStream && taskStream.writable && !taskSent) {
+      if (taskStream && !taskSent) {
         taskSent = true;
         console.log(`[WS] Sending terminal task to agent=${agentId}`);
-        taskStream.write({ id: Date.now(), type: 4, data: '{"protocol":"stdin/stdout","exec":"/bin/sh"}' });
-        // 等 3 秒让 agent 打开 IOStream
+        try {
+          taskStream.write({ id: Date.now(), type: 4, data: '{"protocol":"raw","exec":"/bin/sh"}' });
+        } catch (e: any) {
+          console.log(`[WS] Task write error: ${e.message}`);
+        }
         await new Promise(r => setTimeout(r, 3000));
         grpcStream = gNezhaIOStreamMap.get(agentId);
       }
     }
-    if (grpcStream && grpcStream.writable) {
+    if (grpcStream) {
       console.log(`[WS] Terminal: gRPC IOStream bridge for agent=${agentId}`);
       let alive = true;
       const cleanup = () => { alive = false; };
