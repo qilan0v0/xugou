@@ -10,6 +10,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"sync"
 	"time"
 
 	"github.com/creack/pty"
@@ -172,9 +173,13 @@ func RunWSClient(ctx context.Context, serverURL, token string) {
 	}
 }
 
+var wsWriteMu sync.Mutex
+
 func sendWS(conn *websocket.Conn, msg WSMessage) {
 	data, _ := json.Marshal(msg)
+	wsWriteMu.Lock()
 	conn.WriteMessage(websocket.TextMessage, data)
+	wsWriteMu.Unlock()
 }
 
 // NewTerminalSession 创建终端会话
