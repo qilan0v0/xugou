@@ -77,7 +77,6 @@ export default function TerminalPage() {
   const [fpHistory, setFpHistory] = useState<string[]>(['/']);
   const [fpHistoryIdx, setFpHistoryIdx] = useState(0);
   const fpPendingRef = useRef<((data: any) => void) | null>(null);
-  const fpFileInputRef = useRef<HTMLInputElement>(null);
 
   const fpSend = useCallback((type: string, data?: any) => {
     if (wsStateRef.current?.readyState === WebSocket.OPEN)
@@ -271,6 +270,12 @@ export default function TerminalPage() {
             if (msg.type === 'shell-output') term.write(msg.data || '');
             else if (msg.type === 'shell-exit') term.write(`\r\n\x1b[33m进程已退出 (code: ${msg.code ?? '?'})\x1b[0m\r\n`);
             else if (msg.type === 'error') term.write(`\r\n\x1b[31m${msg.message || '未知错误'}\x1b[0m\r\n`);
+            // File operations
+            if (msg.type === 'file-list-result') {
+              try { const d = JSON.parse(msg.data); setFpEntries(d.entries || []); } catch { setFpEntries(msg.entries || []); }
+              setFpLoading(false);
+            } else if (msg.type === 'file-error') { setFpLoading(false); alert(msg.data); }
+            if (fpPendingRef.current) { fpPendingRef.current(msg); fpPendingRef.current = null; }
           } catch { term.write(event.data); }
         };
 
@@ -436,6 +441,10 @@ export default function TerminalPage() {
 
       {/* ── Main area: sidebar + terminal ── */}
       <div className="flex flex-row flex-1 min-h-0">
+        {/* ── Terminal ── */}
+        <div ref={termRef} className="flex-1 min-h-0"
+          style={{ background: 'var(--bg-terminal)', padding: '4px' }} />
+
         {/* ── File panel sidebar ── */}
         <FilePanelContent
           visible={fpVisible}
@@ -459,10 +468,6 @@ export default function TerminalPage() {
           onUpload={fpUpload}
           onSelect={setFpSelected}
         />
-
-        {/* ── Terminal ── */}
-        <div ref={termRef} className="flex-1 min-h-0"
-          style={{ background: 'var(--bg-terminal)', padding: '4px' }} />
       </div>
     </div>
   );

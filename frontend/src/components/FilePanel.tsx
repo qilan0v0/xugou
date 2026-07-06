@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback } from 'react';
+import { useRef } from 'react';
 import { FolderIcon, FileIcon, Upload, Download, Trash2, RotateCw, Home, ArrowLeft, Plus, Edit3 } from 'lucide-react';
 
 interface FileEntry {
