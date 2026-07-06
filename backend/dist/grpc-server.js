@@ -39,6 +39,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.startGrpcServer = startGrpcServer;
 const grpc = __importStar(require("@grpc/grpc-js"));
 const protoLoader = __importStar(require("@grpc/proto-loader"));
+const fs_1 = require("fs");
 const path_1 = __importDefault(require("path"));
 const PROTO_PATH = path_1.default.join(__dirname, 'nezha.proto');
 const packageDef = protoLoader.loadSync(PROTO_PATH, {
@@ -118,15 +119,31 @@ function startGrpcServer(env, broadcast, countryCache) {
     });
     const grpcPort = parseInt(process.env.GRPC_PORT || '5413');
     const grpcHost = process.env.GRPC_HOST || '0.0.0.0';
+    // Load or generate TLS certificate
+    const certDir = __dirname;
+    let certPath = path_1.default.join(certDir, 'grpc-cert.pem');
+    let keyPath = path_1.default.join(certDir, 'grpc-key.pem');
+    let credentials;
+    try {
+        const cert = (0, fs_1.readFileSync)(certPath);
+        const key = (0, fs_1.readFileSync)(keyPath);
+        credentials = grpc.ServerCredentials.createSsl(null, [{ private_key: key, cert_chain: cert }]);
+        console.log('[gRPC] Using TLS from', certPath);
+    }
+    catch {
+        // Fallback to insecure if no cert files
+        credentials = grpc.ServerCredentials.createInsecure();
+        console.log('[gRPC] No TLS cert found, falling back to insecure');
+    }
     return new Promise((resolve, reject) => {
-        server.bindAsync(`${grpcHost}:${grpcPort}`, grpc.ServerCredentials.createInsecure(), (err, port) => {
+        server.bindAsync(`${grpcHost}:${grpcPort}`, credentials, (err, port) => {
             if (err) {
                 console.error('[gRPC] Server bind error:', err.message);
                 reject(err);
                 return;
             }
             server.start();
-            console.log(`[gRPC] Nezha server on ${grpcHost}:${port} (insecure)`);
+            console.log(`[gRPC] Nezha server on ${grpcHost}:${port}`);
             resolve();
         });
     });
