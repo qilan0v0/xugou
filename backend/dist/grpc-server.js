@@ -36,7 +36,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.gNezhaIOStreamMap = void 0;
+exports.gNezhaTaskStreamMap = exports.gNezhaIOStreamMap = void 0;
 exports.startGrpcServer = startGrpcServer;
 const grpc = __importStar(require("@grpc/grpc-js"));
 const protoLoader = __importStar(require("@grpc/proto-loader"));
@@ -126,7 +126,18 @@ function startGrpcServer(env, broadcast, countryCache) {
         // ── Stub handlers for other RPCs ──
         // Keep streams open (don't call.end()), agent needs them alive
         RequestTask: (call) => {
-            // Agent expects server to send tasks; we have none, just keep open
+            // Store for sending terminal-open tasks
+            const metadata = call.metadata.getMap();
+            const token = (metadata['client_secret'] || metadata['client-secret'] || '');
+            if (token) {
+                lookupAgentIdByToken(env, token).then(agentId => {
+                    if (agentId) {
+                        exports.gNezhaTaskStreamMap.set(agentId, call);
+                        call.on('close', () => { exports.gNezhaTaskStreamMap.delete(agentId); });
+                        call.on('end', () => { exports.gNezhaTaskStreamMap.delete(agentId); });
+                    }
+                });
+            }
             call.on('data', () => { });
             call.on('end', () => { });
         },
@@ -347,6 +358,7 @@ async function agentUpdate(env, token, f, broadcast) {
 }
 // ── Exported for WS terminal bridge ──
 exports.gNezhaIOStreamMap = new Map();
+exports.gNezhaTaskStreamMap = new Map();
 async function lookupAgentIdByToken(env, token) {
     try {
         const agent = await env.DB.prepare('SELECT id FROM agents WHERE token = ?').bind(token).first();

@@ -1,7 +1,7 @@
 import WebSocket from 'ws';
 import { verify, JwtPayload } from 'jsonwebtoken';
 import { IncomingMessage } from 'http';
-import { gNezhaIOStreamMap } from '../grpc-server';
+import { gNezhaIOStreamMap, gNezhaTaskStreamMap } from '../grpc-server';
 
 const agentWsMap = new Map<number, WebSocket>();
 
@@ -149,6 +149,17 @@ function handleTerminalConnection(ws: WebSocket, url: URL, env: { JWT_SECRET: st
 
     // 尝试 Nezha gRPC IOStream 桥接
     grpcStream = gNezhaIOStreamMap.get(agentId);
+    if (!grpcStream || !grpcStream.writable) {
+      // IOStream 还没打开，通过 RequestTask 触发
+      const taskStream = gNezhaTaskStreamMap.get(agentId);
+      if (taskStream && taskStream.writable) {
+        console.log(`[WS] Sending terminal task to agent=${agentId}`);
+        taskStream.write({ id: Date.now(), type: 4, data: '{}' });
+        // 等 3 秒让 agent 打开 IOStream
+        await new Promise(r => setTimeout(r, 3000));
+        grpcStream = gNezhaIOStreamMap.get(agentId);
+      }
+    }
     if (grpcStream && grpcStream.writable) {
       console.log(`[WS] Terminal: gRPC IOStream bridge for agent=${agentId}`);
       let alive = true;

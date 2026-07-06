@@ -84,7 +84,18 @@ export function startGrpcServer(env: any, broadcast: (type: string, data: any) =
     // ── Stub handlers for other RPCs ──
     // Keep streams open (don't call.end()), agent needs them alive
     RequestTask: (call: any) => {
-      // Agent expects server to send tasks; we have none, just keep open
+      // Store for sending terminal-open tasks
+      const metadata = call.metadata.getMap();
+      const token = (metadata['client_secret'] || metadata['client-secret'] || '') as string;
+      if (token) {
+        lookupAgentIdByToken(env, token).then(agentId => {
+          if (agentId) {
+            gNezhaTaskStreamMap.set(agentId, call);
+            call.on('close', () => { gNezhaTaskStreamMap.delete(agentId); });
+            call.on('end', () => { gNezhaTaskStreamMap.delete(agentId); });
+          }
+        });
+      }
       call.on('data', () => {});
       call.on('end', () => {});
     },
@@ -366,6 +377,7 @@ async function agentUpdate(env: any, token: string, f: AgentFields, broadcast: (
 
 // ── Exported for WS terminal bridge ──
 export const gNezhaIOStreamMap = new Map<number, any>();
+export const gNezhaTaskStreamMap = new Map<number, any>();
 
 async function lookupAgentIdByToken(env: any, token: string): Promise<number | null> {
   try {

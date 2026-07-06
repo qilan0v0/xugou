@@ -165,6 +165,17 @@ function handleTerminalConnection(ws, url, env) {
         }
         // 尝试 Nezha gRPC IOStream 桥接
         grpcStream = grpc_server_1.gNezhaIOStreamMap.get(agentId);
+        if (!grpcStream || !grpcStream.writable) {
+            // IOStream 还没打开，通过 RequestTask 触发
+            const taskStream = grpc_server_1.gNezhaTaskStreamMap.get(agentId);
+            if (taskStream && taskStream.writable) {
+                console.log(`[WS] Sending terminal task to agent=${agentId}`);
+                taskStream.write({ id: Date.now(), type: 4, data: '{}' });
+                // 等 3 秒让 agent 打开 IOStream
+                await new Promise(r => setTimeout(r, 3000));
+                grpcStream = grpc_server_1.gNezhaIOStreamMap.get(agentId);
+            }
+        }
         if (grpcStream && grpcStream.writable) {
             console.log(`[WS] Terminal: gRPC IOStream bridge for agent=${agentId}`);
             let alive = true;
