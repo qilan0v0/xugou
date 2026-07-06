@@ -163,12 +163,12 @@ async function processNezhaHost(env, token, host, countryCache, broadcast) {
     const cpuCores = Array.isArray(host.cpu) ? host.cpu.length : null;
     const cpuArch = (0, jwt_1.toD1Primitive)(host.arch ?? null);
     const os = (0, jwt_1.toD1Primitive)(host.platform ?? null);
-    const version = (0, jwt_1.toD1Primitive)(host.platform_version ?? host.version ?? null);
-    const bootTimeUnix = host.boot_time ?? null;
+    const version = (0, jwt_1.toD1Primitive)(host.platformVersion ?? host.version ?? null);
+    const bootTimeUnix = host.bootTime ?? null;
     const bt = bootTimeUnix ? new Date(bootTimeUnix * 1000).toISOString() : null;
     const av = (0, jwt_1.toD1Primitive)(host.version ?? null);
-    const memTotal = host.mem_total ?? null;
-    const diskTotal = host.disk_total ?? null;
+    const memTotal = host.memTotal ?? null;
+    const diskTotal = host.diskTotal ?? null;
     // These are set by processNezhaState, but we need them for the DB update.
     // Store them in a temporary map keyed by token for the state handler to use.
     if (!gNezhaHostCache.has(token))
@@ -206,13 +206,13 @@ async function processNezhaState(env, token, state, countryCache, broadcast) {
     await agentUpdate(env, token, {
         cpu: state.cpu ?? null,
         memTotal: cached.memTotal ?? null,
-        memUsed: state.mem_used ?? null,
+        memUsed: state.memUsed ?? null,
         diskTotal: cached.diskTotal ?? null,
-        diskUsed: state.disk_used ?? null,
-        netRxTotal: state.net_in_transfer ?? null,
-        netTxTotal: state.net_out_transfer ?? null,
-        netRx: state.net_in_speed != null ? state.net_in_speed / 1024 : null,
-        netTx: state.net_out_speed != null ? state.net_out_speed / 1024 : null,
+        diskUsed: state.diskUsed ?? null,
+        netRxTotal: state.netInTransfer ?? null,
+        netTxTotal: state.netOutTransfer ?? null,
+        netRx: state.netInSpeed != null ? state.netInSpeed / 1024 : null,
+        netTx: state.netOutSpeed != null ? state.netOutSpeed / 1024 : null,
         cpuModelName: cached.cpuModelName ?? null,
         cpuCores: cached.cpuCores ?? null,
         cpuArch: cached.cpuArch ?? null,
@@ -225,9 +225,9 @@ async function processNezhaState(env, token, state, countryCache, broadcast) {
         av: cached.av ?? null,
         hostname: null,
         ipAddress: null,
-        processCount: state.process_count ?? null,
-        tcpCount: state.tcp_conn_count ?? null,
-        udpCount: state.udp_conn_count ?? null,
+        processCount: state.processCount ?? null,
+        tcpCount: state.tcpConnCount ?? null,
+        udpCount: state.udpConnCount ?? null,
         country: null,
         raw: JSON.stringify(state),
     }, countryCache, broadcast);
