@@ -81,7 +81,7 @@ function handleTerminalConnection(ws, url, env) {
     // 等待 agent 在线（最多 10 秒）
     let retries = 0;
     const tryBridge = () => {
-        const agentWs = agentWsMap.get(agentId);
+        let agentWs = agentWsMap.get(agentId);
         if (agentWs && agentWs.readyState === ws_1.default.OPEN) {
             // 建立桥接
             agentWs.send(JSON.stringify({ type: 'shell-start' }));
@@ -115,7 +115,17 @@ function handleTerminalConnection(ws, url, env) {
                 ws.removeListener('message', fwdToAgent);
                 agentWs.removeListener('message', fwdToFrontend);
             };
-            ws.on('close', () => { cleanup(); console.log(`[WS] Bridge closed: agent=${agentId}`); });
+            ws.on('close', () => {
+                cleanup();
+                // 通知 agent 关闭 shell，避免进程泄漏
+                if (agentWs.readyState === ws_1.default.OPEN) {
+                    try {
+                        agentWs.send(JSON.stringify({ type: 'shell-end' }));
+                    }
+                    catch { /* ignore */ }
+                }
+                console.log(`[WS] Bridge closed: agent=${agentId}`);
+            });
             ws.on('error', cleanup);
             // Agent 断线后不关前端连接，等待重连后自动恢复
             const onAgentClose = function () {
