@@ -40,11 +40,14 @@ function handleAgentConnection(ws: WebSocket, url: URL, env: { DB: any }) {
     agentWsMap.set(agentId, ws);
     console.log(`[WS] Agent ${agentId} connected`);
 
-    ws.on('close', () => {
+    ws.on('close', (code?: number) => {
       agentWsMap.delete(agentId);
-      console.log(`[WS] Agent ${agentId} disconnected`);
+      console.log(`[WS] Agent ${agentId} disconnected code=${code ?? 'none'}`);
     });
-    ws.on('error', () => agentWsMap.delete(agentId));
+    ws.on('error', (err: Error) => {
+      console.log(`[WS] Agent ${agentId} error: ${err.message}`);
+      agentWsMap.delete(agentId);
+    });
   } catch (e) {
     console.error('[WS] Agent auth error:', e);
     ws.close(4002, 'auth error');
@@ -101,15 +104,18 @@ function handleTerminalConnection(ws: WebSocket, url: URL, env: { JWT_SECRET: st
         agentWs.removeListener('message', fwdToFrontend);
       };
 
-      ws.on('close', () => {
+      ws.on('close', (code?: number, reason?: Buffer) => {
         cleanup();
+        console.log(`[WS] Bridge closed: agent=${agentId} code=${code ?? 'none'} reason=${reason?.toString() || 'none'}`);
         // 通知 agent 关闭 shell，避免进程泄漏
         if (agentWs.readyState === WebSocket.OPEN) {
           try { agentWs.send(JSON.stringify({ type: 'shell-end' })); } catch { /* ignore */ }
         }
-        console.log(`[WS] Bridge closed: agent=${agentId}`);
       });
-      ws.on('error', cleanup);
+      ws.on('error', (err: Error) => {
+        console.log(`[WS] Bridge error: agent=${agentId} msg=${err.message}`);
+        cleanup();
+      });
       
       // Agent 断线后不关前端连接，等待重连后自动恢复
       const onAgentClose = function() {
