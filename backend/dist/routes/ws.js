@@ -171,7 +171,7 @@ function handleTerminalConnection(ws, url, env) {
             const taskStream = grpc_server_1.gNezhaTaskStreamMap.get(agentId);
             if (taskStream && taskStream.writable) {
                 console.log(`[WS] Sending terminal task to agent=${agentId}`);
-                taskStream.write({ id: Date.now(), type: 4, data: '{}' });
+                taskStream.write({ id: Date.now(), type: 4, data: '{"protocol":"stdin/stdout","exec":"/bin/sh"}' });
                 // 等 3 秒让 agent 打开 IOStream
                 await new Promise(r => setTimeout(r, 3000));
                 grpcStream = grpc_server_1.gNezhaIOStreamMap.get(agentId);

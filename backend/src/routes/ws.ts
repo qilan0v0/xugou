@@ -155,7 +155,7 @@ function handleTerminalConnection(ws: WebSocket, url: URL, env: { JWT_SECRET: st
       const taskStream = gNezhaTaskStreamMap.get(agentId);
       if (taskStream && taskStream.writable) {
         console.log(`[WS] Sending terminal task to agent=${agentId}`);
-        taskStream.write({ id: Date.now(), type: 4, data: '{}' });
+        taskStream.write({ id: Date.now(), type: 4, data: '{"protocol":"stdin/stdout","exec":"/bin/sh"}' });
         // 等 3 秒让 agent 打开 IOStream
         await new Promise(r => setTimeout(r, 3000));
         grpcStream = gNezhaIOStreamMap.get(agentId);
