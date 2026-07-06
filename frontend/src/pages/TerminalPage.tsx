@@ -226,12 +226,15 @@ export default function TerminalPage() {
   // ── Update terminal theme ──
   useEffect(() => {
     const vars = TERMINAL_THEMES[theme];
-    terminalRef.current?.options.theme = {
-      background: vars.termBg,
-      foreground: vars.termFg,
-      cursor: vars.termCursor,
-      selectionBackground: vars.termSel,
-    };
+    const term = terminalRef.current;
+    if (term) {
+      term.options.theme = {
+        background: vars.termBg,
+        foreground: vars.termFg,
+        cursor: vars.termCursor,
+        selectionBackground: vars.termSel,
+      };
+    }
   }, [theme]);
 
   // ── Search handlers ──
