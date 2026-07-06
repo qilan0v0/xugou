@@ -8,8 +8,8 @@ const packageDef = protoLoader.loadSync(PROTO_PATH, {
   keepCase: false,
   longs: Number,
   enums: String,
-  defaults: true,
-  oneofs: true,
+  defaults: false,
+  oneofs: false,
 });
 const nezhaProto = grpc.loadPackageDefinition(packageDef) as any;
 
