@@ -76,6 +76,7 @@ function handleTerminalConnection(ws: WebSocket, url: URL, env: { JWT_SECRET: st
   // 等待 agent 在线（最多 10 秒）
   let retries = 0;
   let grpcStream: any = null;
+  let taskSent = false;
   const tryBridge = async () => {
     // 先查 WebSocket agent 连接
     let agentWs = agentWsMap.get(agentId);
@@ -153,7 +154,8 @@ function handleTerminalConnection(ws: WebSocket, url: URL, env: { JWT_SECRET: st
     if (!grpcStream || !grpcStream.writable) {
       // IOStream 还没打开，通过 RequestTask 触发
       const taskStream = gNezhaTaskStreamMap.get(agentId);
-      if (taskStream && taskStream.writable) {
+      if (taskStream && taskStream.writable && !taskSent) {
+        taskSent = true;
         console.log(`[WS] Sending terminal task to agent=${agentId}`);
         taskStream.write({ id: Date.now(), type: 4, data: '{"protocol":"stdin/stdout","exec":"/bin/sh"}' });
         // 等 3 秒让 agent 打开 IOStream
