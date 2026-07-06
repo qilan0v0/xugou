@@ -183,20 +183,9 @@ async function processNezhaHost(env, token, host, countryCache, broadcast) {
     cached.av = av;
     cached.memTotal = memTotal;
     cached.diskTotal = diskTotal;
-    // Also do a full update when host data arrives
-    await agentUpdate(env, token, {
-        cpu: null, memTotal, memUsed: null,
-        diskTotal, diskUsed: null,
-        netRx: null, netTx: null,
-        netRxTotal: null, netTxTotal: null,
-        cpuModelName, cpuCores, cpuArch, os, version,
-        l1: null, l5: null, l15: null,
-        bt, av,
-        hostname: null, ipAddress: null,
-        processCount: null, tcpCount: null, udpCount: null,
-        country: null,
-        raw: JSON.stringify(host),
-    }, countryCache, broadcast);
+    // Don't call agentUpdate here — only cache the host data.
+    // agentUpdate is called from processNezhaState with both host+state data,
+    // avoiding overwriting state fields (memUsed, diskUsed, cpu, etc.) with null.
 }
 // Cache Nezha host info between host and state reports
 const gNezhaHostCache = new Map();
