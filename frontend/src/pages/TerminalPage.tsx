@@ -10,12 +10,13 @@ import { ArrowLeftIcon } from '@radix-ui/react-icons';
 import { TerminalIcon, Download, Search } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { ENV_API_BASE_URL } from '../config';
+import FilePanel from '../components/FilePanel';
 
 // ── Theme definitions ──
 const TERMINAL_THEMES: Record<string, Record<string, string>> = {
   cyberpunk: {
     '--bg': '#0a0a0a', '--bg-surface': '#121212', '--bg-elevated': '#131313',
-    '--bg-terminal': '#0e0e0e', '--text': '#4af626', '--text-muted': '#bbccb0',
+    '--bg-terminal': '#0a0a0a', '--text': '#4af626', '--text-muted': '#bbccb0',
     '--text-dim': '#3c4b36', '--accent': '#4af626', '--accent-secondary': '#14d1ff',
     '--border': '#1f1f1f', '--border-strong': '#3c4b36', '--error': '#ffb4ab',
     '--scrollbar-thumb': 'rgba(60, 75, 54, 0.8)',
@@ -25,7 +26,7 @@ const TERMINAL_THEMES: Record<string, Record<string, string>> = {
   },
   glacier: {
     '--bg': '#0a192f', '--bg-surface': '#0d2137', '--bg-elevated': '#112240',
-    '--bg-terminal': '#061526', '--text': '#64ffda', '--text-muted': '#8892b0',
+    '--bg-terminal': '#0a192f', '--text': '#64ffda', '--text-muted': '#8892b0',
     '--text-dim': '#495670', '--accent': '#64ffda', '--accent-secondary': '#e6f1ff',
     '--border': '#1d3557', '--border-strong': '#495670', '--error': '#ff6b6b',
     '--scrollbar-thumb': 'rgba(100, 255, 218, 0.2)',
@@ -35,7 +36,7 @@ const TERMINAL_THEMES: Record<string, Record<string, string>> = {
   },
   gruvbox: {
     '--bg': '#282828', '--bg-surface': '#303030', '--bg-elevated': '#282828',
-    '--bg-terminal': '#1d2021', '--text': '#ebdbb2', '--text-muted': '#a89984',
+    '--bg-terminal': '#282828', '--text': '#ebdbb2', '--text-muted': '#a89984',
     '--text-dim': '#665c54', '--accent': '#b8bb26', '--accent-secondary': '#83a598',
     '--border': '#3c3836', '--border-strong': '#665c54', '--error': '#fb4934',
     '--scrollbar-thumb': 'rgba(168, 153, 132, 0.3)',
@@ -64,6 +65,7 @@ export default function TerminalPage() {
   const [status, setStatus] = useState<'connecting' | 'connected' | 'disconnected'>('connecting');
   const [theme, setTheme] = useState<ThemeName>(() => (localStorage.getItem('qltz_term_theme') as ThemeName) || 'cyberpunk');
   const [searchVisible, setSearchVisible] = useState(false);
+  const wsStateRef = useRef<WebSocket | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // ── Apply theme CSS variables ──
@@ -168,6 +170,7 @@ export default function TerminalPage() {
       try {
         ws = new WebSocket(wsUrl);
         wsRef.current = ws;
+        wsStateRef.current = ws;
 
         ws.onopen = () => {
           reconnectCount = 0;
@@ -312,6 +315,8 @@ export default function TerminalPage() {
           title="导出日志">
           <Download size={14} />
         </button>
+
+        <FilePanel ws={wsStateRef.current} />
 
         {/* Status */}
         <span className="flex items-center gap-1.5 text-xs ml-auto" style={{ color: 'var(--text-muted)' }}>
