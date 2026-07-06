@@ -20,6 +20,14 @@ import { sendAgentNotification } from './tasks';
 export function startGrpcServer(env: any, broadcast: (type: string, data: any) => void, countryCache: Map<string, string>) {
   const server = new grpc.Server();
 
+  // Helper: extract client IP from gRPC call
+  const clientIP = (call: any) => {
+    try {
+      const peer = call.getPeer();
+      return peer.replace(/^ipv4:/, '').replace(/^ipv6:/, '').split(':')[0];
+    } catch { return null; }
+  };
+
   // ── ReportSystemInfo — Host info (unary, used by Nezha v0/v1) ──
   server.addService(nezhaProto.proto.NezhaService.service, {
     ReportSystemInfo: async (call: any, callback: any) => {
@@ -27,11 +35,9 @@ export function startGrpcServer(env: any, broadcast: (type: string, data: any) =
         const host = call.request;
         const metadata = call.metadata.getMap();
         const token = (metadata['client_secret'] || metadata['client-secret'] || '') as string;
-        if (!token) {
-          callback(null, { proceed: false });
-          return;
-        }
-        await processNezhaHost(env, token, host, countryCache, broadcast);
+        if (!token) { callback(null, { proceed: false }); return; }
+        const country = await lookupCountry(clientIP(call), countryCache);
+        await processNezhaHost(env, token, host, country, broadcast);
         callback(null, { proceed: true });
       } catch (e: any) {
         console.error('[gRPC] ReportSystemInfo error:', e.message);
@@ -39,17 +45,14 @@ export function startGrpcServer(env: any, broadcast: (type: string, data: any) =
       }
     },
 
-    // ── ReportSystemInfo2 — Host info v2 (unary, returns dashboard boot time) ──
     ReportSystemInfo2: async (call: any, callback: any) => {
       try {
         const host = call.request;
         const metadata = call.metadata.getMap();
         const token = (metadata['client_secret'] || metadata['client-secret'] || '') as string;
-        if (!token) {
-          callback(null, { data: 0 });
-          return;
-        }
-        await processNezhaHost(env, token, host, countryCache, broadcast);
+        if (!token) { callback(null, { data: 0 }); return; }
+        const country = await lookupCountry(clientIP(call), countryCache);
+        await processNezhaHost(env, token, host, country, broadcast);
         callback(null, { data: Math.floor(Date.now() / 1000) });
       } catch (e: any) {
         console.error('[gRPC] ReportSystemInfo2 error:', e.message);
@@ -61,10 +64,11 @@ export function startGrpcServer(env: any, broadcast: (type: string, data: any) =
     ReportSystemState: async (call: any) => {
       const metadata = call.metadata.getMap();
       const token = (metadata['client_secret'] || metadata['client-secret'] || '') as string;
+      const country = await lookupCountry(clientIP(call), countryCache);
 
       call.on('data', async (state: any) => {
         try {
-          await processNezhaState(env, token, state, countryCache, broadcast);
+          await processNezhaState(env, token, state, country, broadcast);
           call.write({ proceed: true });
         } catch (e: any) {
           console.error('[gRPC] ReportSystemState error:', e.message);
@@ -128,7 +132,7 @@ export function startGrpcServer(env: any, broadcast: (type: string, data: any) =
 }
 
 // ── Nezha Host → qltz agent update ──
-async function processNezhaHost(env: any, token: string, host: any, countryCache: Map<string, string>, broadcast: (type: string, data: any) => void) {
+async function processNezhaHost(env: any, token: string, host: any, country: string | null, broadcast: (type: string, data: any) => void) {
   // Map Nezha Host fields to qltz fields
   const cpuModelName = toD1Primitive(Array.isArray(host.cpu) ? host.cpu.join(', ') : host.cpu ?? null);
   const cpuCores = Array.isArray(host.cpu) ? host.cpu.length : null;
@@ -164,7 +168,7 @@ async function processNezhaHost(env: any, token: string, host: any, countryCache
 const gNezhaHostCache = new Map<string, any>();
 
 // ── Nezha State → qltz agent update ──
-async function processNezhaState(env: any, token: string, state: any, countryCache: Map<string, string>, broadcast: (type: string, data: any) => void) {
+async function processNezhaState(env: any, token: string, state: any, country: string | null, broadcast: (type: string, data: any) => void) {
   const cached = gNezhaHostCache.get(token) || {};
 
   await agentUpdate(env, token, {
@@ -192,9 +196,29 @@ async function processNezhaState(env: any, token: string, state: any, countryCac
     processCount: state.processCount ?? null,
     tcpCount: state.tcpConnCount ?? null,
     udpCount: state.udpConnCount ?? null,
-    country: null,
+    country: country,
     raw: JSON.stringify(state),
   }, countryCache, broadcast);
+}
+
+// ── Country lookup from IP ──
+async function lookupCountry(ip: string | null, cache: Map<string, string>): Promise<string | null> {
+  if (!ip || ip === '127.0.0.1' || ip === '::1') return null;
+  if (cache.has(ip)) return cache.get(ip)!;
+  if (cache.size >= 500) {
+    const firstKey = cache.keys().next().value;
+    if (firstKey) cache.delete(firstKey);
+  }
+  try {
+    const res = await fetch('http://ip-api.com/json/' + ip + '?fields=countryCode');
+    if (res.ok) {
+      const data = await res.json() as any;
+      const country = data?.countryCode || null;
+      if (country) cache.set(ip, country);
+      return country;
+    }
+  } catch {}
+  return null;
 }
 
 // ── Shared agent update logic (same as /api/agents/status) ──

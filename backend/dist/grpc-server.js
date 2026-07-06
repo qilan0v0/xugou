@@ -55,6 +55,16 @@ const jwt_1 = require("./utils/jwt");
 const tasks_1 = require("./tasks");
 function startGrpcServer(env, broadcast, countryCache) {
     const server = new grpc.Server();
+    // Helper: extract client IP from gRPC call
+    const clientIP = (call) => {
+        try {
+            const peer = call.getPeer();
+            return peer.replace(/^ipv4:/, '').replace(/^ipv6:/, '').split(':')[0];
+        }
+        catch {
+            return null;
+        }
+    };
     // ── ReportSystemInfo — Host info (unary, used by Nezha v0/v1) ──
     server.addService(nezhaProto.proto.NezhaService.service, {
         ReportSystemInfo: async (call, callback) => {
@@ -66,7 +76,8 @@ function startGrpcServer(env, broadcast, countryCache) {
                     callback(null, { proceed: false });
                     return;
                 }
-                await processNezhaHost(env, token, host, countryCache, broadcast);
+                const country = await lookupCountry(clientIP(call), countryCache);
+                await processNezhaHost(env, token, host, country, broadcast);
                 callback(null, { proceed: true });
             }
             catch (e) {
@@ -74,7 +85,6 @@ function startGrpcServer(env, broadcast, countryCache) {
                 callback(null, { proceed: false });
             }
         },
-        // ── ReportSystemInfo2 — Host info v2 (unary, returns dashboard boot time) ──
         ReportSystemInfo2: async (call, callback) => {
             try {
                 const host = call.request;
@@ -84,7 +94,8 @@ function startGrpcServer(env, broadcast, countryCache) {
                     callback(null, { data: 0 });
                     return;
                 }
-                await processNezhaHost(env, token, host, countryCache, broadcast);
+                const country = await lookupCountry(clientIP(call), countryCache);
+                await processNezhaHost(env, token, host, country, broadcast);
                 callback(null, { data: Math.floor(Date.now() / 1000) });
             }
             catch (e) {
@@ -96,9 +107,10 @@ function startGrpcServer(env, broadcast, countryCache) {
         ReportSystemState: async (call) => {
             const metadata = call.metadata.getMap();
             const token = (metadata['client_secret'] || metadata['client-secret'] || '');
+            const country = await lookupCountry(clientIP(call), countryCache);
             call.on('data', async (state) => {
                 try {
-                    await processNezhaState(env, token, state, countryCache, broadcast);
+                    await processNezhaState(env, token, state, country, broadcast);
                     call.write({ proceed: true });
                 }
                 catch (e) {
@@ -157,7 +169,7 @@ function startGrpcServer(env, broadcast, countryCache) {
     });
 }
 // ── Nezha Host → qltz agent update ──
-async function processNezhaHost(env, token, host, countryCache, broadcast) {
+async function processNezhaHost(env, token, host, country, broadcast) {
     // Map Nezha Host fields to qltz fields
     const cpuModelName = (0, jwt_1.toD1Primitive)(Array.isArray(host.cpu) ? host.cpu.join(', ') : host.cpu ?? null);
     const cpuCores = Array.isArray(host.cpu) ? host.cpu.length : null;
@@ -190,7 +202,7 @@ async function processNezhaHost(env, token, host, countryCache, broadcast) {
 // Cache Nezha host info between host and state reports
 const gNezhaHostCache = new Map();
 // ── Nezha State → qltz agent update ──
-async function processNezhaState(env, token, state, countryCache, broadcast) {
+async function processNezhaState(env, token, state, country, broadcast) {
     const cached = gNezhaHostCache.get(token) || {};
     await agentUpdate(env, token, {
         cpu: state.cpu ?? null,
@@ -217,9 +229,33 @@ async function processNezhaState(env, token, state, countryCache, broadcast) {
         processCount: state.processCount ?? null,
         tcpCount: state.tcpConnCount ?? null,
         udpCount: state.udpConnCount ?? null,
-        country: null,
+        country: country,
         raw: JSON.stringify(state),
     }, countryCache, broadcast);
+}
+// ── Country lookup from IP ──
+async function lookupCountry(ip, cache) {
+    if (!ip || ip === '127.0.0.1' || ip === '::1')
+        return null;
+    if (cache.has(ip))
+        return cache.get(ip);
+    if (cache.size >= 500) {
+        const firstKey = cache.keys().next().value;
+        if (firstKey)
+            cache.delete(firstKey);
+    }
+    try {
+        const res = await fetch('http://ip-api.com/json/' + ip + '?fields=countryCode');
+        if (res.ok) {
+            const data = await res.json();
+            const country = data?.countryCode || null;
+            if (country)
+                cache.set(ip, country);
+            return country;
+        }
+    }
+    catch { }
+    return null;
 }
 async function agentUpdate(env, token, f, countryCache, broadcast) {
     // Look up / create agent
