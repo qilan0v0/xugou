@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.setupWebSocketServer = setupWebSocketServer;
 const ws_1 = __importDefault(require("ws"));
 const jsonwebtoken_1 = require("jsonwebtoken");
+const grpc_server_1 = require("../grpc-server");
 const agentWsMap = new Map();
 function verifyJWT(token, secret) {
     try {
@@ -83,7 +84,9 @@ function handleTerminalConnection(ws, url, env) {
     console.log(`[WS] Terminal: user=${user.id} → agent=${agentId}`);
     // 等待 agent 在线（最多 10 秒）
     let retries = 0;
+    let grpcStream = null;
     const tryBridge = () => {
+        // 先查 WebSocket agent 连接
         let agentWs = agentWsMap.get(agentId);
         if (agentWs && agentWs.readyState === ws_1.default.OPEN) {
             // 建立桥接
@@ -158,6 +161,36 @@ function handleTerminalConnection(ws, url, env) {
                 setTimeout(waitAndRebridge, 2000);
             };
             agentWs.on('close', onAgentClose);
+            return;
+        }
+        // 尝试 Nezha gRPC IOStream 桥接
+        grpcStream = grpc_server_1.gNezhaIOStreamMap.get(agentId);
+        if (grpcStream && grpcStream.writable) {
+            console.log(`[WS] Terminal: gRPC IOStream bridge for agent=${agentId}`);
+            let alive = true;
+            const cleanup = () => { alive = false; };
+            ws.on('message', (data) => {
+                if (!alive)
+                    return;
+                try {
+                    const msg = JSON.parse(data.toString());
+                    if (msg.type === 'shell-input') {
+                        grpcStream.write({ data: Buffer.from(msg.data || '') });
+                    }
+                }
+                catch { }
+            });
+            grpcStream.on('data', (ioData) => {
+                if (!alive || ws.readyState !== ws_1.default.OPEN)
+                    return;
+                const output = ioData.data;
+                if (output && output.length > 0) {
+                    ws.send(JSON.stringify({ type: 'shell-output', data: output.toString() }));
+                }
+            });
+            ws.on('close', () => cleanup());
+            ws.on('error', cleanup);
+            console.log(`[WS] gRPC bridge established: agent=${agentId}`);
             return;
         }
         retries++;

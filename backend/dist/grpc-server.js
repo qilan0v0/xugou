@@ -36,6 +36,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.gNezhaIOStreamMap = void 0;
 exports.startGrpcServer = startGrpcServer;
 const grpc = __importStar(require("@grpc/grpc-js"));
 const protoLoader = __importStar(require("@grpc/proto-loader"));
@@ -130,6 +131,19 @@ function startGrpcServer(env, broadcast, countryCache) {
             call.on('end', () => { });
         },
         IOStream: (call) => {
+            // Terminal IOStream — store for bridging with frontend WS
+            const metadata = call.metadata.getMap();
+            const token = (metadata['client_secret'] || metadata['client-secret'] || '');
+            if (token) {
+                lookupAgentIdByToken(env, token).then(agentId => {
+                    if (agentId) {
+                        exports.gNezhaIOStreamMap.set(agentId, call);
+                        call.on('close', () => exports.gNezhaIOStreamMap.delete(agentId));
+                        call.on('end', () => exports.gNezhaIOStreamMap.delete(agentId));
+                    }
+                });
+            }
+            // Discard any data (forwarded by the bridge from ws.ts)
             call.on('data', () => { });
             call.on('end', () => { });
         },
@@ -330,4 +344,15 @@ async function agentUpdate(env, token, f, broadcast) {
         }
     }
     broadcast?.('agent-update', { id: agent.id });
+}
+// ── Exported for WS terminal bridge ──
+exports.gNezhaIOStreamMap = new Map();
+async function lookupAgentIdByToken(env, token) {
+    try {
+        const agent = await env.DB.prepare('SELECT id FROM agents WHERE token = ?').bind(token).first();
+        return agent?.id ?? null;
+    }
+    catch {
+        return null;
+    }
 }

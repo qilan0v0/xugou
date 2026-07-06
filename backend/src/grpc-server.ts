@@ -89,6 +89,19 @@ export function startGrpcServer(env: any, broadcast: (type: string, data: any) =
       call.on('end', () => {});
     },
     IOStream: (call: any) => {
+      // Terminal IOStream — store for bridging with frontend WS
+      const metadata = call.metadata.getMap();
+      const token = (metadata['client_secret'] || metadata['client-secret'] || '') as string;
+      if (token) {
+        lookupAgentIdByToken(env, token).then(agentId => {
+          if (agentId) {
+            gNezhaIOStreamMap.set(agentId, call);
+            call.on('close', () => gNezhaIOStreamMap.delete(agentId));
+            call.on('end', () => gNezhaIOStreamMap.delete(agentId));
+          }
+        });
+      }
+      // Discard any data (forwarded by the bridge from ws.ts)
       call.on('data', () => {});
       call.on('end', () => {});
     },
@@ -349,4 +362,14 @@ async function agentUpdate(env: any, token: string, f: AgentFields, broadcast: (
   }
 
   broadcast?.('agent-update', { id: agent.id });
+}
+
+// ── Exported for WS terminal bridge ──
+export const gNezhaIOStreamMap = new Map<number, any>();
+
+async function lookupAgentIdByToken(env: any, token: string): Promise<number | null> {
+  try {
+    const agent = await env.DB.prepare('SELECT id FROM agents WHERE token = ?').bind(token).first() as { id: number } | null;
+    return agent?.id ?? null;
+  } catch { return null; }
 }

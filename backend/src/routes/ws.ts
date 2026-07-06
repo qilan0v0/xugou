@@ -1,6 +1,7 @@
 import WebSocket from 'ws';
 import { verify, JwtPayload } from 'jsonwebtoken';
 import { IncomingMessage } from 'http';
+import { gNezhaIOStreamMap } from '../grpc-server';
 
 const agentWsMap = new Map<number, WebSocket>();
 
@@ -74,7 +75,9 @@ function handleTerminalConnection(ws: WebSocket, url: URL, env: { JWT_SECRET: st
 
   // 等待 agent 在线（最多 10 秒）
   let retries = 0;
+  let grpcStream: any = null;
   const tryBridge = () => {
+    // 先查 WebSocket agent 连接
     let agentWs = agentWsMap.get(agentId);
     if (agentWs && agentWs.readyState === WebSocket.OPEN) {
       // 建立桥接
@@ -141,6 +144,37 @@ function handleTerminalConnection(ws: WebSocket, url: URL, env: { JWT_SECRET: st
         setTimeout(waitAndRebridge, 2000);
       };
       agentWs.on('close', onAgentClose);
+      return;
+    }
+
+    // 尝试 Nezha gRPC IOStream 桥接
+    grpcStream = gNezhaIOStreamMap.get(agentId);
+    if (grpcStream && grpcStream.writable) {
+      console.log(`[WS] Terminal: gRPC IOStream bridge for agent=${agentId}`);
+      let alive = true;
+      const cleanup = () => { alive = false; };
+
+      ws.on('message', (data: WebSocket.RawData) => {
+        if (!alive) return;
+        try {
+          const msg = JSON.parse(data.toString());
+          if (msg.type === 'shell-input') {
+            grpcStream.write({ data: Buffer.from(msg.data || '') });
+          }
+        } catch {}
+      });
+
+      grpcStream.on('data', (ioData: any) => {
+        if (!alive || ws.readyState !== WebSocket.OPEN) return;
+        const output = ioData.data;
+        if (output && output.length > 0) {
+          ws.send(JSON.stringify({ type: 'shell-output', data: output.toString() }));
+        }
+      });
+
+      ws.on('close', () => cleanup());
+      ws.on('error', cleanup);
+      console.log(`[WS] gRPC bridge established: agent=${agentId}`);
       return;
     }
 
