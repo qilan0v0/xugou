@@ -189,6 +189,8 @@ func (s *TerminalSession) Run(onOutput func(string, int)) {
 	}
 
 	cmd := exec.Command(shell, shellArgs...)
+	// 设置终端类型，让 shell 正确解析方向键/退格等控制序列
+	cmd.Env = append(os.Environ(), "TERM=xterm-256color")
 
 	if runtime.GOOS == "windows" {
 		// Windows 不支持 PTY，走原管道 fallback
