@@ -87,14 +87,21 @@ function handleTerminalConnection(ws: WebSocket, url: URL, env: { JWT_SECRET: st
       let alive = true;
       const fwdToAgent = (data: WebSocket.RawData) => {
         if (!alive || agentWs.readyState !== WebSocket.OPEN) return;
-        try { agentWs.send(JSON.stringify({ type: 'shell-input', data: JSON.parse(data.toString()).data || '' })); }
+        try {
+          const parsed = JSON.parse(data.toString());
+          if (parsed.type && typeof parsed.type === 'string' && parsed.type.startsWith('file-')) {
+            agentWs.send(data.toString());
+            return;
+          }
+          agentWs.send(JSON.stringify({ type: 'shell-input', data: parsed.data || '' }));
+        }
         catch { agentWs.send(data.toString()); }
       };
       const fwdToFrontend = (data: WebSocket.RawData) => {
         if (!alive || ws.readyState !== WebSocket.OPEN) return;
         try {
           const m = JSON.parse(data.toString());
-          if (m.type === 'shell-output' || m.type === 'shell-exit') ws.send(data.toString());
+          if (m.type === 'shell-output' || m.type === 'shell-exit' || m.type.startsWith('file-')) ws.send(data.toString());
         } catch { /* ignore */ }
       };
 

@@ -19,11 +19,14 @@ import (
 
 // WSMessage 定义 WebSocket 消息格式
 type WSMessage struct {
-	Type string `json:"type"`
-	Data string `json:"data,omitempty"`
-	Cols int    `json:"cols,omitempty"`
-	Rows int    `json:"rows,omitempty"`
-	Code int    `json:"code,omitempty"`
+	Type   string `json:"type"`
+	Data   string `json:"data,omitempty"`
+	Cols   int    `json:"cols,omitempty"`
+	Rows   int    `json:"rows,omitempty"`
+	Code   int    `json:"code,omitempty"`
+	Offset int    `json:"offset,omitempty"`
+	Length int    `json:"length,omitempty"`
+	Path   string `json:"path,omitempty"`
 }
 
 // TerminalSession 管理一个终端会话
@@ -141,6 +144,12 @@ func RunWSClient(ctx context.Context, serverURL, token string) {
 				case "resize":
 					if currentSession != nil {
 						currentSession.Resize(msg.Cols, msg.Rows)
+					}
+
+				default:
+					// 文件操作
+					if resp := HandleFileOps(msg); resp != nil {
+						sendWS(conn, *resp)
 					}
 				}
 			}
