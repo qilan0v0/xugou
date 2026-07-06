@@ -2,6 +2,7 @@ package reporter
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -63,7 +64,8 @@ func handleFileList(path string) *WSMessage {
 		})
 	}
 
-	return &WSMessage{Type: "file-list-result", Data: path, Path: path}
+	data, _ := json.Marshal(result)
+	return &WSMessage{Type: "file-list-result", Data: string(data)}
 }
 
 func handleFileRead(path string, offset int, length int) *WSMessage {
