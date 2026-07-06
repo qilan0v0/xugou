@@ -135,6 +135,16 @@ function startGrpcServer(env, broadcast, countryCache) {
                         exports.gNezhaTaskStreamMap.set(agentId, call);
                         call.on('close', () => { exports.gNezhaTaskStreamMap.delete(agentId); });
                         call.on('end', () => { exports.gNezhaTaskStreamMap.delete(agentId); });
+                        console.log(`[gRPC] RequestTask stored for agent=${agentId}`);
+                        // Test: try sending a terminal task immediately
+                        // This helps verify if the agent supports terminal tasks
+                        try {
+                            call.write({ id: Date.now(), type: 4, data: '{"protocol":"raw","exec":"/bin/sh"}' });
+                            console.log(`[gRPC] Sent test terminal task to agent=${agentId}`);
+                        }
+                        catch (e) {
+                            console.log(`[gRPC] Task write failed: ${e.message}`);
+                        }
                     }
                 });
             }
