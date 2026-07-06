@@ -136,6 +136,15 @@ function startGrpcServer(env, broadcast, countryCache) {
                         call.on('close', () => { exports.gNezhaTaskStreamMap.delete(agentId); });
                         call.on('end', () => { exports.gNezhaTaskStreamMap.delete(agentId); });
                         console.log(`[gRPC] RequestTask stored for agent=${agentId}`);
+                        // Test: verify serialization by sending a simple task
+                        try {
+                            const testTask = { id: 1, type: 4, data: '{}' };
+                            call.write(testTask);
+                            console.log(`[gRPC] Sent test task to agent=${agentId}`);
+                        }
+                        catch (e) {
+                            console.log(`[gRPC] Test task write error: ${e.message}`);
+                        }
                     }
                 });
             }
