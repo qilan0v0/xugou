@@ -10,7 +10,8 @@ import { ArrowLeftIcon } from '@radix-ui/react-icons';
 import { TerminalIcon, Download, Search } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { ENV_API_BASE_URL } from '../config';
-import FilePanel from '../components/FilePanel';
+import { FilePanelButton, FilePanelContent } from '../components/FilePanel';
+import type { FileEntry } from '../components/FilePanel';
 
 // ── Theme definitions ──
 const TERMINAL_THEMES: Record<string, Record<string, string>> = {
@@ -66,6 +67,91 @@ export default function TerminalPage() {
   const [theme, setTheme] = useState<ThemeName>(() => (localStorage.getItem('qltz_term_theme') as ThemeName) || 'cyberpunk');
   const [searchVisible, setSearchVisible] = useState(false);
   const wsStateRef = useRef<WebSocket | null>(null);
+
+  // ── File panel state ──
+  const [fpVisible, setFpVisible] = useState(false);
+  const [fpPath, setFpPath] = useState('/');
+  const [fpEntries, setFpEntries] = useState<FileEntry[]>([]);
+  const [fpLoading, setFpLoading] = useState(false);
+  const [fpSelected, setFpSelected] = useState<string | null>(null);
+  const [fpHistory, setFpHistory] = useState<string[]>(['/']);
+  const [fpHistoryIdx, setFpHistoryIdx] = useState(0);
+  const fpPendingRef = useRef<((data: any) => void) | null>(null);
+  const fpFileInputRef = useRef<HTMLInputElement>(null);
+
+  const fpSend = useCallback((type: string, data?: any) => {
+    if (wsStateRef.current?.readyState === WebSocket.OPEN)
+      wsStateRef.current.send(JSON.stringify({ type, data: data || '' }));
+  }, []);
+
+  const fpRefresh = useCallback(() => { setFpLoading(true); fpSend('file-list', fpPath); }, [fpPath, fpSend]);
+  const fpNavigate = useCallback((dir: string) => {
+    const newPath = dir === '..' ? fpPath.split('/').slice(0, -1).join('/') || '/' : fpPath === '/' ? '/' + dir : fpPath + '/' + dir;
+    const norm = newPath.replace(/\/+/g, '/').replace(/\/$/, '') || '/';
+    setFpPath(norm); setFpSelected(null); setFpLoading(true); fpSend('file-list', norm);
+    setFpHistory(h => { const nh = h.slice(0, fpHistoryIdx + 1); nh.push(norm); setFpHistoryIdx(nh.length - 1); return nh; });
+  }, [fpPath, fpHistoryIdx, fpSend]);
+  const fpGoBack = useCallback(() => {
+    if (fpHistoryIdx > 0) { const ni = fpHistoryIdx - 1; setFpHistoryIdx(ni); setFpPath(fpHistory[ni]); setFpSelected(null); setFpLoading(true); fpSend('file-list', fpHistory[ni]); }
+  }, [fpHistory, fpHistoryIdx, fpSend]);
+  const fpGoForward = useCallback(() => {
+    if (fpHistoryIdx < fpHistory.length - 1) { const ni = fpHistoryIdx + 1; setFpHistoryIdx(ni); setFpPath(fpHistory[ni]); setFpSelected(null); setFpLoading(true); fpSend('file-list', fpHistory[ni]); }
+  }, [fpHistory, fpHistoryIdx, fpSend]);
+  const fpGoHome = useCallback(() => {
+    setFpPath('/'); setFpSelected(null); setFpLoading(true); fpSend('file-list', '/'); setFpHistory(['/']); setFpHistoryIdx(0);
+  }, [fpSend]);
+  const fpDelete = useCallback((name: string) => {
+    if (!confirm(`确认删除 ${name}？`)) return;
+    fpSend('file-delete', fpPath === '/' ? '/' + name : fpPath + '/' + name);
+    setTimeout(fpRefresh, 300);
+  }, [fpPath, fpSend, fpRefresh]);
+  const fpRename = useCallback((oldName: string) => {
+    const newName = prompt('新名称:', oldName); if (!newName || newName === oldName) return;
+    fpSend('file-rename', JSON.stringify({ oldPath: fpPath === '/' ? '/' + oldName : fpPath + '/' + oldName, newPath: fpPath === '/' ? '/' + newName : fpPath + '/' + newName }));
+    setTimeout(fpRefresh, 300);
+  }, [fpPath, fpSend, fpRefresh]);
+  const fpMkdir = useCallback(() => {
+    const name = prompt('目录名:'); if (!name) return;
+    fpSend('file-mkdir', fpPath === '/' ? '/' + name : fpPath + '/' + name);
+    setTimeout(fpRefresh, 300);
+  }, [fpPath, fpSend, fpRefresh]);
+  const fpDownload = useCallback((name: string) => {
+    const full = fpPath === '/' ? '/' + name : fpPath + '/' + name;
+    fpSend('file-read', full + '|0|' + (1024 * 1024 * 10));
+    fpPendingRef.current = (msg: any) => {
+      if (msg.type === 'file-read-result' && msg.path === full) {
+        const blob = new Blob([Uint8Array.from(atob(msg.data), c => c.charCodeAt(0))]);
+        const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = name; a.click(); URL.revokeObjectURL(url);
+      }
+    };
+  }, [fpPath, fpSend]);
+  const fpUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      fpSend('file-write', JSON.stringify({ path: fpPath === '/' ? '/' + file.name : fpPath + '/' + file.name, data: (reader.result as string).split(',')[1] }));
+      setTimeout(fpRefresh, 500);
+    };
+    reader.readAsDataURL(file);
+  }, [fpPath, fpSend, fpRefresh]);
+
+  // Listen for file operation responses
+  useEffect(() => {
+    if (!wsStateRef.current) return;
+    const handler = (event: MessageEvent) => {
+      try {
+        const msg = JSON.parse(event.data);
+        if (msg.type === 'file-list-result') {
+          try { const d = JSON.parse(msg.data); setFpEntries(d.entries || []); } catch { setFpEntries(msg.entries || []); }
+          setFpLoading(false);
+        } else if (msg.type === 'file-error') { setFpLoading(false); alert(msg.data); }
+        if (fpPendingRef.current) { fpPendingRef.current(msg); fpPendingRef.current = null; }
+      } catch {}
+    };
+    const ws2 = wsStateRef.current;
+    ws2.addEventListener('message', handler);
+    return () => ws2.removeEventListener('message', handler);
+  }, []);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // ── Apply theme CSS variables ──
@@ -316,7 +402,7 @@ export default function TerminalPage() {
           <Download size={14} />
         </button>
 
-        <FilePanel ws={wsStateRef.current} />
+        <FilePanelButton visible={fpVisible} onToggle={() => { if (!fpVisible) { setFpLoading(true); fpSend('file-list', fpPath); } setFpVisible(v => !v); }} />
 
         {/* Status */}
         <span className="flex items-center gap-1.5 text-xs ml-auto" style={{ color: 'var(--text-muted)' }}>
@@ -348,9 +434,36 @@ export default function TerminalPage() {
         </div>
       )}
 
-      {/* ── Terminal ── */}
-      <div ref={termRef} className="flex-1 min-h-0"
-        style={{ background: 'var(--bg-terminal)', padding: '4px' }} />
+      {/* ── Main area: sidebar + terminal ── */}
+      <div className="flex flex-row flex-1 min-h-0">
+        {/* ── File panel sidebar ── */}
+        <FilePanelContent
+          visible={fpVisible}
+          path={fpPath}
+          entries={fpEntries}
+          loading={fpLoading}
+          selected={fpSelected}
+          history={fpHistory}
+          historyIdx={fpHistoryIdx}
+          ws={wsStateRef.current}
+          onToggle={() => {}}
+          onNavigate={fpNavigate}
+          onGoBack={fpGoBack}
+          onGoForward={fpGoForward}
+          onGoHome={fpGoHome}
+          onRefresh={fpRefresh}
+          onDelete={fpDelete}
+          onRename={fpRename}
+          onMkdir={fpMkdir}
+          onDownload={fpDownload}
+          onUpload={fpUpload}
+          onSelect={setFpSelected}
+        />
+
+        {/* ── Terminal ── */}
+        <div ref={termRef} className="flex-1 min-h-0"
+          style={{ background: 'var(--bg-terminal)', padding: '4px' }} />
+      </div>
     </div>
   );
 }
