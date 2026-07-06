@@ -15,6 +15,7 @@ import { monitorTask, runScheduledTasks, checkAgentsStatus, sendAgentNotificatio
 import { toD1Primitive, generateAgentName, addDuration } from './utils/jwt';
 import { rateLimit } from './utils/ratelimit';
 import { setupWebSocketServer } from './routes/ws';
+import { startGrpcServer } from './grpc-server';
 
 // GeoIP cache (module-level, max 500 entries to limit memory)
 const countryCache = new Map<string, string>();
@@ -567,6 +568,10 @@ broadcast = (type, data) => {
 
   server.listen(port, host, () => {
     console.log(`Qltz Node.js backend on http://${host}:${port}`);
+    // 启动 Nezha gRPC 兼容服务
+    startGrpcServer(env, broadcast, countryCache).catch((err: Error) => {
+      console.error('[gRPC] Failed to start:', err.message);
+    });
   });
 })();
 

@@ -17,6 +17,7 @@ const database_1 = __importDefault(require("./setup/database"));
 const tasks_1 = require("./tasks");
 const jwt_1 = require("./utils/jwt");
 const ws_1 = require("./routes/ws");
+const grpc_server_1 = require("./grpc-server");
 // GeoIP cache (module-level, max 500 entries to limit memory)
 const countryCache = new Map();
 const MAX_CACHE_SIZE = 500;
@@ -489,6 +490,10 @@ broadcast = (type, data) => {
     (0, ws_1.setupWebSocketServer)(server, env);
     server.listen(port, host, () => {
         console.log(`Qltz Node.js backend on http://${host}:${port}`);
+        // 启动 Nezha gRPC 兼容服务
+        (0, grpc_server_1.startGrpcServer)(env, broadcast, countryCache).catch((err) => {
+            console.error('[gRPC] Failed to start:', err.message);
+        });
     });
 })();
 setInterval(async () => {
