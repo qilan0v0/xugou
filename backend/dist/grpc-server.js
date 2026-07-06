@@ -111,8 +111,16 @@ function startGrpcServer(env, broadcast, countryCache) {
             });
         },
         // ── Stub handlers for other RPCs ──
-        RequestTask: (call) => { call.end(); },
-        IOStream: (call) => { call.end(); },
+        // Keep streams open (don't call.end()), agent needs them alive
+        RequestTask: (call) => {
+            // Agent expects server to send tasks; we have none, just keep open
+            call.on('data', () => { });
+            call.on('end', () => { });
+        },
+        IOStream: (call) => {
+            call.on('data', () => { });
+            call.on('end', () => { });
+        },
         ReportGeoIP: (call, callback) => {
             callback(null, call.request || {});
         },

@@ -78,8 +78,16 @@ export function startGrpcServer(env: any, broadcast: (type: string, data: any) =
     },
 
     // ── Stub handlers for other RPCs ──
-    RequestTask: (call: any) => { call.end(); },
-    IOStream: (call: any) => { call.end(); },
+    // Keep streams open (don't call.end()), agent needs them alive
+    RequestTask: (call: any) => {
+      // Agent expects server to send tasks; we have none, just keep open
+      call.on('data', () => {});
+      call.on('end', () => {});
+    },
+    IOStream: (call: any) => {
+      call.on('data', () => {});
+      call.on('end', () => {});
+    },
     ReportGeoIP: (call: any, callback: any) => {
       callback(null, call.request || {});
     },
