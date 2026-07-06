@@ -198,7 +198,7 @@ async function processNezhaState(env: any, token: string, state: any, country: s
     udpCount: state.udpConnCount ?? null,
     country: country,
     raw: JSON.stringify(state),
-  }, countryCache, broadcast);
+  }, broadcast);
 }
 
 // ── Country lookup from IP ──
@@ -251,7 +251,7 @@ interface AgentFields {
   raw: string;
 }
 
-async function agentUpdate(env: any, token: string, f: AgentFields, countryCache: Map<string, string>, broadcast: (type: string, data: any) => void) {
+async function agentUpdate(env: any, token: string, f: AgentFields, broadcast: (type: string, data: any) => void) {
   // Look up / create agent
   let agent = await env.DB.prepare('SELECT id FROM agents WHERE token = ?').bind(token).first() as { id: number } | null;
   let isNewAgent = false;
