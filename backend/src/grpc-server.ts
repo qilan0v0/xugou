@@ -21,7 +21,7 @@ export function startGrpcServer(env: any, broadcast: (type: string, data: any) =
   const server = new grpc.Server();
 
   // ── ReportSystemInfo — Host info (unary, used by Nezha v0/v1) ──
-  server.addService(nezhaProto.nezha.NezhaService.service, {
+  server.addService(nezhaProto.proto.NezhaService.service, {
     ReportSystemInfo: async (call: any, callback: any) => {
       try {
         const host = call.request;

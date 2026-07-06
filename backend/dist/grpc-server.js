@@ -56,7 +56,7 @@ const tasks_1 = require("./tasks");
 function startGrpcServer(env, broadcast, countryCache) {
     const server = new grpc.Server();
     // ── ReportSystemInfo — Host info (unary, used by Nezha v0/v1) ──
-    server.addService(nezhaProto.nezha.NezhaService.service, {
+    server.addService(nezhaProto.proto.NezhaService.service, {
         ReportSystemInfo: async (call, callback) => {
             try {
                 const host = call.request;
