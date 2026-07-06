@@ -5,10 +5,10 @@ import {
   Activity, MemoryStick, Download, Upload, ListTree, Network, Boxes,
 } from 'lucide-react';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Agent } from '../api/agents';
 import CountryFlag from './CountryFlag';
 import AgentCharts from './AgentCharts';
-import TerminalModal from './TerminalModal';
 import { useAuth } from '../contexts/AuthContext';
 import { ENV_API_BASE_URL } from '../config';
 
@@ -68,7 +68,7 @@ interface AgentDetailModalProps {
 
 export default function AgentDetailModal({ agent, onClose, showToken }: AgentDetailModalProps) {
   const { token: jwtToken } = useAuth();
-  const [showTerminal, setShowTerminal] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -126,7 +126,7 @@ export default function AgentDetailModal({ agent, onClose, showToken }: AgentDet
               {isOnline ? '在线' : '离线'}
             </span>
             {isOnline && jwtToken && (
-              <button onClick={() => setShowTerminal(true)}
+              <button onClick={() => navigate(`/terminal/${agent.id}?name=${encodeURIComponent(agent.name)}`)}
                 className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 transition-colors flex-shrink-0">
                 <TerminalIcon className="w-3 h-3" />
                 终端
@@ -203,9 +203,6 @@ export default function AgentDetailModal({ agent, onClose, showToken }: AgentDet
           {agent.id && <AgentCharts agentId={agent.id} />}
         </div>
       </div>
-      {showTerminal && jwtToken && (
-        <TerminalModal agentId={agent.id} agentName={agent.name} token={jwtToken} onClose={() => setShowTerminal(false)} />
-      )}
     </div>
   );
 }

@@ -21,6 +21,7 @@ const AgentDetail = lazy(() => import('./pages/agents/AgentDetail'));
 const CreateAgent = lazy(() => import('./pages/agents/CreateAgent'));
 const EditAgent = lazy(() => import('./pages/agents/EditAgent'));
 const GroupsList = lazy(() => import('./pages/agents/GroupsList'));
+const TerminalPage = lazy(() => import('./pages/TerminalPage'));
 const UserProfile = lazy(() => import('./pages/users/UserProfile'));
 const StatusPageConfig = lazy(() => import('./pages/status/StatusPageConfig'));
 
@@ -56,6 +57,7 @@ function App() {
         <Route path="/agents/groups" element={<ProtectedRoute><Layout><Lazy><GroupsList /></Lazy></Layout></ProtectedRoute>} />
         <Route path="/agents/:id" element={<ProtectedRoute><Layout><Lazy><AgentDetail /></Lazy></Layout></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Layout><Lazy><UserProfile /></Lazy></Layout></ProtectedRoute>} />
+        <Route path="/terminal/:id" element={<ProtectedRoute><Layout><Lazy><TerminalPage /></Lazy></Layout></ProtectedRoute>} />
         <Route path="*" element={<Layout><NotFound /></Layout>} />
       </Routes>
     </LanguageProvider>
