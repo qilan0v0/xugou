@@ -13,17 +13,6 @@ interface FilePanelProps {
   ws: WebSocket | null;
 }
 
-const FILE_ICONS: Record<string, string> = {
-  js: '📜', ts: '📘', json: '📋', md: '📝',
-  py: '🐍', go: '🔵', sh: '⚡', yml: '⚙️', yaml: '⚙️',
-  txt: '📄', log: '📋', csv: '📊',
-  jpg: '🖼️', jpeg: '🖼️', png: '🖼️', gif: '🖼️', svg: '🖼️',
-  mp4: '🎬', mp3: '🎵', zip: '📦', tar: '📦', gz: '📦',
-  pdf: '📕', doc: '📃',
-};
-
-function getFileIcon(name: string, isDir: boolean): string {
-
 function formatSize(bytes: number): string {
   if (bytes >= 1073741824) return (bytes / 1073741824).toFixed(1) + ' GB';
   if (bytes >= 1048576) return (bytes / 1048576).toFixed(1) + ' MB';
