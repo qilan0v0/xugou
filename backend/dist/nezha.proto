@@ -1,5 +1,5 @@
 syntax = "proto3";
-package nezha;
+package proto;
 
 service NezhaService {
   rpc ReportSystemState(stream State) returns (stream Receipt) {}
