@@ -1,7 +1,6 @@
 package reporter
 
 import (
-	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -13,6 +12,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/creack/pty"
 	"github.com/gorilla/websocket"
 	"github.com/spf13/viper"
 )
@@ -28,10 +28,11 @@ type WSMessage struct {
 
 // TerminalSession 管理一个终端会话
 type TerminalSession struct {
-	cmd    *exec.Cmd
-	stdin  io.WriteCloser
-	done   chan struct{}
-	mu     sync.Mutex
+	cmd      *exec.Cmd
+	ptyFile  *os.File // PTY master（非 Windows）；Windows 走 stdin pipe
+	stdin    io.WriteCloser
+	done     chan struct{}
+	mu       sync.Mutex
 }
 
 // RunWSClient 启动 WebSocket 客户端，保持长连接并处理终端指令
@@ -117,6 +118,8 @@ func RunWSClient(ctx context.Context, serverURL, token string) {
 					}
 					s := NewTerminalSession()
 					currentSession = s
+					// 默认尺寸 80×24，前端连上后会发 resize 覆盖
+					s.Resize(80, 24)
 					go s.Run(func(output string, exitCode int) {
 						sendWS(conn, WSMessage{Type: "shell-output", Data: output})
 						if exitCode >= 0 {
@@ -136,7 +139,9 @@ func RunWSClient(ctx context.Context, serverURL, token string) {
 					}
 
 				case "resize":
-					// pty resize - 暂不实现
+					if currentSession != nil {
+						currentSession.Resize(msg.Cols, msg.Rows)
+					}
 				}
 			}
 		}()
@@ -173,41 +178,96 @@ func (s *TerminalSession) Run(onOutput func(string, int)) {
 	s.mu.Lock()
 
 	shell := "/bin/sh"
+	var shellArgs []string
 	if runtime.GOOS == "windows" {
 		shell = "cmd.exe"
+	} else {
+		shellArgs = []string{"-i"}
 	}
 	if env := os.Getenv("SHELL"); env != "" {
 		shell = env
 	}
 
-	cmd := exec.Command(shell)
-	stdin, _ := cmd.StdinPipe()
-	stdout, _ := cmd.StdoutPipe()
-	cmd.Stderr = cmd.Stdout
+	cmd := exec.Command(shell, shellArgs...)
 
-	s.cmd = cmd
-	s.stdin = stdin
-	s.mu.Unlock()
+	if runtime.GOOS == "windows" {
+		// Windows 不支持 PTY，走原管道 fallback
+		stdin, _ := cmd.StdinPipe()
+		stdout, _ := cmd.StdoutPipe()
+		cmd.Stderr = cmd.Stdout
 
-	if err := cmd.Start(); err != nil {
+		s.cmd = cmd
+		s.stdin = stdin
+		s.mu.Unlock()
+
+		if err := cmd.Start(); err != nil {
+			onOutput(fmt.Sprintf("shell error: %v\n", err), 1)
+			return
+		}
+
+		go func() {
+			buf := make([]byte, 32*1024)
+			for {
+				n, err := stdout.Read(buf)
+				if n > 0 {
+					onOutput(string(buf[:n]), -1)
+				}
+				if err != nil {
+					return
+				}
+			}
+		}()
+
+		go func() {
+			<-s.done
+			stdin.Close()
+		}()
+
+		err := cmd.Wait()
+		exitCode := 0
+		if err != nil {
+			if e, ok := err.(*exec.ExitError); ok {
+				exitCode = e.ExitCode()
+			} else {
+				exitCode = 1
+			}
+		}
+		onOutput("", exitCode)
+		return
+	}
+
+	// 非 Windows：用 PTY 启动 shell，获得回显、提示符、行编辑、控制序列
+	ptyFile, err := pty.Start(cmd)
+	if err != nil {
+		s.mu.Unlock()
 		onOutput(fmt.Sprintf("shell error: %v\n", err), 1)
 		return
 	}
 
+	s.cmd = cmd
+	s.ptyFile = ptyFile
+	s.mu.Unlock()
+
+	// 原始字节读取 PTY master，不按行扫描、不重写换行
 	go func() {
-		scanner := bufio.NewScanner(stdout)
-		scanner.Buffer(make([]byte, 64*1024), 64*1024)
-		for scanner.Scan() {
-			onOutput(scanner.Text()+"\r\n", -1)
+		buf := make([]byte, 32*1024)
+		for {
+			n, err := ptyFile.Read(buf)
+			if n > 0 {
+				onOutput(string(buf[:n]), -1)
+			}
+			if err != nil {
+				return
+			}
 		}
 	}()
 
 	go func() {
 		<-s.done
-		stdin.Close()
+		ptyFile.Close()
 	}()
 
-	err := cmd.Wait()
+	err = cmd.Wait()
 	exitCode := 0
 	if err != nil {
 		if e, ok := err.(*exec.ExitError); ok {
@@ -223,9 +283,21 @@ func (s *TerminalSession) Run(onOutput func(string, int)) {
 func (s *TerminalSession) Write(data string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if s.stdin != nil {
+	if s.ptyFile != nil {
+		io.WriteString(s.ptyFile, data)
+	} else if s.stdin != nil {
 		io.WriteString(s.stdin, data)
 	}
+}
+
+// Resize 调整 PTY 尺寸
+func (s *TerminalSession) Resize(cols, rows int) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.ptyFile == nil || cols <= 0 || rows <= 0 {
+		return
+	}
+	_ = pty.Setsize(s.ptyFile, &pty.Winsize{Rows: uint16(rows), Cols: uint16(cols)})
 }
 
 // Close 关闭会话
@@ -236,6 +308,9 @@ func (s *TerminalSession) Close() {
 	case <-s.done:
 	default:
 		close(s.done)
+	}
+	if s.ptyFile != nil {
+		s.ptyFile.Close()
 	}
 	if s.cmd != nil && s.cmd.Process != nil {
 		s.cmd.Process.Kill()
