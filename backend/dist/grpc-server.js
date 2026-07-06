@@ -139,8 +139,14 @@ function startGrpcServer(env, broadcast, countryCache) {
                     }
                 });
             }
-            call.on('data', () => { });
-            call.on('end', () => { });
+            // IMPORTANT: Don't return until stream ends, otherwise @grpc/grpc-js
+            // sends a "stream closed" status to the agent (causes deserialization error)
+            return new Promise(resolve => {
+                call.on('data', () => { });
+                call.on('end', () => { call.end(); resolve(); });
+                call.on('close', () => resolve());
+                call.on('error', () => resolve());
+            });
         },
         IOStream: (call) => {
             // Terminal IOStream — store for bridging with frontend WS
@@ -152,12 +158,17 @@ function startGrpcServer(env, broadcast, countryCache) {
                         exports.gNezhaIOStreamMap.set(agentId, call);
                         call.on('close', () => exports.gNezhaIOStreamMap.delete(agentId));
                         call.on('end', () => exports.gNezhaIOStreamMap.delete(agentId));
+                        console.log(`[gRPC] IOStream stored for agent=${agentId}`);
                     }
                 });
             }
-            // Discard any data (forwarded by the bridge from ws.ts)
             call.on('data', () => { });
             call.on('end', () => { });
+            return new Promise(resolve => {
+                call.on('end', () => { call.end(); resolve(); });
+                call.on('close', () => resolve());
+                call.on('error', () => resolve());
+            });
         },
         ReportGeoIP: (call, callback) => {
             callback(null, call.request || {});
