@@ -222,6 +222,164 @@ app.post('/api/agents/status', async (c) => {
         return c.json({ success: false, message: e.message }, 500);
     }
 });
+// ── Nezha Agent 兼容上报 ──
+// 接受 Nezha 格式的 JSON: {client_secret, client_uuid, host:{...}, status:{...}}
+app.post('/api/v1/agent/report', async (c) => {
+    try {
+        const raw = await c.req.text();
+        const body = JSON.parse(raw);
+        // 认证：client_secret 作为 token
+        let token = body.client_secret;
+        if (!token)
+            return c.json({ success: false, message: 'no client_secret' }, 400);
+        const host = body.host || {};
+        const status = body.status || {};
+        // ── 字段映射 ──
+        // CPU 使用率
+        const cpu = status.cpu ?? null;
+        // 内存
+        const memTotal = host.mem_total ?? null;
+        const memUsed = status.mem_used ?? null;
+        // 磁盘
+        let diskTotal = host.disk_total ?? null;
+        let diskUsed = status.disk_used ?? null;
+        // 网络流量（累积字节）
+        let netRxTotal = status.net_in_transfer ?? null;
+        let netTxTotal = status.net_out_transfer ?? null;
+        // 网络速率（字节/秒 → KB/s）
+        const netRxSpeed = status.net_in_speed != null ? status.net_in_speed / 1024 : null;
+        const netTxSpeed = status.net_out_speed != null ? status.net_out_speed / 1024 : null;
+        let netRx = netRxSpeed;
+        let netTx = netTxSpeed;
+        // CPU 信息
+        const cpuModelName = (0, jwt_1.toD1Primitive)(Array.isArray(host.cpu) ? host.cpu.join(', ') : host.cpu ?? null);
+        const cpuCores = Array.isArray(host.cpu) ? host.cpu.length : null;
+        const cpuArch = (0, jwt_1.toD1Primitive)(host.arch ?? null);
+        // 系统信息
+        const os = (0, jwt_1.toD1Primitive)(host.platform ?? null);
+        const version = (0, jwt_1.toD1Primitive)(host.platform_version ?? null);
+        const hostname = (0, jwt_1.toD1Primitive)(host.hostname ?? null);
+        // 负载
+        const l1 = status.load_1 ?? status.load1 ?? null;
+        const l5 = status.load_5 ?? status.load5 ?? null;
+        const l15 = status.load_15 ?? status.load15 ?? null;
+        // 启动时间（Unix 秒 → ISO 字符串）
+        const bootTimeUnix = host.boot_time ?? null;
+        const bt = bootTimeUnix ? new Date(bootTimeUnix * 1000).toISOString() : null;
+        const av = (0, jwt_1.toD1Primitive)(host.version ?? null);
+        // 进程 / 连接数
+        const processCount = status.process_count ?? null;
+        const tcpCount = status.tcp_conn_count ?? null;
+        const udpCount = status.udp_conn_count ?? null;
+        // IP 地址
+        const ipAddress = (0, jwt_1.toD1Primitive)(body.ip ?? (Array.isArray(host.ip) ? host.ip[0] : host.ip) ?? null);
+        // ── 国家查询 ──
+        const forwarded = c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || '';
+        const clientIp = forwarded.split(',')[0]?.trim();
+        let country = null;
+        if (clientIp && clientIp !== '127.0.0.1' && clientIp !== '::1') {
+            if (countryCache.has(clientIp)) {
+                country = countryCache.get(clientIp);
+            }
+            else {
+                try {
+                    const res = await fetch('http://ip-api.com/json/' + clientIp + '?fields=countryCode');
+                    if (res.ok) {
+                        const data = await res.json();
+                        country = data?.countryCode || null;
+                        if (country) {
+                            if (countryCache.size >= MAX_CACHE_SIZE) {
+                                const firstKey = countryCache.keys().next().value;
+                                if (firstKey)
+                                    countryCache.delete(firstKey);
+                            }
+                            countryCache.set(clientIp, country);
+                        }
+                    }
+                }
+                catch (e) { /* ignore */ }
+            }
+        }
+        // ── 查找 / 创建 Agent ──
+        let isNewAgent = false;
+        let agent = await env.DB.prepare('SELECT id FROM agents WHERE token = ?').bind(token).first();
+        if (!agent) {
+            const adminUser = env.DB.prepare('SELECT id FROM users WHERE role = ?').bind('admin').first();
+            if (!adminUser)
+                return c.json({ success: false, message: 'no admin user' }, 500);
+            const autoName = (0, jwt_1.generateAgentName)(country);
+            const now2 = new Date().toISOString();
+            env.DB.prepare(`INSERT INTO agents (name, token, created_by, status, created_at, updated_at, connected_at)
+         VALUES (?, ?, ?, 'active', ?, ?, ?)`).bind(autoName, token, adminUser.id, now2, now2, now2).run();
+            agent = env.DB.prepare('SELECT id FROM agents WHERE token = ?').bind(token).first();
+            if (!agent)
+                return c.json({ success: false, message: 'auto-create failed' }, 500);
+            isNewAgent = true;
+            console.log(`[Nezha] Agent auto-created: id=${agent.id} token=${token?.slice(0, 12)}...`);
+        }
+        // 网络速率回退：如果没传速率但传了累计值，通过差值计算
+        if ((netRx == null || netRx === 0) && netRxTotal != null) {
+            const prev = env.DB.prepare('SELECT network_rx_total, network_tx_total, updated_at FROM agents WHERE id = ?').bind(agent.id).first();
+            if (prev && prev.network_rx_total != null) {
+                const elapsed = (Date.now() - new Date(prev.updated_at).getTime()) / 1000;
+                if (elapsed > 0 && elapsed < 3600) {
+                    netRx = Math.max(0, (netRxTotal - (prev.network_rx_total || 0)) / elapsed / 1024);
+                    netTx = Math.max(0, (netTxTotal - (prev.network_tx_total || 0)) / elapsed / 1024);
+                }
+            }
+        }
+        // ── 连接状态计算 ──
+        const now = new Date().toISOString();
+        const prev = await env.DB.prepare('SELECT status, updated_at, connected_at, boot_time FROM agents WHERE id = ?').bind(agent.id).first();
+        const currentStatus = prev?.status;
+        const gapMs = prev?.updated_at ? Date.now() - new Date(prev.updated_at).getTime() : 0;
+        const wasDisconnected = gapMs > 120000 && gapMs < 240000;
+        const wasInactive = isNewAgent || (currentStatus === 'inactive') || (wasDisconnected && (!currentStatus || currentStatus !== 'active')) || (!currentStatus && !prev?.connected_at);
+        const connMissing = !prev?.connected_at;
+        const gapValid = gapMs > 0 && !isNaN(gapMs);
+        const bootChanged = prev?.boot_time && bt && prev.boot_time !== bt;
+        const wasOffline = currentStatus === 'inactive' || (gapValid && gapMs > 120000) || !!bootChanged;
+        const shouldReset = isNewAgent || connMissing || wasOffline;
+        const newConnectedAt = shouldReset ? now : (prev?.connected_at || now);
+        // ── 更新 DB ──
+        const result = env.DB.prepare(`UPDATE agents SET status='active', connected_at=?, cpu_usage=?, memory_total=?, memory_used=?, disk_total=?, disk_used=?, network_rx=?, network_tx=?, hostname=?, ip_address=?, os=?, version=?, cpu_arch=?, cpu_model_name=?, cpu_cores=?, load1=?, load5=?, load15=?, boot_time=?, network_rx_total=?, network_tx_total=?, agent_version=?, country=?, updated_at=?, last_payload=?, process_count=?, tcp_count=?, udp_count=? WHERE id=?`).bind(newConnectedAt, cpu, memTotal, memUsed, diskTotal, diskUsed, netRx, netTx, hostname, ipAddress, os, version, cpuArch, cpuModelName, cpuCores, l1, l5, l15, bt, netRxTotal, netTxTotal, av, country, now, raw.slice(0, 2000), processCount, tcpCount, udpCount, agent.id).run();
+        if (!result.success) {
+            console.error('[Nezha] Update failed:', result.error);
+            return c.json({ success: false, message: 'update failed' }, 500);
+        }
+        // ── 写入历史 ──
+        try {
+            const memPctVal = (memTotal && memUsed) ? (memUsed / memTotal * 100) : null;
+            const diskPctVal = (diskTotal && diskUsed) ? (diskUsed / diskTotal * 100) : null;
+            env.DB.prepare('INSERT INTO agent_metrics_history (agent_id, timestamp, cpu, mem_pct, disk_pct, net_rx, net_tx, process_count, tcp_count, udp_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').bind(agent.id, now, cpu, memPctVal, diskPctVal, netRx, netTx, processCount, tcpCount, udpCount).run();
+            env.DB.prepare('DELETE FROM agent_metrics_history WHERE agent_id = ? AND id NOT IN (SELECT id FROM agent_metrics_history WHERE agent_id = ? ORDER BY id DESC LIMIT 2880)').bind(agent.id, agent.id).run();
+        }
+        catch (e) { /* non-critical */ }
+        // ── 自动续期 ──
+        const agentForRenew = env.DB.prepare('SELECT expiry_time, duration_value, duration_unit FROM agents WHERE id = ?').bind(agent.id).first();
+        if (agentForRenew?.expiry_time && agentForRenew?.duration_value && agentForRenew?.duration_unit) {
+            if (new Date() > new Date(agentForRenew.expiry_time)) {
+                const newExpiry = (0, jwt_1.addDuration)(new Date(), agentForRenew.duration_value, agentForRenew.duration_unit);
+                env.DB.prepare('UPDATE agents SET start_time = ?, expiry_time = ? WHERE id = ?').bind(new Date().toISOString(), newExpiry.toISOString(), agent.id).run();
+                console.log(`[续期] agent=${agent.id} 已过期，自动续期至 ${newExpiry.toISOString()}`);
+            }
+        }
+        // ── 上线通知 ──
+        if (wasInactive) {
+            const fullAgent = await env.DB.prepare('SELECT * FROM agents WHERE id = ?').bind(agent.id).first();
+            if (fullAgent) {
+                console.log(`[上线] ${fullAgent.hostname || fullAgent.name || agent.id} 已上线 (IP: ${fullAgent.ip_address || '?'}, OS: ${fullAgent.os || '?'})`);
+                (0, tasks_1.sendAgentNotification)(env, fullAgent, 'up').catch(e => console.error('[通知] 上线通知失败:', e.message));
+            }
+        }
+        broadcast?.('agent-update', { id: agent.id });
+        return c.json({ success: true, message: 'ok' });
+    }
+    catch (e) {
+        console.error('[Nezha] Report err:', e.message);
+        return c.json({ success: false, message: e.message }, 500);
+    }
+});
 app.route('/api/auth', auth_1.default);
 app.route('/api/monitors', monitors_1.default);
 app.route('/api/agents', agents_1.default);
