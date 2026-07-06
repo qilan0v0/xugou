@@ -95,6 +95,10 @@ export default function TerminalModal({ agentId, agentName, token, onClose }: Te
           setStatus('connected');
           term.write('\r\n\x1b[32m✓ 终端连接已建立\x1b[0m\r\n');
           term.focus();
+          // 连接建立后立即上报当前尺寸，让 agent 在 shell-start 后拿到正确行列数
+          if (term.cols > 0 && term.rows > 0) {
+            ws?.send(JSON.stringify({ type: 'resize', cols: term.cols, rows: term.rows }));
+          }
         };
 
         ws.onmessage = (event) => {
