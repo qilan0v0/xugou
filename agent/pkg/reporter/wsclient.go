@@ -10,7 +10,6 @@ import (
 	"runtime"
 	"strings"
 	"sync"
-	"sync"
 	"time"
 
 	"github.com/creack/pty"
