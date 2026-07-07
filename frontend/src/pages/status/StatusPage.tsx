@@ -43,6 +43,7 @@ const StatusPage = () => {
   const receivedConfig = useRef(false);
   const receivedAgents = useRef(false);
   const receivedMonitors = useRef(false);
+  const hasData = useRef(false); // ref 版本避免闭包陈旧值
 
   // Main effect: SSE connection for all data
   useEffect(() => {
@@ -62,6 +63,7 @@ const StatusPage = () => {
         const cfg = JSON.parse(event.data);
         setData(prev => ({ ...prev, title: cfg.title, description: cfg.description, logoUrl: cfg.logoUrl, customCss: cfg.customCss }));
         receivedConfig.current = true;
+        hasData.current = true;
         checkFetched();
       } catch { /* ignore */ }
     });
@@ -71,6 +73,7 @@ const StatusPage = () => {
         const agents = JSON.parse(event.data);
         setData(prev => ({ ...prev, agents }));
         receivedAgents.current = true;
+        hasData.current = true;
         checkFetched();
       } catch { /* ignore */ }
     });
@@ -80,29 +83,30 @@ const StatusPage = () => {
         const monitors = JSON.parse(event.data);
         setData(prev => ({ ...prev, monitors }));
         receivedMonitors.current = true;
+        hasData.current = true;
         checkFetched();
       } catch { /* ignore */ }
     });
 
-    // 错误处理：SSE 连接失败时显示错误
+    // 错误处理：只有当从未收到任何数据时才报错（避免断开后误触）
     es.addEventListener('error', () => {
-      if (!fetched) {
+      if (!hasData.current) {
         setError(t('statusPage.fetchError'));
         setFetched(true);
       }
     });
 
-    // 定时轮询作为 SSE 断连的备用方案（5分钟一次）
-    const interval = setInterval(() => {
-      // 如果 SSE 断线太久，reconnect 会自动尝试，这里做兜底
-      if (es.readyState === EventSource.CLOSED) {
-        setError(null);
+    // 10 秒兜底：如果从未收到任何数据则显示错误（避免无限 loading）
+    const fallbackTimer = setTimeout(() => {
+      if (!hasData.current) {
+        setError(t('statusPage.fetchError'));
+        setFetched(true);
       }
-    }, 5 * 60 * 1000);
+    }, 15000);
 
     return () => {
       es.close();
-      clearInterval(interval);
+      clearTimeout(fallbackTimer);
     };
   }, []);
 
