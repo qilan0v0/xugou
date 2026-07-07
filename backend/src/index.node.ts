@@ -16,6 +16,7 @@ import { toD1Primitive, generateAgentName, addDuration } from './utils/jwt';
 import { rateLimit } from './utils/ratelimit';
 import { setupWebSocketServer } from './routes/ws';
 import { startGrpcServer } from './grpc-server';
+import { fetchAgents, fetchMonitors, fetchPageConfig } from './utils/statusData';
 
 // GeoIP cache (module-level, max 500 entries to limit memory)
 const countryCache = new Map<string, string>();
@@ -477,35 +478,57 @@ const host = process.env.HOSTNAME || config.hostname || '0.0.0.0';
 
 let broadcast = (type: string, data: any) => {};
 
-// Throttled broadcast: collect pending agent IDs and flush at most once per second
-const pendingBroadcasts = new Set<number>();
+// Throttled broadcast: collect pending updates and flush at most once per second
+const pendingAgentBroadcasts = new Set<number>();
+const pendingMonitorBroadcasts = new Set<number>();
 let flushTimer: ReturnType<typeof setTimeout> | null = null;
 const FLUSH_INTERVAL_MS = 1000;
 
-function flushBroadcasts() {
+async function flushBroadcasts() {
   flushTimer = null;
-  if (pendingBroadcasts.size === 0) return;
-  const ids = Array.from(pendingBroadcasts);
-  pendingBroadcasts.clear();
-  const msg = `event: agent-update
-data: ${JSON.stringify({ ids, time: new Date().toISOString() })}
+  const agentIds = Array.from(pendingAgentBroadcasts);
+  const monitorIds = Array.from(pendingMonitorBroadcasts);
+  pendingAgentBroadcasts.clear();
+  pendingMonitorBroadcasts.clear();
 
-`;
-  for (const res of sseClients) {
-    try { res.write(msg); } catch { sseClients.delete(res); }
+  if (agentIds.length > 0 || monitorIds.length > 0) {
+    // Pre-fetch both public and full datasets for correct auth-level delivery
+    try {
+      const [agentsPublic, agentsFull, monitorsPublic, monitorsFull] = await Promise.all([
+        agentIds.length > 0 ? fetchAgents(env, false) : Promise.resolve(null as any),
+        agentIds.length > 0 ? fetchAgents(env, true) : Promise.resolve(null as any),
+        monitorIds.length > 0 ? fetchMonitors(env, false) : Promise.resolve(null as any),
+        monitorIds.length > 0 ? fetchMonitors(env, true) : Promise.resolve(null as any),
+      ]);
+
+      for (const [res, isAuth] of sseClients.entries()) {
+        try {
+          if (agentIds.length > 0) {
+            const agents = isAuth ? agentsFull : agentsPublic;
+            res.write(`event: agents\ndata: ${JSON.stringify(agents)}\n\n`);
+          }
+          if (monitorIds.length > 0) {
+            const monitors = isAuth ? monitorsFull : monitorsPublic;
+            res.write(`event: monitors\ndata: ${JSON.stringify(monitors)}\n\n`);
+          }
+        } catch { sseClients.delete(res); }
+      }
+    } catch (e) {
+      console.error('Broadcast error:', e);
+    }
   }
 }
 
 const listener = getRequestListener(app.fetch);
 
-// SSE clients (ServerResponse objects kept open for streaming)
-const sseClients = new Set<any>();
+// SSE clients: ServerResponse objects kept open for streaming, with auth status
+const sseClients = new Map<any, boolean>(); // res → isAuthenticated
 const MAX_SSE_CLIENTS = 50;
 
-// Heartbeat every 30s to detect dead connections
+  // Heartbeat every 30s to detect dead connections
 const HEARTBEAT_MS = 30000;
 const heartbeat = setInterval(() => {
-  for (const res of sseClients) {
+  for (const [res] of sseClients.entries()) {
     try { res.write('event: heartbeat\ndata: {}\n\n'); }
     catch { sseClients.delete(res); }
   }
@@ -527,8 +550,41 @@ const server = createServer((req, res) => {
       'Access-Control-Allow-Origin': req.headers.origin || '*',
       'Access-Control-Allow-Credentials': 'true',
     });
-    sseClients.add(res);
+    sseClients.set(res, false);
     res.write('event: connected\ndata: {}\n\n');
+
+    // ── 连接时立即推送完整状态页数据（分三个事件，前端可逐步渲染）──
+    (async () => {
+      try {
+        // 前端 SSE 不支持设置 Authorization 头，用 ?token= 传 JWT
+        const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
+        const token = url.searchParams.get('token') || '';
+        let isAuthenticated = false;
+        if (token) {
+          try {
+            const { verify } = require('hono/jwt');
+            await verify(token, env.JWT_SECRET);
+            isAuthenticated = true;
+          } catch { /* token 无效，保持游客身份 */ }
+        }
+
+        // 记录认证状态供后续广播使用
+        sseClients.set(res, isAuthenticated);
+
+        const [config, agents, monitors] = await Promise.all([
+          fetchPageConfig(env),
+          fetchAgents(env, isAuthenticated),
+          fetchMonitors(env, isAuthenticated),
+        ]);
+
+        res.write(`event: config\ndata: ${JSON.stringify(config)}\n\n`);
+        res.write(`event: agents\ndata: ${JSON.stringify(agents)}\n\n`);
+        res.write(`event: monitors\ndata: ${JSON.stringify(monitors)}\n\n`);
+      } catch (e) {
+        console.error('SSE initial data push error:', e);
+      }
+    })();
+
     console.log('SSE client connected, total:', sseClients.size);
     req.on('close', () => {
       sseClients.delete(res);
@@ -539,13 +595,16 @@ const server = createServer((req, res) => {
   return listener(req, res);
 });
 
-// Override broadcast — queue agent IDs and flush throttled
+// Override broadcast — queue update IDs by type and flush throttled
 broadcast = (type, data) => {
-  if (data?.id) {
-    pendingBroadcasts.add(data.id);
-    if (!flushTimer) {
-      flushTimer = setTimeout(flushBroadcasts, FLUSH_INTERVAL_MS);
-    }
+  if (!data?.id) return;
+  if (type === 'agent-update') {
+    pendingAgentBroadcasts.add(data.id);
+  } else if (type === 'monitor-update') {
+    pendingMonitorBroadcasts.add(data.id);
+  }
+  if (!flushTimer) {
+    flushTimer = setTimeout(flushBroadcasts, FLUSH_INTERVAL_MS);
   }
 };
 
@@ -576,7 +635,11 @@ broadcast = (type, data) => {
 })();
 
 setInterval(async () => {
-  try { await runScheduledTasks(null, env, {}); }
+  try {
+    await runScheduledTasks(null, env, {});
+    // 监控检查完成后广播更新给所有 SSE 客户端
+    broadcast('monitor-update', { id: 0 });
+  }
   catch (e) { console.error('Scheduled task error:', e); }
 }, 60 * 1000);
 

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getStatusPageData, StatusAgent } from '../../api/status';
+import { StatusAgent } from '../../api/status';
 import { Monitor } from '../../api/monitors';
 import AgentCard from '../../components/AgentCard';
 import AgentDetailModal from '../../components/AgentDetailModal';
@@ -23,7 +23,7 @@ const TAB_KEY = 'qltz_status_tab';
 const StatusPage = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, token } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [cardSize, setCardSize] = useState<'small' | 'medium' | 'large'>(
     () => (localStorage.getItem(CARD_SIZE_KEY) as 'small' | 'medium' | 'large') || 'large'
@@ -38,77 +38,73 @@ const StatusPage = () => {
   const [selectedMonitor, setSelectedMonitor] = useState<Monitor | null>(null);
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
-  const [monitorsLoading, setMonitorsLoading] = useState(false);
 
-  // Track if monitors have been loaded at least once for the fade-in
-  const monitorsLoadedRef = useRef(false);
+  // Track received SSE event types for progressive rendering
+  const receivedConfig = useRef(false);
+  const receivedAgents = useRef(false);
+  const receivedMonitors = useRef(false);
 
-  // Universal fetch (summary + current tab)
-  const fetchData = async () => {
-    try {
-      const res = await getStatusPageData();
-      if (res.success && res.data) {
-        setError(null);
-        setData(prev => ({
-          title: res.data!.title || prev.title,
-          description: res.data!.description || prev.description,
-          logoUrl: res.data!.logoUrl || prev.logoUrl,
-          customCss: res.data!.customCss || prev.customCss,
-          agents: res.data!.agents || prev.agents,
-          monitors: activeTab === 'monitors' ? (res.data!.monitors || prev.monitors) : (prev.monitors || []),
-        }));
-      } else if (!fetched) {
-        setError(res.message || t('statusPage.fetchError'));
-      }
-    } catch (err: any) {
-      if (!fetched) setError(t('statusPage.fetchError'));
-    } finally {
-      setFetched(true);
-    }
-  };
-
-  // Extra monitor-only fetch (only when monitors tab is active)
-  const fetchMonitors = async () => {
-    setMonitorsLoading(true);
-    try {
-      const res = await getStatusPageData();
-      if (res.success && res.data?.monitors) {
-        setData(prev => ({ ...prev, monitors: res.data!.monitors! }));
-        monitorsLoadedRef.current = true;
-      }
-    } catch { /* ignore */ }
-    finally { setMonitorsLoading(false); }
-  };
-
-  // Main effect: initial fetch + SSE + polling
+  // Main effect: SSE connection for all data
   useEffect(() => {
-    fetchData();
-    const interval = setInterval(fetchData, 60000);
-
-    let sseDebounce: any = null;
-    const es = new EventSource((ENV_API_BASE_URL || '') + '/api/events');
-    const refresh = () => {
-      if (sseDebounce) clearTimeout(sseDebounce);
-      sseDebounce = setTimeout(() => fetchData(), 300);
+    // Only mark fetched when at least one data category has arrived
+    const checkFetched = () => {
+      if (receivedConfig.current || receivedAgents.current || receivedMonitors.current) {
+        setFetched(true);
+      }
     };
-    es.addEventListener('agent-update', refresh);
-    es.addEventListener('monitor-update', refresh);
 
-    const sseTimeout = setTimeout(() => { es.close(); }, 30 * 60 * 1000);
+    // Pass JWT token if available (SSE doesn't support custom headers, use query param)
+    const tokenParam = isAuthenticated && token ? `?token=${encodeURIComponent(token)}` : '';
+    const es = new EventSource((ENV_API_BASE_URL || '') + '/api/events' + tokenParam);
+
+    es.addEventListener('config', (event: MessageEvent) => {
+      try {
+        const cfg = JSON.parse(event.data);
+        setData(prev => ({ ...prev, title: cfg.title, description: cfg.description, logoUrl: cfg.logoUrl, customCss: cfg.customCss }));
+        receivedConfig.current = true;
+        checkFetched();
+      } catch { /* ignore */ }
+    });
+
+    es.addEventListener('agents', (event: MessageEvent) => {
+      try {
+        const agents = JSON.parse(event.data);
+        setData(prev => ({ ...prev, agents }));
+        receivedAgents.current = true;
+        checkFetched();
+      } catch { /* ignore */ }
+    });
+
+    es.addEventListener('monitors', (event: MessageEvent) => {
+      try {
+        const monitors = JSON.parse(event.data);
+        setData(prev => ({ ...prev, monitors }));
+        receivedMonitors.current = true;
+        checkFetched();
+      } catch { /* ignore */ }
+    });
+
+    // 错误处理：SSE 连接失败时显示错误
+    es.addEventListener('error', () => {
+      if (!fetched) {
+        setError(t('statusPage.fetchError'));
+        setFetched(true);
+      }
+    });
+
+    // 定时轮询作为 SSE 断连的备用方案（5分钟一次）
+    const interval = setInterval(() => {
+      // 如果 SSE 断线太久，reconnect 会自动尝试，这里做兜底
+      if (es.readyState === EventSource.CLOSED) {
+        setError(null);
+      }
+    }, 5 * 60 * 1000);
 
     return () => {
-      clearInterval(interval);
-      clearTimeout(sseTimeout);
       es.close();
+      clearInterval(interval);
     };
   }, []);
-
-  // Monitors tab: fetch monitors data when tab becomes active
-  useEffect(() => {
-    if (activeTab === 'monitors') {
-      fetchMonitors();
-    }
-  }, [activeTab]);
 
   // Tab switch handler
   const switchTab = (tab: 'agents' | 'monitors' | 'map') => {
@@ -342,9 +338,7 @@ const StatusPage = () => {
         {/* ── API服务状态 tab ── */}
         {activeTab === 'monitors' && (
           <section>
-            {monitorsLoading && !monitorsLoadedRef.current ? (
-              <div className="flex justify-center py-12"><LoadingSpinner size="sm" /></div>
-            ) : filteredMonitors.length === 0 ? (
+            {filteredMonitors.length === 0 ? (
               <div className="glass p-8 text-center"><p className="text-sm text-slate-500">没有匹配的API服务</p></div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
