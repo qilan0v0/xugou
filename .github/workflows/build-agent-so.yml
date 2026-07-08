@@ -1,0 +1,194 @@
+name: Build Agent Shared Libraries
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version_name:
+        description: 'version name (leave blank for auto)'
+        required: false
+        type: string
+        default: ''
+      lib_name:
+        description: 'library name (e.g. qltz-agent)'
+        required: false
+        type: string
+        default: 'qltz-agent'
+
+jobs:
+  build:
+    name: Build ${{ matrix.goos }}-${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - goos: linux
+            arch: amd64
+            runner: ubuntu-latest
+            ext: .so
+            cc: gcc
+            cxx: g++
+            cross_cc_pkg: ''
+          - goos: linux
+            arch: arm64
+            runner: ubuntu-latest
+            ext: .so
+            cc: aarch64-linux-gnu-gcc
+            cxx: aarch64-linux-gnu-g++
+            cross_cc_pkg: gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+          - goos: darwin
+            arch: amd64
+            runner: macos-13
+            ext: .dylib
+            cc: clang
+            cxx: clang++
+            cross_cc_pkg: ''
+          - goos: darwin
+            arch: arm64
+            runner: macos-latest
+            ext: .dylib
+            cc: clang
+            cxx: clang++
+            cross_cc_pkg: ''
+          - goos: windows
+            arch: amd64
+            runner: windows-latest
+            ext: .dll
+            cc: x86_64-w64-mingw32-gcc
+            cxx: x86_64-w64-mingw32-g++
+            cross_cc_pkg: gcc-mingw-w64-x86-64
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.24'
+
+    - name: Install cross-compilers (Linux)
+      if: runner.os == 'Linux' && matrix.cross_cc_pkg != ''
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ${{ matrix.cross_cc_pkg }}
+
+    - name: Install cross-compilers (Windows)
+      if: runner.os == 'Windows' && matrix.cross_cc_pkg != ''
+      shell: bash
+      run: |
+        choco install mingw --version 14.2.0 --no-progress -y 2>/dev/null || echo "mingw already installed"
+        echo "C:\tools\mingw64\bin" >> $GITHUB_PATH
+
+    - name: Set version and artifact name
+      id: vars
+      shell: bash
+      run: |
+        LIB="${{ inputs.lib_name }}"
+        GOOS="${{ matrix.goos }}"
+        GOARCH="${{ matrix.arch }}"
+        EXT="${{ matrix.ext }}"
+        ARTIFACT="${LIB}-${GOOS}-${GOARCH}${EXT}"
+        echo "artifact=${ARTIFACT}" >> $GITHUB_OUTPUT
+        echo "goos=${GOOS}" >> $GITHUB_OUTPUT
+        echo "goarch=${GOARCH}" >> $GITHUB_OUTPUT
+
+        if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+          echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        else
+          echo "VERSION=0.1.0-dev" >> $GITHUB_OUTPUT
+        fi
+        echo "BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_OUTPUT
+      env:
+        GITHUB_REF: ${{ github.ref }}
+
+    - name: Build shared library
+      shell: bash
+      env:
+        GOOS: ${{ matrix.goos }}
+        GOARCH: ${{ matrix.arch }}
+        CC: ${{ matrix.cc }}
+        CXX: ${{ matrix.cxx }}
+        CGO_ENABLED: '1'
+        VERSION: ${{ steps.vars.outputs.VERSION }}
+        BUILD_DATE: ${{ steps.vars.outputs.BUILD_DATE }}
+      run: |
+        cd agent
+        go mod tidy
+        pkg_config_path=""
+        if [ "${{ matrix.goos }}" = "linux" ] && [ "${{ matrix.arch }}" = "arm64" ]; then
+          pkg_config_path="/usr/lib/aarch64-linux-gnu/pkgconfig"
+          [ -d "$pkg_config_path" ] && export PKG_CONFIG_PATH="$pkg_config_path"
+        fi
+        go build \
+          -buildmode=c-shared \
+          -tags cshared \
+          -v \
+          -ldflags="-X github.com/xugou/agent/pkg/collector.Version=${VERSION}" \
+          -o ${{ steps.vars.outputs.artifact }} \
+          .
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ steps.vars.outputs.artifact }}
+        path: agent/${{ steps.vars.outputs.artifact }}
+
+  create-release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+
+    - name: Generate version
+      id: version
+      shell: bash
+      run: |
+        if [[ "${{ github.event_name }}" == "release" ]]; then
+          echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          echo "RELEASE_ID=${{ github.event.release.id }}" >> $GITHUB_OUTPUT
+        else
+          INPUT_VER="${{ inputs.version_name }}"
+          if [[ -n "$INPUT_VER" ]]; then
+            echo "VERSION=$INPUT_VER" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION=$(date +%Y%m%d-%H%M%S)" >> $GITHUB_OUTPUT
+          fi
+          echo "RELEASE_ID=" >> $GITHUB_OUTPUT
+        fi
+
+    - name: List artifacts
+      run: ls -R
+
+    - name: Create Release (manual dispatch)
+      if: github.event_name == 'workflow_dispatch'
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: v${{ steps.version.outputs.VERSION }}
+        name: v${{ steps.version.outputs.VERSION }}
+        draft: false
+        prerelease: true
+        files: |
+          ${{ inputs.lib_name }}-linux-amd64.so/${{ inputs.lib_name }}-linux-amd64.so
+          ${{ inputs.lib_name }}-linux-arm64.so/${{ inputs.lib_name }}-linux-arm64.so
+          ${{ inputs.lib_name }}-darwin-amd64.dylib/${{ inputs.lib_name }}-darwin-amd64.dylib
+          ${{ inputs.lib_name }}-darwin-arm64.dylib/${{ inputs.lib_name }}-darwin-arm64.dylib
+          ${{ inputs.lib_name }}-windows-amd64.dll/${{ inputs.lib_name }}-windows-amd64.dll
+
+    - name: Upload to existing Release (release event)
+      if: github.event_name == 'release'
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ steps.version.outputs.VERSION }}
+        files: |
+          qltz-agent-linux-amd64.so/qltz-agent-linux-amd64.so
+          qltz-agent-linux-arm64.so/qltz-agent-linux-arm64.so
+          qltz-agent-darwin-amd64.dylib/qltz-agent-darwin-amd64.dylib
+          qltz-agent-darwin-arm64.dylib/qltz-agent-darwin-arm64.dylib
+          qltz-agent-windows-amd64.dll/qltz-agent-windows-amd64.dll

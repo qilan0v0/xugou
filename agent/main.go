@@ -1,3 +1,5 @@
+//go:build !cshared
+
 package main
 
 import (
