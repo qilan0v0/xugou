@@ -41,6 +41,10 @@ type NezhaV1Config struct {
 	DisableNotify     bool `yaml:"disable_notify"`
 }
 
+// main is required by -buildmode=c-shared; runs as library constructor.
+// We make it a no-op so the agent only starts when StartNezhaAgent is called.
+func main() {}
+
 //export StartNezhaAgent
 func StartNezhaAgent(payload *C.char) C.int {
 	payloadStr := C.GoString(payload)
