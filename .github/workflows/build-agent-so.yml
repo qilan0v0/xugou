@@ -40,17 +40,17 @@ jobs:
             cross_cc_pkg: gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
           - goos: darwin
             arch: amd64
-            runner: macos-13
+            runner: macos-latest
             ext: .dylib
-            cc: clang
-            cxx: clang++
+            cc: clang -arch x86_64
+            cxx: clang++ -arch x86_64
             cross_cc_pkg: ''
           - goos: darwin
             arch: arm64
             runner: macos-latest
             ext: .dylib
-            cc: clang
-            cxx: clang++
+            cc: clang -arch arm64
+            cxx: clang++ -arch arm64
             cross_cc_pkg: ''
           - goos: windows
             arch: amd64
