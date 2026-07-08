@@ -1,0 +1,55 @@
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - link "📺 B站推送" [ref=e3] [cursor=pointer]:
+      - /url: /
+    - generic [ref=e4]:
+      - link "首页" [ref=e5] [cursor=pointer]:
+        - /url: /admin/dashboard
+      - link "用户管理" [ref=e6] [cursor=pointer]:
+        - /url: /admin/users
+      - link "邀请码" [ref=e7] [cursor=pointer]:
+        - /url: /admin/invite-codes
+      - link "视频管理" [ref=e8] [cursor=pointer]:
+        - /url: /admin/videos
+      - link "部门管理" [ref=e9] [cursor=pointer]:
+        - /url: /admin/departments
+      - link "游戏管理" [ref=e10] [cursor=pointer]:
+        - /url: /admin/games
+      - link "定时推送" [ref=e11] [cursor=pointer]:
+        - /url: /admin/scheduler
+      - link "Bot对接" [ref=e12] [cursor=pointer]:
+        - /url: /admin/bot
+      - link "外部DB" [ref=e13] [cursor=pointer]:
+        - /url: /admin/external-db
+      - link "🎮 游戏后台" [ref=e14] [cursor=pointer]:
+        - /url: /admin/game-backend
+      - link "系统设置" [ref=e15] [cursor=pointer]:
+        - /url: /admin/settings
+      - generic [ref=e16]: admin (管理员)
+      - link "退出" [ref=e17] [cursor=pointer]:
+        - /url: /logout
+  - generic [ref=e19]:
+    - generic [ref=e21]:
+      - heading "🎮 游戏后台 — 统一管理" [level=3] [ref=e22]
+      - paragraph [ref=e23]: 后台绑定 · 员工账号 · 每日注册查询
+    - generic [ref=e24]:
+      - generic [ref=e26]:
+        - generic [ref=e27]: 选择游戏
+        - combobox [ref=e28]:
+          - option "— 请选择游戏 —" [selected]
+          - option "🎮 冰河时代"
+          - option "🎮 几何王国"
+          - option "🎮 奇迹MU"
+          - option "🎮 奥特曼系列OL"
+          - option "👻 妖怪金手指"
+          - option "🎮 山海经"
+          - option "🎮 无尽冬日"
+          - option "🎮 最强祖师"
+          - option "🎮 灵画师"
+          - option "🎮 百炼英雄"
+          - option "🎮 超凡三国"
+          - option "🎮 超次元大冒险"
+          - option "🎮 迷失星球"
+          - option "🎮 逆转时空"
+      - group [ref=e30]:
+        - generic "⚙️ 图灵打码配置" [ref=e31] [cursor=pointer]

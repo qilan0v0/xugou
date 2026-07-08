@@ -1,0 +1,209 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]: Unlimited Credits is now available for just $10 with a one-time payment! Upgrade today before this limited-time offer ends.
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - link "X Systems Hosting home" [ref=e5] [cursor=pointer]:
+        - /url: https://xsystemshosting.com
+        - img "X Systems Hosting" [ref=e6]
+        - generic [ref=e7]:
+          - generic [ref=e8]: X Systems Hosting
+          - generic [ref=e9]: Discord bot hosting with full control
+      - navigation [ref=e10]:
+        - link "Panel" [ref=e11] [cursor=pointer]:
+          - /url: https://panel.xsystemshosting.com
+        - link "Discord" [ref=e12] [cursor=pointer]:
+          - /url: https://discord.gg/xsystems
+        - link "Dashboard" [ref=e13] [cursor=pointer]:
+          - /url: https://xsystemshosting.com/dashboard
+  - generic [ref=e14]:
+    - complementary [ref=e15]:
+      - generic [ref=e16]:
+        - generic [ref=e17]: Search documentation
+        - generic [ref=e18]:
+          - img [ref=e19]
+          - searchbox "Search documentation" [ref=e21]
+          - generic [ref=e22]: /
+      - navigation [ref=e24]:
+        - generic [ref=e25]:
+          - generic [ref=e26]: Start here
+          - link "Overview" [ref=e27] [cursor=pointer]:
+            - /url: /
+          - link "Sign up and log in" [ref=e28] [cursor=pointer]:
+            - /url: /getting-started
+          - link "Main dashboard" [ref=e29] [cursor=pointer]:
+            - /url: /dashboard
+        - generic [ref=e30]:
+          - generic [ref=e31]: Discord bot hosting
+          - link "Discord hosting" [ref=e32] [cursor=pointer]:
+            - /url: /discord-hosting
+          - link "Create a server" [ref=e33] [cursor=pointer]:
+            - /url: /create-discord-server
+          - link "Manage a server" [ref=e34] [cursor=pointer]:
+            - /url: /manage-discord-server
+          - link "Runtime and auto renew" [ref=e35] [cursor=pointer]:
+            - /url: /runtime-auto-renew
+          - link "Resource upgrades" [ref=e36] [cursor=pointer]:
+            - /url: /resource-upgrades
+          - link "Credits" [ref=e37] [cursor=pointer]:
+            - /url: /credits
+          - link "Watch ads" [ref=e38] [cursor=pointer]:
+            - /url: /watch-ads
+          - link "Daily rewards" [ref=e39] [cursor=pointer]:
+            - /url: /daily-rewards
+          - link "CoreX quest" [ref=e40] [cursor=pointer]:
+            - /url: /corex-quest
+          - link "Store and premium" [ref=e41] [cursor=pointer]:
+            - /url: /store-premium
+        - generic [ref=e42]:
+          - generic [ref=e43]: Pterodactyl panel
+          - link "Panel basics" [ref=e44] [cursor=pointer]:
+            - /url: /pterodactyl-panel
+          - link "Files and SFTP" [ref=e45] [cursor=pointer]:
+            - /url: /files-sftp
+          - link "Startup and console" [ref=e46] [cursor=pointer]:
+            - /url: /startup-console
+          - link "Backups and nodes" [ref=e47] [cursor=pointer]:
+            - /url: /backups-nodes
+        - generic [ref=e48]:
+          - generic [ref=e49]: Other hosting
+          - link "Premade Discord bots" [ref=e50] [cursor=pointer]:
+            - /url: /premade-bots
+          - link "Web hosting beta" [ref=e51] [cursor=pointer]:
+            - /url: /web-hosting
+        - generic [ref=e52]:
+          - generic [ref=e53]: Account
+          - link "User settings" [ref=e54] [cursor=pointer]:
+            - /url: /user-settings
+          - link "Billing" [ref=e55] [cursor=pointer]:
+            - /url: /billing
+          - link "Affiliate program" [ref=e56] [cursor=pointer]:
+            - /url: /affiliate
+          - link "2FA and security" [ref=e57] [cursor=pointer]:
+            - /url: /two-factor
+          - link "Roblox link" [ref=e58] [cursor=pointer]:
+            - /url: /roblox
+          - link "Delete account" [ref=e59] [cursor=pointer]:
+            - /url: /delete-account
+        - generic [ref=e60]:
+          - generic [ref=e61]: Help
+          - link "Troubleshooting" [ref=e62] [cursor=pointer]:
+            - /url: /troubleshooting
+          - link "FAQ and support" [ref=e63] [cursor=pointer]:
+            - /url: /faq-support
+    - main [ref=e64]:
+      - generic [ref=e65]:
+        - generic [ref=e66]: Documentation
+        - heading "X Systems Hosting documentation" [level=1] [ref=e67]
+        - paragraph [ref=e68]: Simple guides for the current X Systems Hosting dashboard, Discord bot servers, credits, Pterodactyl, web hosting, and account settings.
+      - generic [ref=e69]:
+        - generic [ref=e70]: Current user guide
+        - heading "X Systems Hosting documentation" [level=1] [ref=e72]
+        - paragraph [ref=e73]: Use these guides to create an account, host a Discord bot, keep server time active with credits, use the Pterodactyl panel, and manage your settings.
+        - generic [ref=e74]:
+          - link "Log in or sign up" [ref=e75] [cursor=pointer]:
+            - /url: https://xsystemshosting.com/login
+          - link "Open dashboard" [ref=e76] [cursor=pointer]:
+            - /url: https://xsystemshosting.com/dashboard
+          - link "Open panel" [ref=e77] [cursor=pointer]:
+            - /url: https://panel.xsystemshosting.com
+      - generic [ref=e78]:
+        - heading "Choose a guide" [level=2] [ref=e79]
+        - generic [ref=e80]:
+          - link "New account Sign up and log in Create the linked Discord and Pterodactyl accounts, then complete your first login. Open guide →" [ref=e81] [cursor=pointer]:
+            - /url: /getting-started
+            - generic [ref=e82]: New account
+            - heading "Sign up and log in" [level=3] [ref=e83]
+            - paragraph [ref=e84]: Create the linked Discord and Pterodactyl accounts, then complete your first login.
+            - text: Open guide →
+          - link "Discord bots Create your first bot server Choose Node.js or Python, select a node, and create a server with 24 hours of runtime. Open guide →" [ref=e85] [cursor=pointer]:
+            - /url: /create-discord-server
+            - generic [ref=e86]: Discord bots
+            - heading "Create your first bot server" [level=3] [ref=e87]
+            - paragraph [ref=e88]: Choose Node.js or Python, select a node, and create a server with 24 hours of runtime.
+            - text: Open guide →
+          - link "Keep servers active Credits and auto renew Understand daily costs, add runtime, earn credits, and enable automatic renewal. Open guide →" [ref=e89] [cursor=pointer]:
+            - /url: /credits
+            - generic [ref=e90]: Keep servers active
+            - heading "Credits and auto renew" [level=3] [ref=e91]
+            - paragraph [ref=e92]: Understand daily costs, add runtime, earn credits, and enable automatic renewal.
+            - text: Open guide →
+          - link "Server control Pterodactyl panel Upload files, use the console, change startup settings, and restart your bot. Open guide →" [ref=e93] [cursor=pointer]:
+            - /url: /pterodactyl-panel
+            - generic [ref=e94]: Server control
+            - heading "Pterodactyl panel" [level=3] [ref=e95]
+            - paragraph [ref=e96]: Upload files, use the console, change startup settings, and restart your bot.
+            - text: Open guide →
+          - link "Beta service Web hosting Create static, Node.js, PHP, or Python web servers with an automatic HTTPS URL. Open guide →" [ref=e97] [cursor=pointer]:
+            - /url: /web-hosting
+            - generic [ref=e98]: Beta service
+            - heading "Web hosting" [level=3] [ref=e99]
+            - paragraph [ref=e100]: Create static, Node.js, PHP, or Python web servers with an automatic HTTPS URL.
+            - text: Open guide →
+          - link "Account Settings and security Manage billing, affiliate links, Roblox, two-factor authentication, and account deletion. Open guide →" [ref=e101] [cursor=pointer]:
+            - /url: /user-settings
+            - generic [ref=e102]: Account
+            - heading "Settings and security" [level=3] [ref=e103]
+            - paragraph [ref=e104]: Manage billing, affiliate links, Roblox, two-factor authentication, and account deletion.
+            - text: Open guide →
+      - generic [ref=e105]:
+        - heading "Dashboard and panel are different" [level=2] [ref=e106]
+        - generic [ref=e107]:
+          - generic [ref=e108]:
+            - heading "X Systems dashboard" [level=3] [ref=e109]
+            - paragraph [ref=e110]: Use it to create hosting servers, view credits, add runtime, enable auto renew, buy products, and change account settings.
+          - generic [ref=e111]:
+            - heading "Pterodactyl panel" [level=3] [ref=e112]
+            - paragraph [ref=e113]: Use it to upload bot files, read console output, start or stop a server, change startup values, create backups when slots are available, and use SFTP.
+      - generic [ref=e114]:
+        - strong [ref=e115]: Current server limit
+        - paragraph [ref=e116]: The current Discord bot system starts every account with 10 server slots. There are no 2-server, 4-server, or 8-server free plans.
+      - link "Next Sign up and log in →" [ref=e119] [cursor=pointer]:
+        - /url: /getting-started
+        - generic [ref=e120]: Next
+        - strong [ref=e121]: Sign up and log in →
+  - contentinfo [ref=e122]:
+    - generic [ref=e123]:
+      - generic [ref=e124]:
+        - generic [ref=e125]: X Systems Hosting
+        - paragraph [ref=e126]: X Systems Hosting is provided and powered by X Systems. Free Discord bot hosting runs on a shared platform with credits, fair limits, and safety rules so every user gets a stable place to host.
+        - generic [ref=e127]:
+          - link "Discord Server" [ref=e128] [cursor=pointer]:
+            - /url: https://discord.gg/xsystems
+          - link "Discord Bot Hosting" [ref=e129] [cursor=pointer]:
+            - /url: https://xsystemshosting.com/dashboard/discord
+          - link "Web Hosting" [ref=e130] [cursor=pointer]:
+            - /url: https://xsystemshosting.com/dashboard/web
+          - link "Panel Access" [ref=e131] [cursor=pointer]:
+            - /url: https://panel.xsystemshosting.com
+      - generic [ref=e132]:
+        - generic [ref=e133]: Extras
+        - generic [ref=e134]:
+          - link "Trustpilot" [ref=e135] [cursor=pointer]:
+            - /url: https://trustpilot.com/review/xsystemshosting.com
+          - link "Status" [ref=e136] [cursor=pointer]:
+            - /url: https://x-systems.instatus.com/
+          - link "Docs" [ref=e137] [cursor=pointer]:
+            - /url: /
+          - link "Sign Up" [ref=e138] [cursor=pointer]:
+            - /url: https://xsystemshosting.com/login
+      - generic [ref=e139]:
+        - generic [ref=e140]: Company Details
+        - generic [ref=e141]:
+          - generic [ref=e142]: "KVK: 86331132"
+          - generic [ref=e143]:
+            - text: "Vestigingsnummer:"
+            - text: "000052314669"
+      - generic [ref=e144]:
+        - generic [ref=e145]:
+          - generic [ref=e146]: Legal
+          - generic [ref=e147]:
+            - link "Terms of Service" [ref=e148] [cursor=pointer]:
+              - /url: https://xsystemshosting.com/terms
+            - link "Privacy Policy" [ref=e149] [cursor=pointer]:
+              - /url: https://xsystemshosting.com/privacy
+            - link "Service Level Agreement" [ref=e150] [cursor=pointer]:
+              - /url: https://xsystemshosting.com/sla
+            - link "Fair Use Policy" [ref=e151] [cursor=pointer]:
+              - /url: https://xsystemshosting.com/fair-use
+        - img "KvK Registered Company" [ref=e152]
+    - generic [ref=e153]: © X Systems Hosting, powered by X Systems. All rights reserved.

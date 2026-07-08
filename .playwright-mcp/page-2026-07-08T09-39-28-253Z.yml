@@ -1,0 +1,107 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]: For €2,49 Monthly, you can buy unlimited credits!
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - link "X Systems Hosting X Systems Hosting Discord bot hosting with full control" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - img "X Systems Hosting" [ref=e6]
+        - generic [ref=e7]:
+          - generic [ref=e8]: X Systems Hosting
+          - generic [ref=e9]: Discord bot hosting with full control
+      - navigation [ref=e10]:
+        - link "Panel" [ref=e11] [cursor=pointer]:
+          - /url: /panel
+        - link "Discord" [ref=e12] [cursor=pointer]:
+          - /url: https://discord.gg/xsystems
+        - link "Login" [ref=e13] [cursor=pointer]:
+          - /url: /login
+  - main [ref=e14]:
+    - generic [ref=e15]:
+      - generic [ref=e16]:
+        - generic [ref=e17]: "Last updated: 9 May 2026"
+        - heading "Fair Use Policy" [level=1] [ref=e18]
+        - paragraph [ref=e19]: Free and paid hosting run on shared infrastructure. This Fair Use Policy keeps X Systems Hosting safe, stable, and fair for everyone. By using our services, you agree to use resources responsibly and follow these rules.
+      - generic [ref=e20]:
+        - generic [ref=e21]:
+          - heading "1. Fair resource use" [level=2] [ref=e22]
+          - paragraph [ref=e23]: You may use the resources assigned to your plan for normal Discord bot hosting, Minecraft hosting, testing, and related project use. You may not run workloads that create excessive CPU, memory, disk, network, database, process, backup, or allocation usage compared with normal hosting activity.
+        - generic [ref=e24]:
+          - heading "2. Free hosting and credits" [level=2] [ref=e25]
+          - paragraph [ref=e26]: Free hosting is shared by many users and may require credits to keep servers active. Credits, quests, and rewards must be earned honestly. You may not automate, farm, resell, duplicate, exploit, or bypass credit systems, reward systems, activity checks, limits, cooldowns, or plan restrictions.
+        - generic [ref=e27]:
+          - heading "3. Prohibited bots and activity" [level=2] [ref=e28]
+          - paragraph [ref=e29]: "The following are not allowed: self bots, token grabbers, malware, scam bots, spam bots, phishing, credential theft, nuke bots, raid tools, DDoS tools, miners, proxy abuse, scraping abuse, botnets, account generators, mass DM tools, or anything designed to bypass platform limits, Discord rules, Minecraft rules, or our own systems."
+          - paragraph [ref=e30]: Bots designed primarily for mass advertising, scam automation, fake verification systems, malicious logging, fake Nitro systems, fake Roblox verification systems, token collection, or impersonation are prohibited.
+        - generic [ref=e31]:
+          - heading "4. Security rules" [level=2] [ref=e32]
+          - paragraph [ref=e33]: Do not attempt unauthorized access, privilege escalation, scanning, exploitation, reverse engineering of private systems, attacks against other users, attacks against our infrastructure, or interference with monitoring, abuse detection, or service controls. Do not share your panel password or account access.
+          - paragraph [ref=e34]: Attempting to steal Discord tokens, Roblox credentials, API keys, cookies, authentication sessions, browser data, or user information is strictly prohibited and may result in immediate termination, reporting to providers, and permanent bans.
+        - generic [ref=e35]:
+          - heading "5. Content restrictions" [level=2] [ref=e36]
+          - paragraph [ref=e37]: You may not host, distribute, or link to illegal content, malware, stolen data, phishing pages, token theft tools, copyrighted material without permission, hate content, threats, harassment, sexual exploitation, scams, fraudulent offers, or content designed to harm people, systems, services, or communities.
+        - generic [ref=e38]:
+          - heading "6. Minecraft hosting use" [level=2] [ref=e39]
+          - paragraph [ref=e40]: Minecraft servers must be used within the resources and terms of the selected plan. You are responsible for plugins, mods, worlds, configuration, permissions, and backups. Servers that overload nodes, abuse storage, run unrelated software, attack other services, or bypass plan limits may be limited, suspended, or terminated.
+        - generic [ref=e41]:
+          - heading "7. Backups" [level=2] [ref=e42]
+          - paragraph [ref=e43]: Always back up important files. Shared hosting can involve crashes, user mistakes, software problems, deleted files, failed plugins, corruption, suspension, or termination. Backup features may be limited and are not a replacement for keeping your own copies.
+        - generic [ref=e44]:
+          - heading "8. Monitoring and enforcement" [level=2] [ref=e45]
+          - paragraph [ref=e46]: We may monitor usage, hosted files, logs, processes, network patterns, and account activity to enforce this policy and protect the platform. If we detect abuse or risk, we may throttle, restart, suspend, remove content, delete servers, terminate accounts, revoke credits, refuse refunds, or report activity to relevant providers or authorities when appropriate.
+        - generic [ref=e47]:
+          - heading "9. Appeals" [level=2] [ref=e48]
+          - paragraph [ref=e49]: If you believe enforcement was a mistake, contact support with your account information, server details, and a clear explanation. Appeals are reviewed case by case. Serious malware, phishing, token theft, fraud, or repeated abuse may not be eligible for reinstatement.
+        - generic [ref=e50]:
+          - heading "10. Contact" [level=2] [ref=e51]
+          - paragraph [ref=e52]:
+            - text: For fair use questions, contact
+            - link "oriveth@corexbot.xyz" [ref=e53] [cursor=pointer]:
+              - /url: mailto:oriveth@corexbot.xyz
+            - text: or open a ticket at
+            - link "discord.gg/xsystems" [ref=e54] [cursor=pointer]:
+              - /url: https://discord.gg/xsystems
+            - text: .
+  - contentinfo [ref=e55]:
+    - generic [ref=e56]:
+      - generic [ref=e57]:
+        - generic [ref=e58]: X Systems Hosting
+        - paragraph [ref=e59]: X Systems Hosting is provided and powered by X Systems. Free Discord bot hosting runs on a shared platform with credits, fair limits, and safety rules so every user gets a stable place to host.
+        - generic [ref=e60]:
+          - link "Discord Server" [ref=e61] [cursor=pointer]:
+            - /url: https://discord.gg/xsystems
+          - link "Discord Bot Hosting" [ref=e62] [cursor=pointer]:
+            - /url: /dashboard/discord
+          - link "Web Hosting" [ref=e63] [cursor=pointer]:
+            - /url: /dashboard/web
+          - link "Panel Access" [ref=e64] [cursor=pointer]:
+            - /url: /panel
+      - generic [ref=e65]:
+        - generic [ref=e66]: Extras
+        - generic [ref=e67]:
+          - link "Trustpilot" [ref=e68] [cursor=pointer]:
+            - /url: https://trustpilot.com/review/xsystemshosting.com
+          - link "Status" [ref=e69] [cursor=pointer]:
+            - /url: https://x-systems.instatus.com/
+          - link "Docs" [ref=e70] [cursor=pointer]:
+            - /url: https://docs.xsystemshosting.com
+          - link "Sign Up" [ref=e71] [cursor=pointer]:
+            - /url: /login
+      - generic [ref=e72]:
+        - generic [ref=e73]: Company Details
+        - generic [ref=e74]:
+          - generic [ref=e75]: "KVK: 86331132"
+          - generic [ref=e76]: "Vestigingsnummer: 000052314669"
+      - generic [ref=e77]:
+        - generic [ref=e78]:
+          - generic [ref=e79]: Legal
+          - generic [ref=e80]:
+            - link "Terms of Service" [ref=e81] [cursor=pointer]:
+              - /url: /terms
+            - link "Privacy Policy" [ref=e82] [cursor=pointer]:
+              - /url: /privacy
+            - link "Service Level Agreement" [ref=e83] [cursor=pointer]:
+              - /url: /sla
+            - link "Fair Use Policy" [ref=e84] [cursor=pointer]:
+              - /url: /fair-use
+        - img "KvK Registered Company" [ref=e86]
+    - generic [ref=e87]: © X Systems Hosting, powered by X Systems. All rights reserved.

@@ -1,0 +1,216 @@
+- generic [ref=e2]:
+  - menu "Public" [ref=e234]:
+    - menuitemradio "Public" [checked] [active] [ref=e235]:
+      - generic [ref=e236]:
+        - generic:
+          - img
+        - generic:
+          - img
+        - generic [ref=e238]:
+          - generic [ref=e239]: Public
+          - generic [ref=e240]: Anyone on the internet can see this repository. You choose who can commit.
+    - menuitemradio "Private" [ref=e241]:
+      - generic [ref=e242]:
+        - generic:
+          - img
+        - generic [ref=e244]:
+          - generic [ref=e245]: Private
+          - generic [ref=e246]: You choose who can see and commit to this repository.
+  - generic [ref=e3]:
+    - link "Skip to content" [ref=e4] [cursor=pointer]:
+      - /url: "#start-of-content"
+    - banner "Global navigation menu" [ref=e8]:
+      - generic [ref=e9]:
+        - generic [ref=e10]:
+          - button "Open menu" [ref=e12] [cursor=pointer]:
+            - img [ref=e13]
+          - link "Homepage (g then d)" [ref=e15] [cursor=pointer]:
+            - /url: /
+            - img [ref=e16]
+        - generic [ref=e18]:
+          - navigation "Breadcrumbs" [ref=e19]:
+            - list [ref=e20]:
+              - listitem [ref=e21]:
+                - generic [ref=e23]: New repository
+          - button "Search or jump to…" [ref=e26] [cursor=pointer]:
+            - generic [ref=e27]:
+              - generic:
+                - img
+              - generic [ref=e28]:
+                - generic:
+                  - text: Type
+                  - generic: /
+                  - text: to search
+        - generic [ref=e29]:
+          - generic [ref=e30]:
+            - generic [ref=e33]:
+              - link "Chat with Copilot" [ref=e35] [cursor=pointer]:
+                - /url: /copilot
+                - img [ref=e36]
+              - button "Open Copilot…" [ref=e40] [cursor=pointer]:
+                - generic:
+                  - img
+            - button "Create new..." [ref=e42] [cursor=pointer]:
+              - generic [ref=e43]:
+                - generic:
+                  - img
+              - generic:
+                - img
+            - generic [ref=e44]:
+              - link "All issues (g then i)" [ref=e45] [cursor=pointer]:
+                - /url: /issues
+                - img [ref=e46]
+              - link "All pull requests (g then p)" [ref=e49] [cursor=pointer]:
+                - /url: /pulls
+                - img [ref=e50]
+              - link "All repositories" [ref=e52] [cursor=pointer]:
+                - /url: /repos
+                - img [ref=e53]
+          - link "You have unread notifications (g then n)" [ref=e224] [cursor=pointer]:
+            - /url: /notifications
+            - img [ref=e56]
+          - button "Open user navigation menu" [ref=e59] [cursor=pointer]:
+            - img "User avatar" [ref=e60]
+  - main [ref=e63]:
+    - generic [ref=e66]:
+      - generic [ref=e67]:
+        - heading "Create a new repository" [level=1] [ref=e70]
+        - generic [ref=e72]:
+          - text: Repositories contain a project's files and version history.
+          - generic [ref=e73]:
+            - text: Have a project elsewhere?
+            - link "Import a repository" [ref=e74] [cursor=pointer]:
+              - /url: /new/import
+            - text: .
+      - generic [ref=e75]: Required fields are marked with an asterisk (*).
+      - generic [ref=e76]:
+        - generic [ref=e77]:
+          - generic [ref=e79]: "1"
+          - generic [ref=e80]:
+            - heading "General" [level=2] [ref=e81]
+            - generic [ref=e82]:
+              - group "Repository owner and name" [ref=e84]:
+                - generic [ref=e85]: Repository owner and name
+                - generic [ref=e86]:
+                  - generic [ref=e87]:
+                    - generic [ref=e89] [cursor=pointer]:
+                      - generic [ref=e90]:
+                        - text: Owner
+                        - generic [ref=e91]: (required)
+                      - generic [ref=e92]: "*"
+                    - button "qilan0v0, Owner (Required)" [ref=e93] [cursor=pointer]:
+                      - generic [ref=e95]: qilan0v0
+                      - generic:
+                        - img
+                  - generic [ref=e96]: /
+                  - generic [ref=e98]:
+                    - generic [ref=e100] [cursor=pointer]:
+                      - generic [ref=e101]: Repository name
+                      - generic [ref=e102]: "*"
+                    - textbox "Repository name *" [ref=e104]: bilibili-feishu-push
+                    - generic [ref=e227]:
+                      - img [ref=e229]
+                      - generic [ref=e231]: bilibili-feishu-push is available.
+              - generic [ref=e105]:
+                - text: Great repository names are short and memorable. How about
+                - generic [ref=e106]:
+                  - button "Use suggested repository name super-duper-waddle" [ref=e107] [cursor=pointer]:
+                    - generic [ref=e109]: super-duper-waddle
+                  - text: "?"
+              - generic [ref=e110]:
+                - generic [ref=e111] [cursor=pointer]: Description
+                - textbox "Description" [ref=e113]
+                - generic [ref=e114]: 0 / 350 characters
+        - generic [ref=e115]:
+          - generic [ref=e117]: "2"
+          - generic [ref=e118]:
+            - heading "Configuration" [level=2] [ref=e119]
+            - generic [ref=e120]:
+              - generic [ref=e123]:
+                - heading "Choose visibility *" [level=3] [ref=e125]
+                - paragraph [ref=e127]: Choose who can see and commit to this repository
+                - button "Public" [expanded] [ref=e129] [cursor=pointer]:
+                  - generic [ref=e130]:
+                    - generic:
+                      - img
+                    - generic [ref=e131]: Public
+                  - generic:
+                    - img
+              - generic [ref=e134]:
+                - heading "Start with a template" [level=2] [ref=e136]
+                - paragraph [ref=e138]: Templates pre-configure your repository with files.
+                - 'button "Repository template: No template" [ref=e140] [cursor=pointer]':
+                  - generic [ref=e142]: No template
+                  - generic:
+                    - img
+              - generic [ref=e143]:
+                - generic [ref=e145]:
+                  - heading "Add README" [level=3] [ref=e147]
+                  - generic [ref=e149]:
+                    - text: READMEs can be used as longer descriptions.
+                    - link "About READMEs" [ref=e150] [cursor=pointer]:
+                      - /url: https://docs.github.com/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-readmes
+                  - generic [ref=e152]:
+                    - generic [ref=e155] [cursor=pointer]: "Off"
+                    - button "Add README" [ref=e156] [cursor=pointer]:
+                      - generic [ref=e157]:
+                        - img [ref=e159]
+                        - img [ref=e162]
+                - generic [ref=e166]:
+                  - heading "Add .gitignore" [level=3] [ref=e168]
+                  - generic [ref=e170]:
+                    - text: .gitignore tells git which files not to track.
+                    - link "About ignoring files" [ref=e171] [cursor=pointer]:
+                      - /url: https://docs.github.com/get-started/git-basics/ignoring-files
+                  - button "No .gitignore" [ref=e173] [cursor=pointer]:
+                    - generic [ref=e175]: No .gitignore
+                    - generic:
+                      - img
+                - generic [ref=e177]:
+                  - heading "Add license" [level=3] [ref=e179]
+                  - generic [ref=e181]:
+                    - text: Licenses explain how others can use your code.
+                    - link "About licenses" [ref=e182] [cursor=pointer]:
+                      - /url: https://docs.github.com/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository
+                  - button "No license" [ref=e184] [cursor=pointer]:
+                    - generic [ref=e186]: No license
+                    - generic:
+                      - img
+      - button "Create repository" [ref=e188] [cursor=pointer]:
+        - generic [ref=e190]: Create repository
+  - contentinfo [ref=e191]:
+    - heading "Footer" [level=2] [ref=e192]
+    - generic [ref=e193]:
+      - generic [ref=e194]:
+        - link "GitHub Homepage" [ref=e195] [cursor=pointer]:
+          - /url: https://github.com
+          - img [ref=e196]
+        - generic [ref=e198]: © 2026 GitHub, Inc.
+      - navigation "Footer" [ref=e199]:
+        - heading "Footer navigation" [level=3] [ref=e200]
+        - list "Footer navigation" [ref=e201]:
+          - listitem [ref=e202]:
+            - link "Terms" [ref=e203] [cursor=pointer]:
+              - /url: https://docs.github.com/site-policy/github-terms/github-terms-of-service
+          - listitem [ref=e204]:
+            - link "Privacy" [ref=e205] [cursor=pointer]:
+              - /url: https://docs.github.com/site-policy/privacy-policies/github-privacy-statement
+          - listitem [ref=e206]:
+            - link "Security" [ref=e207] [cursor=pointer]:
+              - /url: https://github.com/security
+          - listitem [ref=e208]:
+            - link "Status" [ref=e209] [cursor=pointer]:
+              - /url: https://www.githubstatus.com/
+          - listitem [ref=e210]:
+            - link "Community" [ref=e211] [cursor=pointer]:
+              - /url: https://github.community/
+          - listitem [ref=e212]:
+            - link "Docs" [ref=e213] [cursor=pointer]:
+              - /url: https://docs.github.com/
+          - listitem [ref=e214]:
+            - link "Contact" [ref=e215] [cursor=pointer]:
+              - /url: https://support.github.com?tags=dotcom-footer
+          - listitem [ref=e216]:
+            - button "Manage cookies" [ref=e218] [cursor=pointer]
+          - listitem [ref=e219]:
+            - button "Do not share my personal information" [ref=e221] [cursor=pointer]

@@ -221,17 +221,33 @@ export default function TerminalPage() {
         setSearchVisible(v => !v);
         return false;
       }
+      if (e.ctrlKey && e.shiftKey && (e.key === 'C' || e.key === 'c')) {
+        // Ctrl+Shift+C: copy selected text
+        e.preventDefault();
+        const sel = term.getSelection();
+        if (sel) navigator.clipboard.writeText(sel);
+        return false;
+      }
+      if (e.ctrlKey && (e.key === 'v' || e.key === 'V')) {
+        return false;
+      }
       if (e.key === 'Escape') { setSearchVisible(false); return false; }
       return true;
     });
 
-    // ── Right-click paste ──
+    // ── Right-click: copy if selected, else paste ──
     termRef.current.addEventListener('contextmenu', async (e) => {
       e.preventDefault();
-      try {
-        const text = await navigator.clipboard.readText();
-        if (text && ws?.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'shell-input', data: text }));
-      } catch {}
+      const sel = term.getSelection();
+      if (sel) {
+        await navigator.clipboard.writeText(sel);
+        term.clearSelection();
+      } else {
+        try {
+          const text = await navigator.clipboard.readText();
+          if (text && ws?.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'shell-input', data: text }));
+        } catch {}
+      }
     });
 
     // ── Drag-and-drop file (placeholder for trzsz) ──
@@ -440,7 +456,7 @@ export default function TerminalPage() {
       )}
 
       {/* ── Main area: sidebar + terminal ── */}
-      <div className="flex flex-row flex-1 min-h-0">
+      <div className="flex flex-row flex-1 min-h-0 relative overflow-hidden">
         {/* ── Terminal ── */}
         <div ref={termRef} className="flex-1 min-h-0"
           style={{ background: 'var(--bg-terminal)', padding: '4px' }} />

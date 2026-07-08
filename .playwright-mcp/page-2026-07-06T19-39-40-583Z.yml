@@ -1,0 +1,135 @@
+- generic [ref=e1]:
+  - generic [ref=e3]:
+    - navigation [ref=e4]:
+      - generic [ref=e6]:
+        - link "系统状态" [ref=e7] [cursor=pointer]:
+          - /url: /
+          - img [ref=e9]
+          - generic [ref=e11]: 系统状态
+        - generic [ref=e12]:
+          - link "客户端监控" [ref=e13] [cursor=pointer]:
+            - /url: /agents
+            - img [ref=e15]
+            - text: 客户端监控
+          - link "API监控" [ref=e17] [cursor=pointer]:
+            - /url: /monitors
+            - img [ref=e19]
+            - text: API监控
+          - link "分组管理" [ref=e21] [cursor=pointer]:
+            - /url: /agents/groups
+            - img [ref=e23]
+            - text: 分组管理
+          - link "配置" [ref=e25] [cursor=pointer]:
+            - /url: /status/config
+            - img [ref=e27]
+            - text: 配置
+        - generic [ref=e29]:
+          - button "中文" [ref=e31] [cursor=pointer]:
+            - img [ref=e32]
+            - text: 中文
+          - button "navbar.darkMode" [ref=e35] [cursor=pointer]:
+            - img [ref=e36]
+          - button "Q qilan" [ref=e39] [cursor=pointer]:
+            - generic [ref=e40]: Q
+            - generic [ref=e41]: qilan
+            - img [ref=e42]
+    - main [ref=e44]:
+      - generic [ref=e55]:
+        - generic [ref=e56]:
+          - button [ref=e57] [cursor=pointer]:
+            - img [ref=e58]
+          - img [ref=e60]
+          - generic [ref=e62]: TM700i
+          - combobox [ref=e63] [cursor=pointer]:
+            - option "赛博朋克" [selected]
+            - option "冰川"
+            - option "Gruvbox"
+          - button "搜索 (Ctrl+Shift+F)" [ref=e64] [cursor=pointer]:
+            - img [ref=e65]
+          - button "导出日志" [ref=e68] [cursor=pointer]:
+            - img [ref=e69]
+          - button "文件管理" [active] [ref=e72] [cursor=pointer]:
+            - img [ref=e73]
+          - generic [ref=e75]: 已连接
+        - generic [ref=e77]:
+          - generic [ref=e81]:
+            - textbox "Terminal input" [ref=e82]
+            - generic [ref=e83]:
+              - generic [ref=e85]:
+                - generic [ref=e86]: ✓
+                - generic [ref=e87]: 终端连接已建立
+              - generic [ref=e89]: "/data #"
+          - generic [ref=e139]:
+            - generic [ref=e140]:
+              - button "←" [disabled] [ref=e141]
+              - button "→" [disabled] [ref=e142]
+              - button [ref=e143] [cursor=pointer]:
+                - img [ref=e144]
+              - button [ref=e147] [cursor=pointer]:
+                - img [ref=e148]
+              - generic [ref=e151]: /
+              - button "新建目录" [ref=e152] [cursor=pointer]:
+                - img [ref=e153]
+              - generic "上传文件" [ref=e154] [cursor=pointer]:
+                - img [ref=e155]
+            - generic [ref=e159]:
+              - generic [ref=e160] [cursor=pointer]:
+                - img [ref=e161]
+                - generic [ref=e163]: .kaggle
+              - generic [ref=e164] [cursor=pointer]:
+                - img [ref=e165]
+                - generic [ref=e167]: bin
+              - generic [ref=e168] [cursor=pointer]:
+                - img [ref=e169]
+                - generic [ref=e171]: data
+              - generic [ref=e172] [cursor=pointer]:
+                - img [ref=e173]
+                - generic [ref=e175]: dev
+              - generic [ref=e176] [cursor=pointer]:
+                - img [ref=e177]
+                - generic [ref=e179]: etc
+              - generic [ref=e180] [cursor=pointer]:
+                - img [ref=e181]
+                - generic [ref=e183]: home
+              - generic [ref=e184] [cursor=pointer]:
+                - img [ref=e185]
+                - generic [ref=e187]: lib
+              - generic [ref=e188] [cursor=pointer]:
+                - img [ref=e189]
+                - generic [ref=e191]: media
+              - generic [ref=e192] [cursor=pointer]:
+                - img [ref=e193]
+                - generic [ref=e195]: mnt
+              - generic [ref=e196] [cursor=pointer]:
+                - img [ref=e197]
+                - generic [ref=e199]: opt
+              - generic [ref=e200] [cursor=pointer]:
+                - img [ref=e201]
+                - generic [ref=e203]: proc
+              - generic [ref=e204] [cursor=pointer]:
+                - img [ref=e205]
+                - generic [ref=e207]: root
+              - generic [ref=e208] [cursor=pointer]:
+                - img [ref=e209]
+                - generic [ref=e211]: run
+              - generic [ref=e212] [cursor=pointer]:
+                - img [ref=e213]
+                - generic [ref=e215]: sbin
+              - generic [ref=e216] [cursor=pointer]:
+                - img [ref=e217]
+                - generic [ref=e219]: srv
+              - generic [ref=e220] [cursor=pointer]:
+                - img [ref=e221]
+                - generic [ref=e223]: sys
+              - generic [ref=e224] [cursor=pointer]:
+                - img [ref=e225]
+                - generic [ref=e227]: tmp
+              - generic [ref=e228] [cursor=pointer]:
+                - img [ref=e229]
+                - generic [ref=e231]: usr
+              - generic [ref=e232] [cursor=pointer]:
+                - img [ref=e233]
+                - generic [ref=e235]: var
+    - contentinfo [ref=e51]:
+      - generic [ref=e54]: © 2026 QLTZ. 保留所有权利。
+  - generic [ref=e236]: "################################"

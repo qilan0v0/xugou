@@ -1,0 +1,29 @@
+- generic [ref=e6]:
+  - heading "Login to Continue" [level=2] [ref=e7]
+  - generic [ref=e9]:
+    - img [ref=e11]
+    - generic [ref=e12]:
+      - generic [ref=e13]:
+        - generic [ref=e14]: Username or Email
+        - textbox [ref=e15]
+      - generic [ref=e17]:
+        - generic [ref=e18]: Password
+        - textbox [ref=e19]
+      - button "Login" [ref=e21] [cursor=pointer]
+      - iframe [ref=e24]:
+        - generic [ref=f3e5]:
+          - generic [ref=f3e6]:
+            - text: 由
+            - strong [ref=f3e7]: reCAPTCHA
+            - text: 提供保护
+          - generic [ref=f3e9]:
+            - text: 此网站已超出
+            - link "reCAPTCHA Enterprise 免费配额" [ref=f3e10] [cursor=pointer]:
+              - /url: https://cloud.google.com/recaptcha/docs/billing-information
+            - text: 。
+      - link "Forgot password?" [ref=e26] [cursor=pointer]:
+        - /url: /auth/password
+  - paragraph [ref=e27]:
+    - text: © 2015 - 2026
+    - link "Pterodactyl Software" [ref=e28] [cursor=pointer]:
+      - /url: https://pterodactyl.io

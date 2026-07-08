@@ -1,0 +1,17 @@
+- main [ref=e2]:
+  - generic [ref=e6]:
+    - generic [ref=e7]:
+      - list [ref=e8]:
+        - listitem [ref=e9]:
+          - link " 控制台" [ref=e10] [cursor=pointer]:
+            - /url: dashboard
+            - generic [ref=e11]: 
+            - text: 控制台
+      - list
+    - generic [ref=e17]:
+      - generic [ref=e18]:
+        - link "" [ref=e19] [cursor=pointer]:
+          - /url: javascript:;
+          - generic [ref=e20]: 
+        - text:   
+      - table

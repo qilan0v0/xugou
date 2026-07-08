@@ -1,0 +1,111 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]: For €2,49 Monthly, you can buy unlimited credits!
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - link "X Systems Hosting X Systems Hosting Discord bot hosting with full control" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - img "X Systems Hosting" [ref=e6]
+        - generic [ref=e7]:
+          - generic [ref=e8]: X Systems Hosting
+          - generic [ref=e9]: Discord bot hosting with full control
+      - navigation [ref=e10]:
+        - link "Panel" [ref=e11] [cursor=pointer]:
+          - /url: /panel
+        - link "Discord" [ref=e12] [cursor=pointer]:
+          - /url: https://discord.gg/xsystems
+        - link "Dashboard" [ref=e13] [cursor=pointer]:
+          - /url: /dashboard
+        - group [ref=e14]:
+          - generic "Discord profile photo Ivetta Buzun" [ref=e15] [cursor=pointer]:
+            - img "Discord profile photo" [ref=e16]
+            - generic [ref=e17]: Ivetta Buzun
+            - img [ref=e18]
+  - main [ref=e20]:
+    - generic [ref=e21]:
+      - generic [ref=e22]:
+        - generic [ref=e23]:
+          - heading "Hosting Dashboard" [level=1] [ref=e24]
+          - paragraph [ref=e25]: Pick what you want to host and jump straight into the right dashboard.
+        - generic [ref=e26]:
+          - link "Open panel" [ref=e27] [cursor=pointer]:
+            - /url: https://panel.xsystemshosting.com
+          - link "Store" [ref=e28] [cursor=pointer]:
+            - /url: /store/discord
+      - generic [ref=e29]:
+        - button "Discord bots Discord Bot Hosting Start with credits, add more when needed, or use Unlimited. Choose Free Credits/day Store Credits & Unlimited Slots 10+" [ref=e30] [cursor=pointer]:
+          - generic [ref=e31]:
+            - generic [ref=e32]:
+              - generic [ref=e33]: Discord bots
+              - heading "Discord Bot Hosting" [level=2] [ref=e34]
+              - paragraph [ref=e35]: Start with credits, add more when needed, or use Unlimited.
+            - generic [ref=e36]: Choose
+          - generic [ref=e37]:
+            - generic [ref=e38]:
+              - generic [ref=e39]: Free
+              - generic [ref=e40]: Credits/day
+            - generic [ref=e41]:
+              - generic [ref=e42]: Store
+              - generic [ref=e43]: Credits & Unlimited
+            - generic [ref=e44]:
+              - generic [ref=e45]: Slots
+              - generic [ref=e46]: 10+
+        - link "Beta Web Hosting Put your website, dashboard, API, or small app online in a few clicks. Manage Apps Static, Node, PHP, Python URL Domain included Free Credits/day" [ref=e47] [cursor=pointer]:
+          - /url: /dashboard/web
+          - generic [ref=e48]:
+            - generic [ref=e49]:
+              - generic [ref=e50]: Beta
+              - heading "Web Hosting" [level=2] [ref=e51]
+              - paragraph [ref=e52]: Put your website, dashboard, API, or small app online in a few clicks.
+            - generic [ref=e53]: Manage
+          - generic [ref=e54]:
+            - generic [ref=e55]:
+              - generic [ref=e56]: Apps
+              - generic [ref=e57]: Static, Node, PHP, Python
+            - generic [ref=e58]:
+              - generic [ref=e59]: URL
+              - generic [ref=e60]: Domain included
+            - generic [ref=e61]:
+              - generic [ref=e62]: Free
+              - generic [ref=e63]: Credits/day
+  - contentinfo [ref=e64]:
+    - generic [ref=e65]:
+      - generic [ref=e66]:
+        - generic [ref=e67]: X Systems Hosting
+        - paragraph [ref=e68]: X Systems Hosting is provided and powered by X Systems. Free Discord bot hosting runs on a shared platform with credits, fair limits, and safety rules so every user gets a stable place to host.
+        - generic [ref=e69]:
+          - link "Discord Server" [ref=e70] [cursor=pointer]:
+            - /url: https://discord.gg/xsystems
+          - link "Discord Bot Hosting" [ref=e71] [cursor=pointer]:
+            - /url: /dashboard/discord
+          - link "Web Hosting" [ref=e72] [cursor=pointer]:
+            - /url: /dashboard/web
+          - link "Panel Access" [ref=e73] [cursor=pointer]:
+            - /url: /panel
+      - generic [ref=e74]:
+        - generic [ref=e75]: Extras
+        - generic [ref=e76]:
+          - link "Trustpilot" [ref=e77] [cursor=pointer]:
+            - /url: https://trustpilot.com/review/xsystemshosting.com
+          - link "Status" [ref=e78] [cursor=pointer]:
+            - /url: https://x-systems.instatus.com/
+          - link "Docs" [ref=e79] [cursor=pointer]:
+            - /url: https://docs.xsystemshosting.com
+      - generic [ref=e80]:
+        - generic [ref=e81]: Company Details
+        - generic [ref=e82]:
+          - generic [ref=e83]: "KVK: 86331132"
+          - generic [ref=e84]: "Vestigingsnummer: 000052314669"
+      - generic [ref=e85]:
+        - generic [ref=e86]:
+          - generic [ref=e87]: Legal
+          - generic [ref=e88]:
+            - link "Terms of Service" [ref=e89] [cursor=pointer]:
+              - /url: /terms
+            - link "Privacy Policy" [ref=e90] [cursor=pointer]:
+              - /url: /privacy
+            - link "Service Level Agreement" [ref=e91] [cursor=pointer]:
+              - /url: /sla
+            - link "Fair Use Policy" [ref=e92] [cursor=pointer]:
+              - /url: /fair-use
+        - img "KvK Registered Company" [ref=e94]
+    - generic [ref=e95]: © X Systems Hosting, powered by X Systems. All rights reserved.

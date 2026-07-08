@@ -1,0 +1,127 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]: For €2,49 Monthly, you can buy unlimited credits!
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - link "X Systems Hosting X Systems Hosting Discord bot hosting with full control" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - img "X Systems Hosting" [ref=e6]
+        - generic [ref=e7]:
+          - generic [ref=e8]: X Systems Hosting
+          - generic [ref=e9]: Discord bot hosting with full control
+      - navigation [ref=e10]:
+        - link "Panel" [ref=e11] [cursor=pointer]:
+          - /url: /panel
+        - link "Discord" [ref=e12] [cursor=pointer]:
+          - /url: https://discord.gg/xsystems
+        - link "Login" [ref=e13] [cursor=pointer]:
+          - /url: /login
+  - main [ref=e14]:
+    - generic [ref=e15]:
+      - generic [ref=e16]:
+        - generic [ref=e17]: "Last updated: 24 May 2026"
+        - heading "Terms of Service" [level=1] [ref=e18]
+        - paragraph [ref=e19]: These Terms of Service apply to your access to and use of X Systems Hosting, including our website, panel access, Discord bot hosting, Minecraft hosting, rewards, credits, support, and any related services provided by X Systems Hosting, powered by X Systems.
+        - paragraph [ref=e20]: By using our services, creating an account, logging in with Discord, purchasing a plan, earning credits, or hosting any files or applications on our platform, you agree to these terms. If you do not agree, you must stop using the services.
+      - generic [ref=e21]:
+        - generic [ref=e22]:
+          - heading "1. Eligibility and age rules" [level=2] [ref=e23]
+          - paragraph [ref=e24]: You must be at least 13 years old to use X Systems Hosting. If you are under 18, you may only use the services with permission and supervision from a parent or legal guardian. We may request reasonable proof of eligibility if needed to protect the platform or comply with law.
+        - generic [ref=e25]:
+          - heading "2. Accounts and security" [level=2] [ref=e26]
+          - paragraph [ref=e27]: You are responsible for your account, Discord login, panel account, passwords, tokens, API keys, and all activity that happens through your access. Do not share your panel password or let other people use your account. You must contact us immediately if you believe your account has been accessed without permission.
+          - paragraph [ref=e28]: We take reasonable steps to protect stored credentials and sensitive configuration data, including Discord bot tokens and related authentication details. However, you are responsible for keeping your own credentials secure, avoiding malicious code, avoiding untrusted plugins or scripts, and protecting access to your Discord account, panel account, and hosted files. Never share your bot token, client secret, or panel access with untrusted users.
+        - generic [ref=e29]:
+          - heading "3. Free hosting, credits, and rewards" [level=2] [ref=e30]
+          - paragraph [ref=e31]: Free hosting is provided through a shared platform and may require credits, quests, rewards, activity, or other requirements shown on the website or dashboard. Credits and rewards have no cash value, are not withdrawable, and may be adjusted, removed, or limited if we detect abuse, automation, farming, multiple-account abuse, fraud, or attempts to bypass limits.
+          - paragraph [ref=e32]: Free hosting is not guaranteed forever and may be changed, paused, limited, or discontinued when needed for capacity, safety, abuse prevention, or service quality.
+        - generic [ref=e33]:
+          - heading "4. Paid services and billing" [level=2] [ref=e34]
+          - paragraph [ref=e35]: Paid services, including Minecraft hosting and any other paid plans, are billed at the prices shown at the time of purchase unless otherwise stated. Payments may be processed by Stripe or another payment provider we make available. You must provide accurate billing and account information and keep it updated.
+          - paragraph [ref=e36]: Prices, plan resources, features, and availability may change. Changes do not affect an already paid billing period unless required for security, abuse prevention, infrastructure stability, or legal compliance.
+        - generic [ref=e37]:
+          - heading "5. Refunds" [level=2] [ref=e38]
+          - paragraph [ref=e39]: Refund requests are reviewed through support. Unless a different refund rule is shown at checkout, refunds may be refused where the service has already been delivered, where the issue is caused by user configuration, user code, third-party software, plugins, mods, Discord, Minecraft, payment providers, upstream providers, or where the account violates these terms or our Fair Use Policy.
+          - paragraph [ref=e40]: Premade Discord bot templates, whitelabel services, setup services, and related digital goods may enter a delivered or partially delivered state immediately after purchase or provisioning. Because Roblox payments include platform taxes and non-refundable transaction fees, approved refunds for Roblox-based purchases may be reduced to account for Roblox marketplace fees, taxes, processing loss, provisioning time, setup work, fraud prevention, or delivery costs. In many cases this may significantly reduce the refundable amount compared with the original payment value.
+          - paragraph [ref=e41]: Some premade bot templates, automation systems, integrations, dashboards, or beta features may still be experimental, in development, or undergoing active changes. Minor bugs, temporary instability, missing features, or integration issues may occur during beta periods.
+          - paragraph [ref=e42]: Nothing in these terms removes legal consumer rights that cannot be excluded under applicable law. If a statutory right applies, we will handle the request according to that law.
+        - generic [ref=e43]:
+          - heading "6. Service rules and prohibited use" [level=2] [ref=e44]
+          - paragraph [ref=e45]: You may not use X Systems Hosting for illegal, harmful, abusive, or unsafe activity. This includes self bots, token grabbers, malware, scam bots, spam bots, phishing, credential theft, DDoS tools, miners, heavy resource abuse, attempts to bypass limits, credit or reward abuse, evading bans, hosting stolen material, or interfering with other users or systems.
+          - paragraph [ref=e46]: You may not upload, run, link to, or distribute content that is illegal, infringing, deceptive, defamatory, hateful, violent, sexually exploitative, or otherwise harmful. You are responsible for your hosted files, bots, scripts, servers, plugins, mods, and configuration.
+        - generic [ref=e47]:
+          - heading "7. Monitoring and safety review" [level=2] [ref=e48]
+          - paragraph [ref=e49]: To protect the platform, users, and infrastructure, we may monitor resource usage, process activity, startup commands, console output, network activity, and related technical signals to detect abuse, malware, phishing, spam, self bots, API abuse, token theft systems, fraud, or other harmful activity.
+          - paragraph [ref=e50]: Manual review is limited and only performed where reasonably necessary for abuse investigation, security response, policy enforcement, or technical troubleshooting. We do not routinely browse user files or project contents.
+          - paragraph [ref=e51]: Where additional verification is required for suspicious activity, we may inspect limited bot-related configuration files such as package.json, requirements.txt, startup configuration, dependency lists, or similar environment metadata directly related to the reported or detected issue. Reviews are intended to remain limited in scope to the minimum reasonably necessary for platform safety and abuse prevention.
+        - generic [ref=e52]:
+          - heading "8. User data and backups" [level=2] [ref=e53]
+          - paragraph [ref=e54]: You are responsible for keeping your own backups of important files, bots, servers, databases, plugins, and configuration. We may provide backup features, but we do not promise that any backup will always be available, complete, or restorable. Data may be deleted after cancellation, suspension, termination, failed payment, inactivity, or account removal.
+        - generic [ref=e55]:
+          - heading "9. Intellectual property" [level=2] [ref=e56]
+          - paragraph [ref=e57]: X Systems Hosting, our website, branding, design, platform content, and service materials belong to X Systems or its licensors. You keep ownership of content you upload, but you give us the rights needed to host, process, transmit, back up, review, and operate that content as part of providing the services.
+        - generic [ref=e58]:
+          - heading "10. Suspension and termination" [level=2] [ref=e59]
+          - paragraph [ref=e60]: We may suspend, limit, or terminate services without advance notice if we believe there is a violation of these terms, illegal activity, abuse, security risk, payment issue, chargeback, resource abuse, or risk to our infrastructure or users. You may stop using the services at any time. After termination, access to files and services may be removed.
+        - generic [ref=e61]:
+          - heading "11. Availability and changes" [level=2] [ref=e62]
+          - paragraph [ref=e63]: We work to keep the services reliable, but hosting services can be affected by maintenance, upstream issues, network problems, software bugs, attacks, emergencies, or user activity. We may change, update, move, suspend, or discontinue parts of the services when needed.
+        - generic [ref=e64]:
+          - heading "12. Disclaimers and liability" [level=2] [ref=e65]
+          - paragraph [ref=e66]: The services are provided on an as-is and as-available basis. To the maximum extent allowed by law, we do not guarantee uninterrupted service, error-free operation, or that hosted software will work for your use case. We are not responsible for indirect losses, lost profits, lost revenue, lost data, third-party outages, user configuration issues, or damage caused by your code, bots, plugins, mods, or integrations.
+        - generic [ref=e67]:
+          - heading "13. Governing law" [level=2] [ref=e68]
+          - paragraph [ref=e69]: These terms are governed by the laws of the Netherlands, unless mandatory consumer protection laws in your country give you additional rights that cannot be excluded.
+        - generic [ref=e70]:
+          - heading "14. Contact" [level=2] [ref=e71]
+          - paragraph [ref=e72]:
+            - text: Questions, complaints, legal notices, and support requests can be sent to
+            - link "oriveth@corexbot.xyz" [ref=e73] [cursor=pointer]:
+              - /url: mailto:oriveth@corexbot.xyz
+            - text: or through our Discord server at
+            - link "discord.gg/xsystems" [ref=e74] [cursor=pointer]:
+              - /url: https://discord.gg/xsystems
+            - text: .
+  - contentinfo [ref=e75]:
+    - generic [ref=e76]:
+      - generic [ref=e77]:
+        - generic [ref=e78]: X Systems Hosting
+        - paragraph [ref=e79]: X Systems Hosting is provided and powered by X Systems. Free Discord bot hosting runs on a shared platform with credits, fair limits, and safety rules so every user gets a stable place to host.
+        - generic [ref=e80]:
+          - link "Discord Server" [ref=e81] [cursor=pointer]:
+            - /url: https://discord.gg/xsystems
+          - link "Discord Bot Hosting" [ref=e82] [cursor=pointer]:
+            - /url: /dashboard/discord
+          - link "Web Hosting" [ref=e83] [cursor=pointer]:
+            - /url: /dashboard/web
+          - link "Panel Access" [ref=e84] [cursor=pointer]:
+            - /url: /panel
+      - generic [ref=e85]:
+        - generic [ref=e86]: Extras
+        - generic [ref=e87]:
+          - link "Trustpilot" [ref=e88] [cursor=pointer]:
+            - /url: https://trustpilot.com/review/xsystemshosting.com
+          - link "Status" [ref=e89] [cursor=pointer]:
+            - /url: https://x-systems.instatus.com/
+          - link "Docs" [ref=e90] [cursor=pointer]:
+            - /url: https://docs.xsystemshosting.com
+          - link "Sign Up" [ref=e91] [cursor=pointer]:
+            - /url: /login
+      - generic [ref=e92]:
+        - generic [ref=e93]: Company Details
+        - generic [ref=e94]:
+          - generic [ref=e95]: "KVK: 86331132"
+          - generic [ref=e96]: "Vestigingsnummer: 000052314669"
+      - generic [ref=e97]:
+        - generic [ref=e98]:
+          - generic [ref=e99]: Legal
+          - generic [ref=e100]:
+            - link "Terms of Service" [ref=e101] [cursor=pointer]:
+              - /url: /terms
+            - link "Privacy Policy" [ref=e102] [cursor=pointer]:
+              - /url: /privacy
+            - link "Service Level Agreement" [ref=e103] [cursor=pointer]:
+              - /url: /sla
+            - link "Fair Use Policy" [ref=e104] [cursor=pointer]:
+              - /url: /fair-use
+        - img "KvK Registered Company" [ref=e106]
+    - generic [ref=e107]: © X Systems Hosting, powered by X Systems. All rights reserved.

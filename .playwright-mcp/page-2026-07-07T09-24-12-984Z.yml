@@ -1,0 +1,84 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e4]:
+      - link "FreeCloudPanel" [ref=e5] [cursor=pointer]:
+        - /url: /index.php
+        - img "FreeCloudPanel" [ref=e6]
+      - list [ref=e7]:
+        - listitem [ref=e8]:
+          - link " 查看购物车" [ref=e9] [cursor=pointer]:
+            - /url: /cart.php?a=view
+            - generic [ref=e10]: 
+            - generic [ref=e11]: 查看购物车
+        - listitem [ref=e12]:
+          - link "CNY " [ref=e13] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e14]: CNY
+            - generic [ref=e15]: 
+    - list [ref=e18]:
+      - listitem [ref=e19]:
+        - link "产品服务 " [ref=e20] [cursor=pointer]:
+          - /url: "#"
+          - generic [ref=e21]: 产品服务
+          - generic [ref=e22]: 
+      - listitem [ref=e23]:
+        - link "技术支持 " [ref=e24] [cursor=pointer]:
+          - /url: "#"
+          - generic [ref=e25]: 技术支持
+          - generic [ref=e26]: 
+      - listitem [ref=e27]:
+        - link "友情链接 " [ref=e28] [cursor=pointer]:
+          - /url: "#"
+          - generic [ref=e29]: 友情链接
+          - generic [ref=e30]: 
+      - listitem [ref=e31]:
+        - link "频道通知 " [ref=e32] [cursor=pointer]:
+          - /url: "#"
+          - generic [ref=e33]: 频道通知
+          - generic [ref=e34]: 
+      - listitem [ref=e35]:
+        - link "注册账户" [ref=e36] [cursor=pointer]:
+          - /url: /register.php
+          - generic [ref=e37]: 注册账户
+      - listitem [ref=e38]:
+        - link "用户登录" [ref=e39] [cursor=pointer]:
+          - /url: /login.php
+          - generic [ref=e40]: 用户登录
+  - generic [ref=e41]:
+    - generic [ref=e45]:
+      - generic [ref=e46]:
+        - heading "登录用户中心" [level=1] [ref=e47]
+        - form [ref=e48]:
+          - generic [ref=e49]:
+            - generic [ref=e50]: 邮件地址
+            - textbox "邮件地址" [active] [ref=e51]:
+              - /placeholder: 输入邮箱
+          - generic [ref=e52]:
+            - generic [ref=e53]:
+              - generic [ref=e54]: 密码
+              - link "Forgot?" [ref=e55] [cursor=pointer]:
+                - /url: /index.php?rp=/password/reset
+            - textbox "密码" [ref=e56]
+          - generic [ref=e58] [cursor=pointer]:
+            - generic [ref=e59]:
+              - text: 
+              - insertion [ref=e60]
+            - text: 自动登录
+          - button "登录" [ref=e61] [cursor=pointer]:
+            - generic [ref=e62]: 登录
+      - generic [ref=e64]:
+        - text: Not a member yet?
+        - link "新建账户" [ref=e65] [cursor=pointer]:
+          - /url: /register.php
+    - generic [ref=e68]:
+      - generic [ref=e69]: Copyright © 2026 FreeCloudPanel. All Rights Reserved.
+      - list [ref=e70]:
+        - listitem [ref=e71]:
+          - link "中文 " [ref=e72] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e74]: 中文
+            - generic [ref=e75]: 
+        - listitem [ref=e76]:
+          - link "" [ref=e77] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e78]: 

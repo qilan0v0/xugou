@@ -1,0 +1,226 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]: Unlimited Credits is now available for just $10 with a one-time payment! Upgrade today before this limited-time offer ends.
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - link "X Systems Hosting home" [ref=e5] [cursor=pointer]:
+        - /url: https://xsystemshosting.com
+        - img "X Systems Hosting" [ref=e6]
+        - generic [ref=e7]:
+          - generic [ref=e8]: X Systems Hosting
+          - generic [ref=e9]: Discord bot hosting with full control
+      - navigation [ref=e10]:
+        - link "Panel" [ref=e11] [cursor=pointer]:
+          - /url: https://panel.xsystemshosting.com
+        - link "Discord" [ref=e12] [cursor=pointer]:
+          - /url: https://discord.gg/xsystems
+        - link "Dashboard" [ref=e13] [cursor=pointer]:
+          - /url: https://xsystemshosting.com/dashboard
+  - generic [ref=e14]:
+    - complementary [ref=e15]:
+      - generic [ref=e16]:
+        - generic [ref=e17]: Search documentation
+        - generic [ref=e18]:
+          - img [ref=e19]
+          - searchbox "Search documentation" [ref=e21]
+          - generic [ref=e22]: /
+      - navigation [ref=e24]:
+        - generic [ref=e25]:
+          - generic [ref=e26]: Start here
+          - link "Overview" [ref=e27] [cursor=pointer]:
+            - /url: /
+          - link "Sign up and log in" [ref=e28] [cursor=pointer]:
+            - /url: /getting-started
+          - link "Main dashboard" [ref=e29] [cursor=pointer]:
+            - /url: /dashboard
+        - generic [ref=e30]:
+          - generic [ref=e31]: Discord bot hosting
+          - link "Discord hosting" [ref=e32] [cursor=pointer]:
+            - /url: /discord-hosting
+          - link "Create a server" [ref=e33] [cursor=pointer]:
+            - /url: /create-discord-server
+          - link "Manage a server" [ref=e34] [cursor=pointer]:
+            - /url: /manage-discord-server
+          - link "Runtime and auto renew" [ref=e35] [cursor=pointer]:
+            - /url: /runtime-auto-renew
+          - link "Resource upgrades" [ref=e36] [cursor=pointer]:
+            - /url: /resource-upgrades
+          - link "Credits" [ref=e37] [cursor=pointer]:
+            - /url: /credits
+          - link "Watch ads" [ref=e38] [cursor=pointer]:
+            - /url: /watch-ads
+          - link "Daily rewards" [ref=e39] [cursor=pointer]:
+            - /url: /daily-rewards
+          - link "CoreX quest" [ref=e40] [cursor=pointer]:
+            - /url: /corex-quest
+          - link "Store and premium" [ref=e41] [cursor=pointer]:
+            - /url: /store-premium
+        - generic [ref=e42]:
+          - generic [ref=e43]: Pterodactyl panel
+          - link "Panel basics" [ref=e44] [cursor=pointer]:
+            - /url: /pterodactyl-panel
+          - link "Files and SFTP" [ref=e45] [cursor=pointer]:
+            - /url: /files-sftp
+          - link "Startup and console" [ref=e46] [cursor=pointer]:
+            - /url: /startup-console
+          - link "Backups and nodes" [ref=e47] [cursor=pointer]:
+            - /url: /backups-nodes
+        - generic [ref=e48]:
+          - generic [ref=e49]: Other hosting
+          - link "Premade Discord bots" [ref=e50] [cursor=pointer]:
+            - /url: /premade-bots
+          - link "Web hosting beta" [ref=e51] [cursor=pointer]:
+            - /url: /web-hosting
+        - generic [ref=e52]:
+          - generic [ref=e53]: Account
+          - link "User settings" [ref=e54] [cursor=pointer]:
+            - /url: /user-settings
+          - link "Billing" [ref=e55] [cursor=pointer]:
+            - /url: /billing
+          - link "Affiliate program" [ref=e56] [cursor=pointer]:
+            - /url: /affiliate
+          - link "2FA and security" [ref=e57] [cursor=pointer]:
+            - /url: /two-factor
+          - link "Roblox link" [ref=e58] [cursor=pointer]:
+            - /url: /roblox
+          - link "Delete account" [ref=e59] [cursor=pointer]:
+            - /url: /delete-account
+        - generic [ref=e60]:
+          - generic [ref=e61]: Help
+          - link "Troubleshooting" [ref=e62] [cursor=pointer]:
+            - /url: /troubleshooting
+          - link "FAQ and support" [ref=e63] [cursor=pointer]:
+            - /url: /faq-support
+    - main [ref=e64]:
+      - generic [ref=e65]:
+        - generic [ref=e66]: Documentation
+        - heading "Watch ads for credits" [level=1] [ref=e67]
+        - paragraph [ref=e68]: Use the current hosted Discord ad page to earn one credit for watching and one extra credit for opening the invite.
+      - generic [ref=e69]:
+        - heading "Reward" [level=2] [ref=e70]
+        - table [ref=e72]:
+          - rowgroup [ref=e73]:
+            - row "Action Reward" [ref=e74]:
+              - columnheader "Action" [ref=e75]
+              - columnheader "Reward" [ref=e76]
+          - rowgroup [ref=e77]:
+            - row "Stay on the ad tab for 10 active seconds 1 credit" [ref=e78]:
+              - cell "Stay on the ad tab for 10 active seconds" [ref=e79]
+              - cell "1 credit" [ref=e80]
+            - row "Open the shown Discord invite 1 extra credit, when the rolling limit allows it" [ref=e81]:
+              - cell "Open the shown Discord invite" [ref=e82]
+              - cell "1 extra credit, when the rolling limit allows it" [ref=e83]
+      - generic [ref=e84]:
+        - heading "Watch an ad" [level=2] [ref=e85]
+        - list [ref=e86]:
+          - listitem [ref=e87]:
+            - generic [ref=e88]: "1"
+            - generic [ref=e89]: Open Dashboard, then Discord Bot Hosting.
+          - listitem [ref=e90]:
+            - generic [ref=e91]: "2"
+            - generic [ref=e92]:
+              - text: In Quick quests, press
+              - strong [ref=e93]: Watch ads
+              - text: .
+          - listitem [ref=e94]:
+            - generic [ref=e95]: "3"
+            - generic [ref=e96]: Keep the ad tab visible. Leaving the tab pauses the active timer.
+          - listitem [ref=e97]:
+            - generic [ref=e98]: "4"
+            - generic [ref=e99]: Read the ad and wait until the button changes from the countdown to the claim action.
+          - listitem [ref=e100]:
+            - generic [ref=e101]: "5"
+            - generic [ref=e102]: Press the claim button to receive the watch credit.
+          - listitem [ref=e103]:
+            - generic [ref=e104]: "6"
+            - generic [ref=e105]:
+              - text: To receive the extra invite credit, press
+              - strong [ref=e106]: Open Discord invite
+              - text: while the session is valid.
+      - generic [ref=e107]:
+        - strong [ref=e108]: No ad available
+        - paragraph [ref=e109]: If an ad does not load, wait and try again later. Ad availability can change by country, device, browser.
+      - generic [ref=e110]:
+        - heading "Why the button is unavailable" [level=2] [ref=e111]
+        - table [ref=e113]:
+          - rowgroup [ref=e114]:
+            - row "Message Reason" [ref=e115]:
+              - columnheader "Message" [ref=e116]
+              - columnheader "Reason" [ref=e117]
+          - rowgroup [ref=e118]:
+            - row "No ads available right now There is no active hosted ad to show." [ref=e119]:
+              - cell "No ads available right now" [ref=e120]
+              - cell "There is no active hosted ad to show." [ref=e121]
+            - row "Available in … The rolling 24-hour ad-credit limit has been reached." [ref=e122]:
+              - cell "Available in …" [ref=e123]
+              - cell "The rolling 24-hour ad-credit limit has been reached." [ref=e124]
+            - row "Please stay on the ad tab The page did not record 10 active seconds yet." [ref=e125]:
+              - cell "Please stay on the ad tab" [ref=e126]
+              - cell "The page did not record 10 active seconds yet." [ref=e127]
+            - row "Session expired or invalid The ad session became too old or no longer matches the logged-in account." [ref=e128]:
+              - cell "Session expired or invalid" [ref=e129]
+              - cell "The ad session became too old or no longer matches the logged-in account." [ref=e130]
+            - row "Invite already claimed The extra invite reward was already used for that ad session." [ref=e131]:
+              - cell "Invite already claimed" [ref=e132]
+              - cell "The extra invite reward was already used for that ad session." [ref=e133]
+      - generic [ref=e134]:
+        - heading "Timer tips" [level=2] [ref=e135]
+        - list [ref=e136]:
+          - listitem [ref=e137]: Do not switch tabs while the timer is running.
+          - listitem [ref=e138]: Keep the browser window active and do not refresh the page during the countdown.
+          - listitem [ref=e139]: Log in again when the page reports that the session is invalid.
+          - listitem [ref=e140]: The dashboard shows the current rolling reward limit and remaining wait time.
+      - generic [ref=e141]:
+        - link "Previous ← Credits" [ref=e142] [cursor=pointer]:
+          - /url: /credits
+          - generic [ref=e143]: Previous
+          - strong [ref=e144]: ← Credits
+        - link "Next Daily rewards →" [ref=e145] [cursor=pointer]:
+          - /url: /daily-rewards
+          - generic [ref=e146]: Next
+          - strong [ref=e147]: Daily rewards →
+  - contentinfo [ref=e148]:
+    - generic [ref=e149]:
+      - generic [ref=e150]:
+        - generic [ref=e151]: X Systems Hosting
+        - paragraph [ref=e152]: X Systems Hosting is provided and powered by X Systems. Free Discord bot hosting runs on a shared platform with credits, fair limits, and safety rules so every user gets a stable place to host.
+        - generic [ref=e153]:
+          - link "Discord Server" [ref=e154] [cursor=pointer]:
+            - /url: https://discord.gg/xsystems
+          - link "Discord Bot Hosting" [ref=e155] [cursor=pointer]:
+            - /url: https://xsystemshosting.com/dashboard/discord
+          - link "Web Hosting" [ref=e156] [cursor=pointer]:
+            - /url: https://xsystemshosting.com/dashboard/web
+          - link "Panel Access" [ref=e157] [cursor=pointer]:
+            - /url: https://panel.xsystemshosting.com
+      - generic [ref=e158]:
+        - generic [ref=e159]: Extras
+        - generic [ref=e160]:
+          - link "Trustpilot" [ref=e161] [cursor=pointer]:
+            - /url: https://trustpilot.com/review/xsystemshosting.com
+          - link "Status" [ref=e162] [cursor=pointer]:
+            - /url: https://x-systems.instatus.com/
+          - link "Docs" [ref=e163] [cursor=pointer]:
+            - /url: /
+          - link "Sign Up" [ref=e164] [cursor=pointer]:
+            - /url: https://xsystemshosting.com/login
+      - generic [ref=e165]:
+        - generic [ref=e166]: Company Details
+        - generic [ref=e167]:
+          - generic [ref=e168]: "KVK: 86331132"
+          - generic [ref=e169]:
+            - text: "Vestigingsnummer:"
+            - text: "000052314669"
+      - generic [ref=e170]:
+        - generic [ref=e171]:
+          - generic [ref=e172]: Legal
+          - generic [ref=e173]:
+            - link "Terms of Service" [ref=e174] [cursor=pointer]:
+              - /url: https://xsystemshosting.com/terms
+            - link "Privacy Policy" [ref=e175] [cursor=pointer]:
+              - /url: https://xsystemshosting.com/privacy
+            - link "Service Level Agreement" [ref=e176] [cursor=pointer]:
+              - /url: https://xsystemshosting.com/sla
+            - link "Fair Use Policy" [ref=e177] [cursor=pointer]:
+              - /url: https://xsystemshosting.com/fair-use
+        - img "KvK Registered Company" [ref=e178]
+    - generic [ref=e179]: © X Systems Hosting, powered by X Systems. All rights reserved.

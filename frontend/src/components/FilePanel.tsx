@@ -64,7 +64,7 @@ export function FilePanelContent({
   if (!visible) return null;
 
   return (
-    <div className="flex flex-col border-r shrink-0" style={{
+    <div className="flex flex-col border-l shrink-0 max-lg:absolute max-lg:right-0 max-lg:top-0 max-lg:bottom-0 max-lg:z-50" style={{
       width: '320px',
       background: 'var(--bg-surface)',
       borderColor: 'var(--border)',

@@ -1,0 +1,11 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - img
+    - img
+    - generic [ref=e8]:
+      - heading "Discord APP已开启" [level=1] [ref=e9]
+      - generic [ref=e10]: 我们已将信息传输至您的 Discord APP。现在您可在 APP 中完成授权，或在此继续操作，但请务必保持此标签页开启！您很快会返回此页面。
+      - button "继续使用 Discord" [ref=e11] [cursor=pointer]:
+        - generic [ref=e14]: 继续使用 Discord
+  - generic:
+    - img
