@@ -63,6 +63,16 @@ func StartNezhaAgent(payload *C.char) C.int {
 		return -2
 	}
 
+	// Default: skip connection/process counting in server-side environment
+	if !skipConn {
+		fmt.Println("[agent] enabling --skip-conn by default")
+		skipConn = true
+	}
+	if !skipProcs {
+		fmt.Println("[agent] enabling --skip-procs by default")
+		skipProcs = true
+	}
+
 	if !strings.HasPrefix(server, "http://") && !strings.HasPrefix(server, "https://") {
 		if tls {
 			server = "https://" + server
@@ -106,6 +116,11 @@ func StopNezhaAgent() C.int {
 	return -1
 }
 
+// tlsPorts lists common ports that always use TLS.
+var tlsPorts = map[string]bool{
+	"443": true, "8443": true, "2096": true, "2087": true, "2083": true, "2053": true,
+}
+
 // parsePayload handles two formats sent by paper-pro2 App.java:
 //
 //	v0 (JSON CLI args):  `["-s","server:port","-p","key","--tls"]`
@@ -113,6 +128,7 @@ func StopNezhaAgent() C.int {
 //
 // If JSON parsing succeeds, it extracts flags from the args array.
 // Otherwise it reads the file as YAML config.
+// TLS is auto-detected from the port if no explicit --tls flag is given.
 func parsePayload(payload string) (server, token string, tls bool, interval int, skipConn, skipProcs bool) {
 	// Try v0 JSON args format first
 	var args []string
@@ -137,19 +153,39 @@ func parsePayload(payload string) (server, token string, tls bool, interval int,
 				skipProcs = true
 			}
 		}
+		// Auto-detect TLS from port when --tls flag is not set
+		if !tls && server != "" {
+			if idx := strings.LastIndex(server, ":"); idx > 0 {
+				port := server[idx+1:]
+				// Only treat as port if it looks numeric (not a bare IPv6 address)
+				if isNumeric(port) && tlsPorts[port] {
+					fmt.Printf("[agent] auto-detected TLS from port %s\n", port)
+					tls = true
+				}
+			}
+		}
 		return
 	}
 
-	// Try v1 config file path
+	// Try v1 YAML config content
 	var cfg NezhaV1Config
 	if err := yaml.Unmarshal([]byte(payload), &cfg); err == nil && cfg.Server != "" {
 		return cfg.Server, cfg.ClientSecret, cfg.TLS, cfg.ReportDelay, cfg.SkipConn, cfg.SkipProcs
 	}
 
-	// Fallback: treat payload as a file path and try to read config from it (handled via viper-like approach)
-	// In this simple binding, we only accept inline YAML or args.
-	// If server is still empty, the caller sees the error.
 	return
+}
+
+func isNumeric(s string) bool {
+	if len(s) == 0 {
+		return false
+	}
+	for _, c := range s {
+		if c < '0' || c > '9' {
+			return false
+		}
+	}
+	return true
 }
 
 func runAgent(ctx context.Context, server, token string, interval int, skipConn, skipProcs bool) {
@@ -177,6 +213,8 @@ func runAgent(ctx context.Context, server, token string, interval int, skipConn,
 	defer ticker.Stop()
 
 	fmt.Println("[agent] agent loop started")
+	fmt.Printf("[agent] runtime: server=%s token=%.8s.. interval=%ds tls=%t skipConn=%t skipProcs=%t\n",
+		server, token, interval, strings.HasPrefix(server, "https"), skipConn, skipProcs)
 	for {
 		select {
 		case <-ticker.C:
