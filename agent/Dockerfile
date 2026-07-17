@@ -36,8 +36,7 @@ RUN set -eu; \
         echo "未找到: $name"; \
     done; \
     if [ "$ok" -ne 1 ]; then echo "错误: 在 Release ${AGENT_VERSION} 中找不到 linux/${TARGETARCH} 二进制（已尝试: $candidates）"; exit 1; fi; \
-    chmod +x /usr/local/bin/qltz-agent; \
-    /usr/local/bin/qltz-agent version || true
+    chmod +x /usr/local/bin/qltz-agent
 
 # ── 可配置环境变量（详见 agent/README.docker.md）──────────────
 # 连接
