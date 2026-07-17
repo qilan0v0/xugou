@@ -1,3 +1,8 @@
 *
 !entrypoint.sh
+!go.mod
+!go.sum
+!main.go
+!cmd/
+!pkg/
 !web/

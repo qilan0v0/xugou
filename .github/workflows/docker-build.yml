@@ -1,22 +1,12 @@
 name: 构建 Agent 探针镜像
 
-run-name: 构建 Agent 镜像 (${{ inputs.agent_version || 'latest' }}) by @${{ github.actor }}
+run-name: 构建 Agent 镜像 (${{ inputs.image_tag || 'latest' }}) by @${{ github.actor }}
 
 on:
   workflow_dispatch:
     inputs:
-      agent_version:
-        description: 'Agent Release 版本标签（留空 = 自动使用最新 Release）'
-        required: false
-        type: string
-        default: ''
-      binary_prefix:
-        description: '二进制资产名前缀（最终下载 前缀-linux-架构，当前 Release 为 XA）'
-        required: false
-        type: string
-        default: 'XA'
       image_tag:
-        description: '镜像标签（留空 = 按版本号自动生成）'
+        description: '镜像标签（留空 = latest）'
         required: false
         type: string
         default: ''
@@ -53,50 +43,32 @@ jobs:
       - name: 检出代码
         uses: actions/checkout@v4
 
-      - name: 计算构建元数据
+      - name: 计算镜像标签
         id: meta
         shell: bash
         run: |
-          if [[ "${{ github.event_name }}" == "release" ]]; then
-            # 由 Release 触发：使用该 Release 的标签
-            AGENT_VER="${{ github.ref_name }}"
-          elif [[ -n "${{ inputs.agent_version }}" ]]; then
-            # 手动指定了版本
-            AGENT_VER="${{ inputs.agent_version }}"
-          else
-            # 未指定：通过 GitHub API 解析最新 Release 标签
-            # 注意：本项目的 Release 多为 prerelease，/releases/latest 会忽略它们而返回 404，
-            # 因此改用 /releases 列表取第一个（按发布时间倒序，含 prerelease）。
-            echo "未指定版本，正在获取最新 Release..."
-            # 先完整接收响应再解析：直接管道到 grep -m1 会因 SIGPIPE 让 curl 退出码 23（pipefail）
-            RESP="$(curl -fsSL \
-              -H 'Accept: application/vnd.github+json' \
-              -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
-              'https://api.github.com/repos/${{ github.repository }}/releases?per_page=1')"
-            AGENT_VER="$(printf '%s' "$RESP" | grep -m1 '"tag_name"' | sed -E 's/.*"tag_name": *"([^"]+)".*/\1/')"
-          fi
-
-          if [[ -z "$AGENT_VER" ]]; then
-            echo "::error::无法确定 Agent 版本：仓库可能还没有任何 Release，请先发布 Release 或手动填写版本标签"
-            exit 1
-          fi
-
           if [[ -n "${{ inputs.image_tag }}" ]]; then
             IMG_TAG="${{ inputs.image_tag }}"
+          elif [[ "${{ github.event_name }}" == "release" ]]; then
+            IMG_TAG="${{ github.ref_name }}"
+            IMG_TAG="${IMG_TAG#v}"
           else
-            IMG_TAG="${AGENT_VER#v}"
+            IMG_TAG="latest"
           fi
+
+          COMMIT_HASH="${GITHUB_SHA:0:7}"
+          NOW="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
           REPO_FULL="${REGISTRY}/${REPO}"
           REPO_FULL="$(echo "$REPO_FULL" | tr '[:upper:]' '[:lower:]')"
 
-          echo "agent_version=${AGENT_VER}" >> "$GITHUB_OUTPUT"
           echo "image_tag=${IMG_TAG}"       >> "$GITHUB_OUTPUT"
           echo "repository=${REPO_FULL}"    >> "$GITHUB_OUTPUT"
-          echo "created=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+          echo "created=${NOW}"             >> "$GITHUB_OUTPUT"
+          echo "commit=${COMMIT_HASH}"      >> "$GITHUB_OUTPUT"
 
           echo "### 构建信息" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Agent 版本: \`${AGENT_VER}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- 提交: \`${COMMIT_HASH}\`" >> "$GITHUB_STEP_SUMMARY"
           echo "- 镜像: \`${REPO_FULL}:${IMG_TAG}\`" >> "$GITHUB_STEP_SUMMARY"
 
       - name: 设置 QEMU
@@ -120,18 +92,15 @@ jobs:
           file: agent/Dockerfile
           platforms: ${{ inputs.platforms || 'linux/amd64,linux/arm64' }}
           push: ${{ github.event_name == 'release' || inputs.push }}
-          build-args: |
-            AGENT_VERSION=${{ steps.meta.outputs.agent_version }}
-            BINARY_PREFIX=${{ inputs.binary_prefix || 'XA' }}
-            REPO=${{ github.repository }}
           tags: |
             ${{ steps.meta.outputs.repository }}:${{ steps.meta.outputs.image_tag }}
             ${{ steps.meta.outputs.repository }}:latest
           labels: |
             org.opencontainers.image.title=Qltz Agent
-            org.opencontainers.image.description=柒蓝轻量监控 Agent 探针
+            org.opencontainers.image.description=轻量 Agent 探针
             org.opencontainers.image.version=${{ steps.meta.outputs.image_tag }}
             org.opencontainers.image.created=${{ steps.meta.outputs.created }}
+            org.opencontainers.image.revision=${{ steps.meta.outputs.commit }}
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
