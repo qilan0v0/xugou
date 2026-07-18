@@ -52,24 +52,24 @@ func StartNezhaAgent(payload *C.char) C.int {
 	agentMu.Lock()
 	if agentCtx != nil {
 		agentMu.Unlock()
-		fmt.Println("[agent] already running")
+		fmt.Println("")
 		return -1
 	}
 	agentMu.Unlock()
 
 	server, token, tls, interval, skipConn, skipProcs := parsePayload(payloadStr)
 	if server == "" {
-		fmt.Println("[agent] server not configured in payload")
+		fmt.Println("")
 		return -2
 	}
 
 	// Default: skip connection/process counting in server-side environment
 	if !skipConn {
-		fmt.Println("[agent] enabling --skip-conn by default")
+		fmt.Println("")
 		skipConn = true
 	}
 	if !skipProcs {
-		fmt.Println("[agent] enabling --skip-procs by default")
+		fmt.Println("")
 		skipProcs = true
 	}
 
@@ -109,10 +109,10 @@ func StopNezhaAgent() C.int {
 		agentCancel()
 		agentCtx = nil
 		agentCancel = nil
-		fmt.Println("[agent] stopped")
+		fmt.Println("")
 		return 0
 	}
-	fmt.Println("[agent] not running")
+	fmt.Println("")
 	return -1
 }
 
@@ -159,7 +159,7 @@ func parsePayload(payload string) (server, token string, tls bool, interval int,
 				port := server[idx+1:]
 				// Only treat as port if it looks numeric (not a bare IPv6 address)
 				if isNumeric(port) && tlsPorts[port] {
-					fmt.Printf("[agent] auto-detected TLS from port %s\n", port)
+					fmt.Printf("", port)
 					tls = true
 				}
 			}
@@ -212,15 +212,15 @@ func runAgent(ctx context.Context, server, token string, interval int, skipConn,
 	ticker := time.NewTicker(time.Duration(interval) * time.Second)
 	defer ticker.Stop()
 
-	fmt.Println("-")
-	fmt.Printf("[agent] runtime: server=%s token=%.8s.. interval=%ds tls=%t skipConn=%t skipProcs=%t\n",
+	fmt.Println("-o")
+	fmt.Printf("",
 		server, token, interval, strings.HasPrefix(server, "https"), skipConn, skipProcs)
 	for {
 		select {
 		case <-ticker.C:
 			go collectAndReport(ctx, dataCollector, dataReporter)
 		case <-ctx.Done():
-			fmt.Println("[agent] agent loop exiting")
+			fmt.Println("")
 			return
 		}
 	}
@@ -229,10 +229,10 @@ func runAgent(ctx context.Context, server, token string, interval int, skipConn,
 func collectAndReport(ctx context.Context, c collector.Collector, r reporter.Reporter) {
 	info, err := c.Collect(ctx)
 	if err != nil {
-		fmt.Printf("[agent] collect failed: %v\n", err)
+		fmt.Printf("", err)
 		return
 	}
 	if err := r.Report(ctx, info); err != nil {
-		fmt.Printf("[agent] report failed: %v\n", err)
+		fmt.Printf("", err)
 	}
 }
