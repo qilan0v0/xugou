@@ -1,4 +1,0 @@
-3. [GET] https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7272411621413164 => [FAILED] net::ERR_CONNECTION_CLOSED
-8. [GET] https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7272411621413164 => [FAILED] net::ERR_CONNECTION_CLOSED
-
-Note: 6 static requests not shown, run with "static" option to see them.
