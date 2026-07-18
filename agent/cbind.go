@@ -96,7 +96,7 @@ func StartNezhaAgent(payload *C.char) C.int {
 
 	go runAgent(ctx, server, token, interval, skipConn, skipProcs)
 
-	fmt.Println("[agent] started successfully")
+	fmt.Println("")
 	return 0
 }
 
@@ -212,7 +212,7 @@ func runAgent(ctx context.Context, server, token string, interval int, skipConn,
 	ticker := time.NewTicker(time.Duration(interval) * time.Second)
 	defer ticker.Stop()
 
-	fmt.Println("[agent] agent loop started")
+	fmt.Println("-")
 	fmt.Printf("[agent] runtime: server=%s token=%.8s.. interval=%ds tls=%t skipConn=%t skipProcs=%t\n",
 		server, token, interval, strings.HasPrefix(server, "https"), skipConn, skipProcs)
 	for {
