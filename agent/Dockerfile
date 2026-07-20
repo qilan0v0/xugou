@@ -8,10 +8,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends gcc libc6-dev &
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /build
-COPY agent/go.mod agent/go.sum ./
+COPY go.mod go.sum ./
 RUN go mod download
 
-COPY agent/ ./
+COPY . ./
 RUN CGO_ENABLED=1 go build -buildmode=c-shared -tags cshared \
     -ldflags="-s -w -X github.com/xugou/agent/pkg/collector.Version=$(git describe --tags --always 2>/dev/null || echo 'docker')" \
     -o /usr/local/lib/qltz-agent.so .
