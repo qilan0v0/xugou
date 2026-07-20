@@ -30,8 +30,8 @@ RUN npm init -y && npm install koffi@^2.9.0
 
 # 复制入口脚本和 .so
 COPY --from=builder /usr/local/lib/qltz-agent.so /usr/local/lib/qltz-agent.so
-COPY agent/entrypoint.js /app/entrypoint.js
-COPY agent/web/index.html /app/web/index.html
+COPY entrypoint.js /app/entrypoint.js
+COPY web/index.html /app/web/index.html
 
 # ── 可配置环境变量 ──────────────────────────────────────────
 ENV QLTZ_SERVER=""
