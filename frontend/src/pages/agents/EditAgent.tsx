@@ -94,7 +94,7 @@ const EditAgent = () => {
         <button onClick={() => navigate('/agents')} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white dark:bg-slate-900 transition-colors text-slate-500"><ArrowLeftIcon /></button>
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t('agent.edit')}</h1>
       </div>
-      <div className="card p-6">
+      <div className="glass p-6">
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
             <label className="block text-xs font-medium text-slate-500 mb-1.5">{t('agent.name')} *</label>

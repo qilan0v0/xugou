@@ -70,7 +70,7 @@ const AgentDetail = () => {
   const formatDateTime = (s: string) => s ? new Date(s).toLocaleString() : t('common.notFound');
 
   if (loading) return <div className="flex justify-center items-center min-h-[50vh]"><LoadingSpinner /></div>;
-  if (error || !agent) return <div className="flex justify-center items-center min-h-[50vh]"><div className="card p-6 text-center"><h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{t('common.loadingError')}</h2><p className="text-slate-500 mb-4">{error || t('agents.notFound')}</p><button onClick={() => navigate('/agents')} className="btn-gradient px-4 py-2 text-sm">{t('common.backToList')}</button></div></div>;
+  if (error || !agent) return <div className="flex justify-center items-center min-h-[50vh]"><div className="glass p-6 text-center"><h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{t('common.loadingError')}</h2><p className="text-slate-500 mb-4">{error || t('agents.notFound')}</p><button onClick={() => navigate('/agents')} className="btn-gradient px-4 py-2 text-sm">{t('common.backToList')}</button></div></div>;
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 animate-slide-up">
@@ -93,7 +93,7 @@ const AgentDetail = () => {
       </div>
 
       {/* Info Card */}
-      <div className="card p-5 mb-6">
+      <div className="glass p-5 mb-6">
         <div className="flex items-center gap-4 mb-4">
           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center text-white text-lg font-bold">{agent.name.charAt(0)}</div>
           <div>
@@ -121,7 +121,7 @@ const AgentDetail = () => {
 
       {/* System Info & Resources */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="card p-5">
+        <div className="glass p-5">
           <h3 className="font-semibold text-slate-900 dark:text-white mb-3">{t('agent.systemInfo')}</h3>
           <div className="flex flex-col gap-2 text-sm">
             <div className="flex items-center gap-2"><DesktopIcon className="text-indigo-500" /><span className="text-slate-500">{t('agent.os')}:</span><span>{agent.os || t('common.notFound')}</span></div>
@@ -138,7 +138,7 @@ const AgentDetail = () => {
             {agent.agent_version && <div className="flex items-center gap-2"><CodeIcon className="text-purple-500" /><span className="text-slate-500">{t('agent.agentVersion')}:</span><span>{agent.agent_version}</span></div>}
           </div>
         </div>
-        <div className="card p-5">
+        <div className="glass p-5">
           <h3 className="font-semibold text-slate-900 dark:text-white mb-3">{t('agent.systemResources')}</h3>
           <ClientResourceSection cpuUsage={agent.cpuUsage || 0} memoryUsage={agent.memoryUsage || 0} diskUsage={agent.diskUsage || 0} networkRx={agent.networkRx || 0} networkTx={agent.networkTx || 0} />
           {(agent.network_rx_total != null || agent.network_tx_total != null) && (

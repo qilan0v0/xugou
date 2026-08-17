@@ -180,7 +180,7 @@ const MonitorsList = () => {
   };
 
   if (loading) return <div className="flex justify-center items-center min-h-[50vh]"><LoadingSpinner /></div>;
-  if (error) return <div className="max-w-[1400px] mx-auto px-4 py-8"><div className="card p-4 mb-4 border-l-4 border-red-500"><span className="text-red-500">{error}</span></div><button onClick={() => window.location.reload()} className="btn-gradient px-4 py-2 text-sm">{t('monitors.retry')}</button></div>;
+  if (error) return <div className="max-w-[1400px] mx-auto px-4 py-8"><div className="glass p-4 mb-4 border-l-4 border-red-500"><span className="text-red-500">{error}</span></div><button onClick={() => window.location.reload()} className="btn-gradient px-4 py-2 text-sm">{t('monitors.retry')}</button></div>;
 
   return (
     <div className="max-w-[1400px] mx-auto px-4 py-8 animate-slide-up">
@@ -201,12 +201,12 @@ const MonitorsList = () => {
       </div>
 
       {monitors.length === 0 ? (
-        <div className="card p-8 text-center border-dashed">
+        <div className="glass p-8 text-center border-dashed">
           <p className="text-slate-500 mb-3">{t('monitors.notFound')}</p>
           <button onClick={() => navigate('/monitors/create')} className="btn-gradient px-4 py-2 text-sm inline-flex items-center gap-1.5"><PlusIcon />{t('monitors.addOne')}</button>
         </div>
       ) : (
-        <div className="card overflow-hidden rounded-xl">
+        <div className="glass overflow-hidden rounded-xl">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>

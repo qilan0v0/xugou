@@ -239,7 +239,7 @@ const AgentsList = () => {
   };
 
   if (!fetched) return <div className="flex justify-center items-center min-h-[50vh]"><LoadingSpinner /></div>;
-  if (error) return <div className="max-w-[1400px] mx-auto px-4 py-8"><div className="card p-4 mb-4 border-l-4 border-red-500"><span className="text-red-500">{error}</span></div><button onClick={() => window.location.reload()} className="btn-gradient px-4 py-2 text-sm">{t('common.retry')}</button></div>;
+  if (error) return <div className="max-w-[1400px] mx-auto px-4 py-8"><div className="glass p-4 mb-4 border-l-4 border-red-500"><span className="text-red-500">{error}</span></div><button onClick={() => window.location.reload()} className="btn-gradient px-4 py-2 text-sm">{t('common.retry')}</button></div>;
 
   const filtered = agents.filter(matchFilter);
   const totalRx = agents.reduce((s, a) => s + (a.network_rx_total || 0), 0);
@@ -250,26 +250,25 @@ const AgentsList = () => {
   const regions = [...new Set(agents.map(a => a.country).filter(Boolean))].length;
 
   return (
-    <div className="animate-slide-up">
-      <div className="flex justify-between items-center mb-6">
-        <div>
+    <div className="max-w-[1400px] mx-auto px-4 py-8 animate-slide-up">
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center gap-4">
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t('agents.pageTitle')}</h1>
-          <p className="text-sm text-slate-500 mt-1">管理所有监控探针</p>
+          {selected.size > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-500">已选 {selected.size} 项</span>
+              <button onClick={handleBatchDelete} className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-red-500 bg-red-500/10 hover:bg-red-500/20 transition-colors"><Cross2Icon className="w-3 h-3" />批量删除</button>
+            </div>
+          )}
         </div>
-        {selected.size > 0 && (
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-500">已选 {selected.size} 项</span>
-            <button onClick={handleBatchDelete} className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-red-500 bg-red-500/10 hover:bg-red-500/20 transition-colors"><Cross2Icon className="w-3 h-3" />批量删除</button>
-          </div>
-        )}
         <div className="flex items-center gap-3">
-          <button onClick={fetchAgents} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"><ReloadIcon />{t('common.refresh')}</button>
+          <button onClick={fetchAgents} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white dark:bg-slate-900 transition-colors"><ReloadIcon />{t('common.refresh')}</button>
           <button onClick={() => navigate('/agents/create')} className="btn-gradient flex items-center gap-1.5 px-4 py-2 text-sm"><PlusIcon />{t('agents.create')}</button>
         </div>
       </div>
 
       {/* Summary */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-5">
         {[
           { label: '服务器总数', value: agents.length, bg: 'bg-blue-500/10', text: 'text-blue-600', icon: <CubeIcon /> },
           { label: '在线', value: online, bg: 'bg-emerald-500/10', text: 'text-emerald-600', icon: <CheckCircledIcon /> },
@@ -277,7 +276,7 @@ const AgentsList = () => {
           { label: '地区', value: regions, bg: 'bg-purple-500/10', text: 'text-purple-600', icon: <GlobeIcon /> },
           { label: '总流量', value: fmt(totalTx + totalRx), bg: 'bg-orange-500/10', text: 'text-orange-600', icon: <ArrowUpIcon />, sub: `↑${fmt(totalTx)}  ↓${fmt(totalRx)}` },
         ].map((card, i) => (
-          <div key={i} className="bg-white dark:bg-slate-800/80 rounded-xl border border-slate-200 dark:border-slate-700 p-4 flex items-center gap-3">
+          <div key={i} className="glass rounded-xl p-4 flex items-center gap-3">
             <div className={`w-10 h-10 rounded-xl ${card.bg} ${card.text} flex items-center justify-center flex-shrink-0`}>{card.icon}</div>
             <div className="min-w-0">
               <div className="text-xs text-slate-500 truncate">{card.label}</div>
@@ -311,12 +310,12 @@ const AgentsList = () => {
       })()}
 
       {filtered.length === 0 ? (
-        <div className="card p-8 text-center border-dashed">
+        <div className="glass p-8 text-center border-dashed">
           <p className="text-slate-500 mb-3">{t('agents.noAgents')}</p>
           <button onClick={() => navigate('/agents/create')} className="btn-gradient px-4 py-2 text-sm inline-flex items-center gap-1.5"><PlusIcon />{t('agents.create')}</button>
         </div>
       ) : (
-        <div className="card overflow-hidden rounded-xl">
+        <div className="glass overflow-hidden rounded-xl">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>

@@ -79,7 +79,7 @@ const CreateAgent = () => {
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t('agent.form.title.create')}</h1>
       </div>
 
-      <div className="card p-6 flex flex-col gap-6">
+      <div className="glass p-6 flex flex-col gap-6">
         {/* Agent Name */}
         <div>
           <label className="block text-xs font-semibold text-slate-500 mb-1.5">{t('agent.form.name')}</label>

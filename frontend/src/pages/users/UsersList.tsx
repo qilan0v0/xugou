@@ -37,9 +37,9 @@ const UsersList = () => {
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 animate-slide-up">
       <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">{t('users.title')}</h1>
-      {error && <div className="card border-l-4 border-red-500 p-4 mb-4"><span className="text-red-500">{error}</span></div>}
+      {error && <div className="glass border-l-4 border-red-500 p-4 mb-4"><span className="text-red-500">{error}</span></div>}
 
-      <div className="card overflow-hidden">
+      <div className="glass overflow-hidden">
         <table className="w-full">
           <thead>
             <tr className="border-b border-white/[0.06]">

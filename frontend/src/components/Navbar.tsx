@@ -1,60 +1,27 @@
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { useTranslation } from 'react-i18next';
 import LanguageSelector from './LanguageSelector';
-import {
-  HomeIcon, ActivityLogIcon, CubeIcon, StackIcon,
-  ExitIcon, PersonIcon, ChevronDownIcon, GearIcon, PieChartIcon,
-  SunIcon, MoonIcon,
-} from '@radix-ui/react-icons';
+import { ExitIcon, PersonIcon, ChevronDownIcon, SunIcon, MoonIcon, PieChartIcon, DashboardIcon } from '@radix-ui/react-icons';
+import { useTranslation } from 'react-i18next';
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { user, isAuthenticated, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
   const { t } = useTranslation();
-
-  useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 10);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
-  const isActive = (path: string) => {
-    if (location.pathname === path) return true;
-    if (!location.pathname.startsWith(`${path}/`)) return false;
-    if (path === '/agents' && location.pathname.startsWith('/agents/groups')) return false;
-    return true;
-  };
-
-  const navLinks = isAuthenticated ? [
-    { to: '/dashboard', icon: <HomeIcon />, label: '概览' },
-    { to: '/agents', icon: <CubeIcon />, label: t('navbar.agentMonitors') },
-    { to: '/monitors', icon: <ActivityLogIcon />, label: t('navbar.apiMonitors') },
-    { to: '/agents/groups', icon: <StackIcon />, label: '分组' },
-    { to: '/settings', icon: <GearIcon />, label: '设置' },
-      ] : [];
-
   return (
-    <nav className={`sticky top-0 z-50 w-full transition-all duration-300 ${
-      isScrolled
-        ? 'bg-white/[0.85] dark:bg-[#0f0f1a]/[0.85] backdrop-blur-xl shadow-[0_2px_16px_rgba(0,0,0,0.08)] border-b border-white/[0.06]'
-        : 'bg-transparent border-b border-transparent'
-    }`}>
+    <nav className="sticky top-0 z-50 w-full bg-white/[0.8] dark:bg-[#0f0f1a]/[0.8] backdrop-blur-xl border-b border-black/[0.06] dark:border-white/[0.06]">
       <div className="max-w-[1400px] mx-auto px-4">
-        <div className={`flex items-center justify-between transition-all duration-300 ${
-          isScrolled ? 'h-[54px]' : 'h-[60px]'
-        }`}>
+        <div className="flex items-center justify-between h-[60px]">
           {/* Logo — reads custom config */}
           {(() => {
             let cfg: any = {};
@@ -62,10 +29,9 @@ const Navbar = () => {
             return (
               <Link to="/" className="flex items-center gap-2 group no-underline">
                 {cfg.logoUrl ? (
-                  <img src={cfg.logoUrl} alt="" className="w-8 h-8 rounded-lg object-cover group-hover:scale-105 group-hover:rotate-[-5deg] transition-all duration-300" />
+                  <img src={cfg.logoUrl} alt="" className="w-8 h-8 rounded-lg object-cover group-hover:scale-105 transition-all duration-300" />
                 ) : (
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center
-                    group-hover:scale-105 group-hover:rotate-[-5deg] transition-all duration-300">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center group-hover:scale-105 transition-all duration-300">
                     <PieChartIcon className="w-4 h-4 text-white" />
                   </div>
                 )}
@@ -74,31 +40,21 @@ const Navbar = () => {
             );
           })()}
 
-
-          {/* Nav Links */}
-          {isAuthenticated && (
-            <div className="hidden md:flex items-center gap-1">
-              {navLinks.map(link => (
-                <Link key={link.to} to={link.to}
-                  className={`relative flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                    isActive(link.to)
-                      ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'
-                  }`}
-                >
-                  <span className="w-3.5 h-3.5">{link.icon}</span>
-                  {link.label}
-                </Link>
-              ))}
-            </div>
-          )}
-
           {/* Right side */}
           <div className="flex items-center gap-2">
+            {isAuthenticated && (
+              <Link to="/dashboard"
+                className="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-all"
+              >
+                <DashboardIcon className="w-3.5 h-3.5" />
+                管理后台
+              </Link>
+            )}
+
             <LanguageSelector />
             <button onClick={toggleTheme}
               className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-all"
-              title={theme === 'dark' ? t('navbar.lightMode') || 'Light mode' : t('navbar.darkMode') || 'Dark mode'}
+              title={theme === 'dark' ? t('navbar.lightMode') : t('navbar.darkMode')}
             >
               {theme === 'dark' ? <SunIcon className="w-4 h-4" /> : <MoonIcon className="w-4 h-4" />}
             </button>
@@ -123,29 +79,11 @@ const Navbar = () => {
                         <p className="text-xs text-slate-500">{t('navbar.loggedInAs')}</p>
                         <p className="text-sm font-semibold text-slate-900 dark:text-white">{user?.username}</p>
                       </div>
-                      <button onClick={() => { navigate('/dashboard'); setMenuOpen(false); }}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-white/5 transition-colors"
-                      >
-                        <HomeIcon className="w-3.5 h-3.5" />
-                        控制台
-                      </button>
                       <button onClick={() => { navigate('/profile'); setMenuOpen(false); }}
                         className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-white/5 transition-colors"
                       >
                         <PersonIcon className="w-3.5 h-3.5" />
                         {t('navbar.profile')}
-                      </button>
-                      <button onClick={() => { navigate('/settings'); setMenuOpen(false); }}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-white/5 transition-colors"
-                      >
-                        <GearIcon className="w-3.5 h-3.5" />
-                        系统设置
-                      </button>
-                      <button onClick={() => { navigate('/status/config'); setMenuOpen(false); }}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-white/5 transition-colors"
-                      >
-                        <StackIcon className="w-3.5 h-3.5" />
-                        状态页配置
                       </button>
                       <div className="border-t border-white/[0.06] my-1" />
                       <button onClick={() => { handleLogout(); setMenuOpen(false); }}

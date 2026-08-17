@@ -51,7 +51,7 @@ const UserProfile = () => {
       {msg && <div className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-sm px-4 py-2.5 rounded-lg mb-4">{msg}</div>}
       {err && <div className="bg-red-500/10 text-red-500 text-sm px-4 py-2.5 rounded-lg mb-4">{err}</div>}
 
-      <div className="card p-6 mb-6">
+      <div className="glass p-6 mb-6">
         <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">{t('profile.editInfo')}</h2>
         <form onSubmit={handleUpdate} className="flex flex-col gap-4">
           <div><label className={labelClass}>{t('profile.username')}</label><input value={username} onChange={e => setUsername(e.target.value)} className={inputClass} /></div>
@@ -62,7 +62,7 @@ const UserProfile = () => {
         </form>
       </div>
 
-      <div className="card p-6">
+      <div className="glass p-6">
         <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">{t('profile.changePassword')}</h2>
         <form onSubmit={handlePassword} className="flex flex-col gap-4">
           <div><label className={labelClass}>{t('profile.currentPassword')}</label><input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} required className={inputClass} /></div>

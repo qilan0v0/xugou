@@ -82,7 +82,7 @@ const EditMonitor = () => {
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t('monitor.form.title.edit')}</h1>
       </div>
 
-      <div className="card p-6">
+      <div className="glass p-6">
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           <div><label className={labelClass}>{t('monitor.form.name')} *</label><input name="name" value={formData.name} onChange={handleChange} required className={inputClass} /></div>
           <div><label className={labelClass}>URL *</label><input name="url" value={formData.url} onChange={handleChange} required className={inputClass} /></div>
