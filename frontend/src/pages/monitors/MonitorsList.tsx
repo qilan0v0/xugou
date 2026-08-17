@@ -206,21 +206,21 @@ const MonitorsList = () => {
           <button onClick={() => navigate('/monitors/create')} className="btn-gradient px-4 py-2 text-sm inline-flex items-center gap-1.5"><PlusIcon />{t('monitors.addOne')}</button>
         </div>
       ) : (
-        <div className="glass overflow-hidden rounded-xl">
+        <div className="rounded-2xl border border-slate-200/60 dark:border-white/[0.07] bg-white/90 dark:bg-white/[0.02] overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-white/[0.06] bg-slate-50/50 dark:bg-white/[0.02]">
-                  <th className="w-10 px-3 py-3"><input type="checkbox" checked={selected.size === monitors.length && monitors.length > 0} onChange={toggleAll} className="chk-box" /></th>
-                  <th className="text-left px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[160px]">名称</th>
-                  <th className="text-left px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">URL</th>
-                  <th className="text-left px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[70px]">方法</th>
-                  <th className="text-left px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[85px]">状态</th>
-                  <th className="text-left px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[85px]">延迟</th>
-                  <th className="text-left px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[80px]">可用率</th>
-                  <th className="text-left px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[80px]">间隔</th>
-                  <th className="text-left px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[110px]">标签</th>
-                  <th className="text-right px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[100px]">操作</th>
+                <tr className="border-b border-slate-200/60 dark:border-white/[0.06] bg-slate-50/70 dark:bg-white/[0.03] sticky top-0 backdrop-blur-sm z-10">
+                  <th className="w-10 px-3 py-3.5"><input type="checkbox" checked={selected.size === monitors.length && monitors.length > 0} onChange={toggleAll} className="chk-box" /></th>
+                  <th className="text-left px-4 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[160px]">名称</th>
+                  <th className="text-left px-4 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">URL</th>
+                  <th className="text-left px-4 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[70px]">方法</th>
+                  <th className="text-left px-4 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[85px]">状态</th>
+                  <th className="text-right px-4 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[85px]">延迟</th>
+                  <th className="text-right px-4 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[80px]">可用率</th>
+                  <th className="text-right px-4 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[70px]">间隔</th>
+                  <th className="text-left px-4 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[120px]">标签</th>
+                  <th className="text-right px-4 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[110px]">操作</th>
                 </tr>
               </thead>
               <tbody>
@@ -236,24 +236,29 @@ const MonitorsList = () => {
                       onDragLeave={handleDragLeave}
                       onDrop={e => handleDrop(e, m.id)}
                       onDragEnd={handleDragEnd}
-                      className={`border-b border-white/[0.04] transition-colors cursor-grab active:cursor-grabbing ${dragOverId === m.id ? 'border-t-2 border-t-blue-500' : ''} ${sel ? 'bg-blue-500/[0.04]' : 'hover:bg-white/[0.02]'} ${dragId === m.id ? 'opacity-50' : ''}`}
+                      className={`border-b border-slate-100/80 dark:border-white/[0.04] transition-all duration-150 cursor-grab active:cursor-grabbing ${
+                        dragOverId === m.id ? 'border-t-2 border-t-blue-500 shadow-[inset_0_0_12px_rgba(59,130,246,0.08)]' : ''
+                      } ${
+                        sel ? 'bg-blue-500/[0.04]' : 'hover:bg-slate-50/60 dark:hover:bg-white/[0.02]'
+                      } ${dragId === m.id ? 'opacity-40 scale-[0.99]' : ''}`}
                     >
-                      <td className="px-3 py-2.5"><input type="checkbox" checked={sel} onChange={() => toggle(m.id)} className="chk-box" /></td>
-                      <td className="px-4 py-2.5"><span className="text-sm font-medium text-slate-900 dark:text-white truncate block max-w-[150px]">{m.name}</span></td>
-                      <td className="px-4 py-2.5"><div className="flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400"><GlobeIcon className="w-3 h-3 flex-shrink-0 text-slate-400" /><span className="truncate max-w-[260px]">{m.url}</span></div></td>
-                      <td className="px-4 py-2.5"><span className="text-[11px] font-mono font-medium text-slate-500 bg-slate-100 dark:bg-white dark:bg-slate-900 px-1.5 py-0.5 rounded">{m.method}</span></td>
-                      <td className="px-4 py-2.5"><span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[11px] font-medium ${cfg.bg} ${cfg.text}`}><span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />{m.status === 'up' ? '正常' : m.status === 'down' ? '故障' : '待检'}</span></td>
-                      <td className="px-4 py-2.5"><div className="flex items-center gap-1 text-sm text-slate-600 dark:text-slate-400"><ActivityLogIcon className="w-3 h-3 text-slate-400" /><span className="font-mono text-xs">{m.response_time || 0}<span className="text-[10px]">ms</span></span></div></td>
-                      <td className="px-4 py-2.5"><span className={`text-sm font-mono ${(m.uptime || 100) >= 99 ? 'text-emerald-600' : (m.uptime || 100) >= 95 ? 'text-amber-600' : 'text-red-500'}`}>{(m.uptime || 100).toFixed(1)}%</span></td>
-                      <td className="px-4 py-2.5"><div className="flex items-center gap-1 text-xs text-slate-500"><ClockIcon className="w-3 h-3 text-slate-400" /><span>{Math.round((m.interval || 60) / 60)}分</span></div></td>
-                      <td className="px-4 py-2.5"><div className="flex gap-1 flex-wrap">{tags.length === 0 ? <span className="text-[11px] text-slate-400">--</span> : tags.map(t => <span key={t} className={`text-[10px] px-1.5 py-0.5 rounded font-medium whitespace-nowrap ${tagColor(t)}`}>{t}</span>)}</div></td>
-                      <td className="px-4 py-2.5 text-right">
-                        <div className="flex justify-end gap-0.5">
-                          <button onClick={() => { const idx = monitors.findIndex(x => x.id === m.id); if (idx > 0) api.post('/api/monitors/reorder', { id: m.id, toIndex: idx - 1 }).then(fetchData); }} className="p-0.5 rounded text-slate-300 hover:text-slate-600 dark:hover:text-slate-300 transition-colors" title="上移"><ChevronUpIcon className="w-3.5 h-3.5" /></button>
-                          <button onClick={() => { const idx = monitors.findIndex(x => x.id === m.id); if (idx < monitors.length - 1) api.post('/api/monitors/reorder', { id: m.id, toIndex: idx + 1 }).then(fetchData); }} className="p-0.5 rounded text-slate-300 hover:text-slate-600 dark:hover:text-slate-300 transition-colors" title="下移"><ChevronDownIcon className="w-3.5 h-3.5" /></button>
-                          <button onClick={() => navigate(`/monitors/${m.id}`)} className="p-1.5 rounded-md text-slate-400 hover:text-blue-500 hover:bg-blue-500/10 transition-colors" title="详情"><InfoCircledIcon className="w-3.5 h-3.5" /></button>
-                          <button onClick={() => setEditing(m)} className="p-1.5 rounded-md text-slate-400 hover:text-amber-500 hover:bg-amber-500/10 transition-colors" title="编辑"><Pencil1Icon className="w-3.5 h-3.5" /></button>
-                          <button onClick={() => handleDelete(m.id)} className="p-1.5 rounded-md text-slate-400 hover:text-red-500 hover:bg-red-500/10 transition-colors" title="删除"><TrashIcon className="w-3.5 h-3.5" /></button>
+                      <td className="px-3 py-3"><input type="checkbox" checked={sel} onChange={() => toggle(m.id)} className="chk-box" /></td>
+                      <td className="px-4 py-3"><span className="text-sm font-semibold text-slate-900 dark:text-white truncate block max-w-[150px]">{m.name}</span></td>
+                      <td className="px-4 py-3"><div className="flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400"><GlobeIcon className="w-3.5 h-3.5 flex-shrink-0 text-slate-400" /><span className="truncate max-w-[280px] font-mono text-[12px]">{m.url}</span></div></td>
+                      <td className="px-4 py-3"><span className="text-[11px] font-mono font-semibold text-slate-500 bg-slate-100 dark:bg-white/[0.06] px-2 py-1 rounded-md">{m.method}</span></td>
+                      <td className="px-4 py-3"><span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold ${cfg.bg} ${cfg.text}`}><span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />{m.status === 'up' ? '正常' : m.status === 'down' ? '故障' : '待检'}</span></td>
+                      <td className="px-4 py-3 text-right"><div className="flex items-center justify-end gap-1 text-sm text-slate-600 dark:text-slate-400"><ActivityLogIcon className="w-3.5 h-3.5 text-slate-400" /><span className="font-mono text-xs tabular-nums">{m.response_time || 0}<span className="text-[10px] text-slate-400">ms</span></span></div></td>
+                      <td className="px-4 py-3 text-right"><span className={`text-sm font-mono tabular-nums font-medium ${(m.uptime || 100) >= 99 ? 'text-emerald-600' : (m.uptime || 100) >= 95 ? 'text-amber-600' : 'text-red-500'}`}>{(m.uptime || 100).toFixed(1)}%</span></td>
+                      <td className="px-4 py-3 text-right"><div className="flex items-center justify-end gap-1 text-xs text-slate-500"><ClockIcon className="w-3.5 h-3.5 text-slate-400" /><span className="font-mono tabular-nums">{Math.round((m.interval || 60) / 60)}<span className="text-[10px]">分</span></span></div></td>
+                      <td className="px-4 py-3"><div className="flex gap-1 flex-wrap">{tags.length === 0 ? <span className="text-[11px] text-slate-400">--</span> : tags.map(t => <span key={t} className={`text-[10px] px-2 py-0.5 rounded-full font-medium whitespace-nowrap ${tagColor(t)}`}>{t}</span>)}</div></td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex justify-end items-center gap-0.5">
+                          <button onClick={() => { const idx = monitors.findIndex(x => x.id === m.id); if (idx > 0) api.post('/api/monitors/reorder', { id: m.id, toIndex: idx - 1 }).then(fetchData); }} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors" title="上移"><ChevronUpIcon className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => { const idx = monitors.findIndex(x => x.id === m.id); if (idx < monitors.length - 1) api.post('/api/monitors/reorder', { id: m.id, toIndex: idx + 1 }).then(fetchData); }} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors" title="下移"><ChevronDownIcon className="w-3.5 h-3.5" /></button>
+                          <div className="w-px h-5 bg-slate-200/60 dark:bg-white/[0.06] mx-1" />
+                          <button onClick={() => navigate(`/monitors/${m.id}`)} className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-500/10 transition-colors" title="详情"><InfoCircledIcon className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => setEditing(m)} className="p-1.5 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-500/10 transition-colors" title="编辑"><Pencil1Icon className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => handleDelete(m.id)} className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-500/10 transition-colors" title="删除"><TrashIcon className="w-3.5 h-3.5" /></button>
                         </div>
                       </td>
                     </tr>

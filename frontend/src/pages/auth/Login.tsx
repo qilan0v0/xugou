@@ -26,7 +26,7 @@ const Login = () => {
     try {
       const result = await login({ username, password });
       if (result.success) {
-        navigate('/dashboard');
+        navigate('/monitors');
       } else {
         setError(result.message);
       }

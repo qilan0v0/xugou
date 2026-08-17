@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import LanguageSelector from './LanguageSelector';
-import { ExitIcon, PersonIcon, ChevronDownIcon, SunIcon, MoonIcon, PieChartIcon, DashboardIcon } from '@radix-ui/react-icons';
+import { ExitIcon, PersonIcon, ChevronDownIcon, SunIcon, MoonIcon, PieChartIcon, ActivityLogIcon } from '@radix-ui/react-icons';
 import { useTranslation } from 'react-i18next';
 
 const Navbar = () => {
@@ -43,10 +43,10 @@ const Navbar = () => {
           {/* Right side */}
           <div className="flex items-center gap-2">
             {isAuthenticated && (
-              <Link to="/dashboard"
+              <Link to="/monitors"
                 className="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-all"
               >
-                <DashboardIcon className="w-3.5 h-3.5" />
+                <ActivityLogIcon className="w-3.5 h-3.5" />
                 管理后台
               </Link>
             )}

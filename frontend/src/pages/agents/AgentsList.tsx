@@ -315,21 +315,21 @@ const AgentsList = () => {
           <button onClick={() => navigate('/agents/create')} className="btn-gradient px-4 py-2 text-sm inline-flex items-center gap-1.5"><PlusIcon />{t('agents.create')}</button>
         </div>
       ) : (
-        <div className="glass overflow-hidden rounded-xl">
+        <div className="rounded-2xl border border-slate-200/60 dark:border-white/[0.07] bg-white/90 dark:bg-white/[0.02] overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-white/[0.06] bg-slate-50/50 dark:bg-white/[0.02]">
-                  <th className="w-10 px-3 py-3"><input type="checkbox" checked={filtered.length > 0 && filtered.every(a => selected.has(a.id))} onChange={toggleAll} className="chk-box" /></th>
-                  <th className="text-left px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[140px]">名称</th>
-                  <th className="text-left px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[120px]">主机名</th>
-                  <th className="text-left px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[80px]">状态</th>
-                  <th className="text-left px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[110px]">系统</th>
-                  <th className="text-left px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[60px]">地区</th>
-                  <th className="text-left px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[80px]">CPU</th>
-                  <th className="text-left px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[80px]">流量</th>
-                  <th className="text-left px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[100px]">标签</th>
-                  <th className="text-right px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[100px]">操作</th>
+                <tr className="border-b border-slate-200/60 dark:border-white/[0.06] bg-slate-50/70 dark:bg-white/[0.03] sticky top-0 backdrop-blur-sm z-10">
+                  <th className="w-10 px-3 py-3.5"><input type="checkbox" checked={filtered.length > 0 && filtered.every(a => selected.has(a.id))} onChange={toggleAll} className="chk-box" /></th>
+                  <th className="text-left px-4 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[150px]">名称</th>
+                  <th className="text-left px-4 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[120px]">主机名</th>
+                  <th className="text-left px-4 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[85px]">状态</th>
+                  <th className="text-left px-4 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[110px]">系统</th>
+                  <th className="text-left px-4 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[60px]">地区</th>
+                  <th className="text-right px-4 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[70px]">CPU</th>
+                  <th className="text-right px-4 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[90px]">流量</th>
+                  <th className="text-left px-4 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[120px]">标签</th>
+                  <th className="text-right px-4 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-[110px]">操作</th>
                 </tr>
               </thead>
               <tbody>
@@ -346,24 +346,29 @@ const AgentsList = () => {
                       onDragLeave={handleDragLeave}
                       onDrop={e => handleDrop(e, a.id)}
                       onDragEnd={handleDragEnd}
-                      className={`border-b border-white/[0.04] transition-colors cursor-grab active:cursor-grabbing ${dragOverId === a.id ? 'border-t-2 border-t-blue-500' : ''} ${sel ? 'bg-blue-500/[0.04]' : 'hover:bg-white/[0.02]'} ${dragId === a.id ? 'opacity-50' : ''}`}
+                      className={`border-b border-slate-100/80 dark:border-white/[0.04] transition-all duration-150 cursor-grab active:cursor-grabbing ${
+                        dragOverId === a.id ? 'border-t-2 border-t-blue-500 shadow-[inset_0_0_12px_rgba(59,130,246,0.08)]' : ''
+                      } ${
+                        sel ? 'bg-blue-500/[0.04]' : 'hover:bg-slate-50/60 dark:hover:bg-white/[0.02]'
+                      } ${dragId === a.id ? 'opacity-40 scale-[0.99]' : ''}`}
                     >
-                      <td className="px-3 py-2.5"><input type="checkbox" checked={sel} onChange={() => toggle(a.id)} className="chk-box" /></td>
-                      <td className="px-4 py-2.5"><span className="text-sm font-medium text-slate-900 dark:text-white truncate block max-w-[130px]">{a.name}</span></td>
-                      <td className="px-4 py-2.5 text-sm text-slate-600 dark:text-slate-400 truncate max-w-[110px]">{a.hostname || '--'}</td>
-                      <td className="px-4 py-2.5"><span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[11px] font-medium ${cfg.bg} ${cfg.text}`}><span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />{label}</span></td>
-                      <td className="px-4 py-2.5">{a.os ? <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${osColor(a.os)}`}>{a.os.split(' ')[0]}</span> : <span className="text-sm text-slate-400">--</span>}</td>
-                      <td className="px-4 py-2.5">{a.country ? <span className="inline-flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400"><CountryFlag code={a.country} className="w-4 h-3 rounded-sm" />{a.country}</span> : <span className="text-slate-400">--</span>}</td>
-                      <td className="px-4 py-2.5"><span className="text-sm font-mono text-slate-600 dark:text-slate-400">{a.cpu_usage != null ? `${Math.round(a.cpu_usage)}%` : '--'}</span></td>
-                      <td className="px-4 py-2.5 text-xs text-slate-500">{fmt((a.network_rx_total || 0) + (a.network_tx_total || 0))}</td>
-                      <td className="px-4 py-2.5"><div className="flex gap-1 flex-wrap">{tags.length === 0 ? <span className="text-[11px] text-slate-400">--</span> : tags.map(t => <span key={t} className={`text-[10px] px-1.5 py-0.5 rounded font-medium whitespace-nowrap ${tagColor(t)}`}>{t}</span>)}</div></td>
-                      <td className="px-4 py-2.5 text-right">
-                        <div className="flex justify-end gap-0.5">
-                          <button onClick={() => { const idx = filtered.findIndex(x => x.id === a.id); if (idx > 0) api.post('/api/agents/reorder', { id: a.id, toIndex: idx - 1 }).then(fetchAgents); }} className="p-0.5 rounded text-slate-300 hover:text-slate-600 dark:hover:text-slate-300 transition-colors" title="上移"><ChevronUpIcon className="w-3.5 h-3.5" /></button>
-                          <button onClick={() => { const idx = filtered.findIndex(x => x.id === a.id); if (idx < filtered.length - 1) api.post('/api/agents/reorder', { id: a.id, toIndex: idx + 1 }).then(fetchAgents); }} className="p-0.5 rounded text-slate-300 hover:text-slate-600 dark:hover:text-slate-300 transition-colors" title="下移"><ChevronDownIcon className="w-3.5 h-3.5" /></button>
-                          <button onClick={() => setDetailAgent(a)} className="p-1.5 rounded-md text-slate-400 hover:text-blue-500 hover:bg-blue-500/10 transition-colors" title="详情"><InfoCircledIcon className="w-3.5 h-3.5" /></button>
-                          <button onClick={() => setEditing(a)} className="p-1.5 rounded-md text-slate-400 hover:text-amber-500 hover:bg-amber-500/10 transition-colors" title="编辑"><Pencil1Icon className="w-3.5 h-3.5" /></button>
-                          <button onClick={() => handleDeleteOne(a.id)} className="p-1.5 rounded-md text-slate-400 hover:text-red-500 hover:bg-red-500/10 transition-colors" title="删除"><Cross2Icon className="w-3.5 h-3.5" /></button>
+                      <td className="px-3 py-3"><input type="checkbox" checked={sel} onChange={() => toggle(a.id)} className="chk-box" /></td>
+                      <td className="px-4 py-3"><span className="text-sm font-semibold text-slate-900 dark:text-white truncate block max-w-[140px]">{a.name}</span></td>
+                      <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400 truncate max-w-[110px] font-mono text-[12px]">{a.hostname || '--'}</td>
+                      <td className="px-4 py-3"><span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold ${cfg.bg} ${cfg.text}`}><span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />{label}</span></td>
+                      <td className="px-4 py-3">{a.os ? <span className={`text-[10px] px-2 py-1 rounded-md font-semibold ${osColor(a.os)}`}>{a.os.split(' ')[0]}</span> : <span className="text-sm text-slate-400">--</span>}</td>
+                      <td className="px-4 py-3">{a.country ? <span className="inline-flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400"><CountryFlag code={a.country} className="w-4 h-3 rounded-sm" />{a.country}</span> : <span className="text-slate-400">--</span>}</td>
+                      <td className="px-4 py-3 text-right"><span className="text-sm font-mono tabular-nums text-slate-600 dark:text-slate-400">{a.cpu_usage != null ? `${Math.round(a.cpu_usage)}%` : '--'}</span></td>
+                      <td className="px-4 py-3 text-right text-xs text-slate-500 font-mono tabular-nums">{fmt((a.network_rx_total || 0) + (a.network_tx_total || 0))}</td>
+                      <td className="px-4 py-3"><div className="flex gap-1 flex-wrap">{tags.length === 0 ? <span className="text-[11px] text-slate-400">--</span> : tags.map(t => <span key={t} className={`text-[10px] px-2 py-0.5 rounded-full font-medium whitespace-nowrap ${tagColor(t)}`}>{t}</span>)}</div></td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex justify-end items-center gap-0.5">
+                          <button onClick={() => { const idx = filtered.findIndex(x => x.id === a.id); if (idx > 0) api.post('/api/agents/reorder', { id: a.id, toIndex: idx - 1 }).then(fetchAgents); }} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors" title="上移"><ChevronUpIcon className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => { const idx = filtered.findIndex(x => x.id === a.id); if (idx < filtered.length - 1) api.post('/api/agents/reorder', { id: a.id, toIndex: idx + 1 }).then(fetchAgents); }} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors" title="下移"><ChevronDownIcon className="w-3.5 h-3.5" /></button>
+                          <div className="w-px h-5 bg-slate-200/60 dark:bg-white/[0.06] mx-1" />
+                          <button onClick={() => setDetailAgent(a)} className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-500/10 transition-colors" title="详情"><InfoCircledIcon className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => setEditing(a)} className="p-1.5 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-500/10 transition-colors" title="编辑"><Pencil1Icon className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => handleDeleteOne(a.id)} className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-500/10 transition-colors" title="删除"><Cross2Icon className="w-3.5 h-3.5" /></button>
                         </div>
                       </td>
                     </tr>

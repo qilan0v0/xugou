@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import LanguageSelector from './LanguageSelector';
 import {
-  LayoutDashboard, Server, Activity, FolderGit2, Settings2, UserCog,
+  Server, Activity, FolderGit2, Settings2, UserCog,
   Sun, Moon, LogOut, User, Menu, X, ChevronDown, ExternalLink, PanelLeftClose, PanelLeftOpen,
 } from 'lucide-react';
 
@@ -18,9 +18,8 @@ const navSections = [
   {
     label: '监控',
     items: [
-      { to: '/dashboard', icon: <LayoutDashboard size={18} />, label: '概览' },
       { to: '/monitors', icon: <Activity size={18} />, label: 'API 监控' },
-      { to: '/agents', icon: <Server size={18} />, label: '探针' },
+      { to: '/agents', icon: <Server size={18} />, label: '客户端监控' },
     ],
   },
   {
@@ -41,10 +40,9 @@ const activeItem = (to: string, pathname: string) => {
 };
 
 const breadcrumbOf = (pathname: string) => {
-  if (pathname.startsWith('/dashboard')) return '概览';
   if (pathname.startsWith('/monitors')) return pathname.includes('/create') ? '新建 API 监控' : pathname.includes('/edit') ? '编辑 API 监控' : /\/(\d+)$/.test(pathname) ? '监控详情' : 'API 监控';
   if (pathname.startsWith('/agents/groups')) return '分组管理';
-  if (pathname.startsWith('/agents')) return pathname.includes('/create') ? '新建探针' : pathname.includes('/edit') ? '编辑探针' : /\/(\d+)$/.test(pathname) ? '探针详情' : '探针管理';
+  if (pathname.startsWith('/agents')) return pathname.includes('/create') ? '新建客户端' : pathname.includes('/edit') ? '编辑客户端' : /\/(\d+)$/.test(pathname) ? '客户端详情' : '客户端监控';
   if (pathname.startsWith('/status/config')) return '状态页配置';
   if (pathname.startsWith('/settings')) return '系统设置';
   if (pathname.startsWith('/profile')) return '个人资料';

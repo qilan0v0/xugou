@@ -13,7 +13,6 @@ import NotFound from './pages/NotFound';
 // Secondary pages — lazy loaded
 const Login = lazy(() => import('./pages/auth/Login'));
 const Register = lazy(() => import('./pages/auth/Register'));
-const Dashboard = lazy(() => import('./pages/Dashboard'));
 const MonitorDetail = lazy(() => import('./pages/monitors/MonitorDetail'));
 const MonitorsList = lazy(() => import('./pages/monitors/MonitorsList'));
 const CreateMonitor = lazy(() => import('./pages/monitors/CreateMonitor'));
@@ -57,7 +56,6 @@ function App() {
         <Route path="/register" element={<Layout><Lazy><Register /></Lazy></Layout>} />
 
         {/* 管理后台 */}
-        <Route path="/dashboard" element={<ProtectedRoute><AdminPage><Dashboard /></AdminPage></ProtectedRoute>} />
         <Route path="/monitors" element={<ProtectedRoute><AdminPage><MonitorsList /></AdminPage></ProtectedRoute>} />
         <Route path="/monitors/create" element={<ProtectedRoute><AdminPage><CreateMonitor /></AdminPage></ProtectedRoute>} />
         <Route path="/monitors/edit/:id" element={<ProtectedRoute><AdminPage><EditMonitor /></AdminPage></ProtectedRoute>} />
