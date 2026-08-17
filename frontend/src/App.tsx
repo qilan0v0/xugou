@@ -9,6 +9,7 @@ import LoadingSpinner from './components/LoadingSpinner';
 import StatusPage from './pages/status/StatusPage';
 import MonitorsList from './pages/monitors/MonitorsList';
 import AgentsList from './pages/agents/AgentsList';
+import Dashboard from './pages/Dashboard';
 import NotFound from './pages/NotFound';
 
 // Secondary pages — lazy loaded
@@ -24,6 +25,7 @@ const GroupsList = lazy(() => import('./pages/agents/GroupsList'));
 const TerminalPage = lazy(() => import('./pages/TerminalPage'));
 const UserProfile = lazy(() => import('./pages/users/UserProfile'));
 const StatusPageConfig = lazy(() => import('./pages/status/StatusPageConfig'));
+const SettingsPage = lazy(() => import('./pages/settings/SettingsPage'));
 
 const Lazy = ({ children }: { children: React.ReactNode }) => (
   <Suspense fallback={<div className="flex justify-center items-center min-h-[50vh]"><LoadingSpinner /></div>}>
@@ -42,22 +44,39 @@ function App() {
   return (
     <LanguageProvider>
       <Routes>
+        {/* 公开状态页 */}
         <Route path="/" element={<StatusPage />} />
+        <Route path="/status" element={<StatusPage />} />
+
+        {/* 认证 */}
         <Route path="/login" element={<Layout><Lazy><Login /></Lazy></Layout>} />
         <Route path="/register" element={<Layout><Lazy><Register /></Lazy></Layout>} />
-        <Route path="/status" element={<StatusPage />} />
+
+        {/* 管理后台 */}
+        <Route path="/dashboard" element={<ProtectedRoute><Layout><Dashboard /></Layout></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute><Layout><Lazy><SettingsPage /></Lazy></Layout></ProtectedRoute>} />
         <Route path="/status/config" element={<ProtectedRoute><Layout><Lazy><StatusPageConfig /></Lazy></Layout></ProtectedRoute>} />
+
+        {/* 监控 */}
         <Route path="/monitors" element={<ProtectedRoute><Layout><MonitorsList /></Layout></ProtectedRoute>} />
         <Route path="/monitors/create" element={<ProtectedRoute><Layout><Lazy><CreateMonitor /></Lazy></Layout></ProtectedRoute>} />
         <Route path="/monitors/edit/:id" element={<ProtectedRoute><Layout><Lazy><EditMonitor /></Lazy></Layout></ProtectedRoute>} />
         <Route path="/monitors/:id" element={<ProtectedRoute><Layout><Lazy><MonitorDetail /></Lazy></Layout></ProtectedRoute>} />
+
+        {/* 探针 */}
         <Route path="/agents" element={<ProtectedRoute><Layout><AgentsList /></Layout></ProtectedRoute>} />
         <Route path="/agents/create" element={<ProtectedRoute><Layout><Lazy><CreateAgent /></Lazy></Layout></ProtectedRoute>} />
         <Route path="/agents/edit/:id" element={<ProtectedRoute><Layout><Lazy><EditAgent /></Lazy></Layout></ProtectedRoute>} />
         <Route path="/agents/groups" element={<ProtectedRoute><Layout><Lazy><GroupsList /></Lazy></Layout></ProtectedRoute>} />
         <Route path="/agents/:id" element={<ProtectedRoute><Layout><Lazy><AgentDetail /></Lazy></Layout></ProtectedRoute>} />
+
+        {/* 用户 */}
         <Route path="/profile" element={<ProtectedRoute><Layout><Lazy><UserProfile /></Lazy></Layout></ProtectedRoute>} />
+
+        {/* 终端 */}
         <Route path="/terminal/:id" element={<ProtectedRoute><Layout><Lazy><TerminalPage /></Lazy></Layout></ProtectedRoute>} />
+
+        {/* 404 */}
         <Route path="*" element={<Layout><NotFound /></Layout>} />
       </Routes>
     </LanguageProvider>

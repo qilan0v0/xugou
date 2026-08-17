@@ -5,8 +5,8 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import LanguageSelector from './LanguageSelector';
 import {
-  ActivityLogIcon, CubeIcon, PieChartIcon, StackIcon,
-  ExitIcon, PersonIcon, ChevronDownIcon,
+  HomeIcon, ActivityLogIcon, CubeIcon, StackIcon,
+  ExitIcon, PersonIcon, ChevronDownIcon, GearIcon, PieChartIcon,
   SunIcon, MoonIcon,
 } from '@radix-ui/react-icons';
 
@@ -38,10 +38,11 @@ const Navbar = () => {
   };
 
   const navLinks = isAuthenticated ? [
+    { to: '/dashboard', icon: <HomeIcon />, label: '概览' },
     { to: '/agents', icon: <CubeIcon />, label: t('navbar.agentMonitors') },
     { to: '/monitors', icon: <ActivityLogIcon />, label: t('navbar.apiMonitors') },
-    { to: '/agents/groups', icon: <StackIcon />, label: '分组管理' },
-    { to: '/status/config', icon: <PieChartIcon />, label: '配置' },
+    { to: '/agents/groups', icon: <StackIcon />, label: '分组' },
+    { to: '/settings', icon: <GearIcon />, label: '设置' },
       ] : [];
 
   return (
@@ -122,17 +123,29 @@ const Navbar = () => {
                         <p className="text-xs text-slate-500">{t('navbar.loggedInAs')}</p>
                         <p className="text-sm font-semibold text-slate-900 dark:text-white">{user?.username}</p>
                       </div>
+                      <button onClick={() => { navigate('/dashboard'); setMenuOpen(false); }}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-white/5 transition-colors"
+                      >
+                        <HomeIcon className="w-3.5 h-3.5" />
+                        控制台
+                      </button>
                       <button onClick={() => { navigate('/profile'); setMenuOpen(false); }}
                         className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-white/5 transition-colors"
                       >
                         <PersonIcon className="w-3.5 h-3.5" />
                         {t('navbar.profile')}
                       </button>
+                      <button onClick={() => { navigate('/settings'); setMenuOpen(false); }}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-white/5 transition-colors"
+                      >
+                        <GearIcon className="w-3.5 h-3.5" />
+                        系统设置
+                      </button>
                       <button onClick={() => { navigate('/status/config'); setMenuOpen(false); }}
                         className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-white/5 transition-colors"
                       >
-                        <PieChartIcon className="w-3.5 h-3.5" />
-                        系统设置
+                        <StackIcon className="w-3.5 h-3.5" />
+                        状态页配置
                       </button>
                       <div className="border-t border-white/[0.06] my-1" />
                       <button onClick={() => { handleLogout(); setMenuOpen(false); }}
