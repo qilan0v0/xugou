@@ -3,6 +3,7 @@ import { jwt } from 'hono/jwt';
 import { Bindings } from '../models/db';
 import { Monitor, MonitorStatusHistory } from '../models/monitor';
 import { getJwtSecret } from '../utils/jwt';
+import { validateURL } from '../utils/urlValidator';
 
 const monitors = new Hono<{ Bindings: Bindings }>();
 
@@ -167,6 +168,10 @@ monitors.post('/', async (c) => {
     if (!data.name || !data.url || !data.method) {
       return c.json({ success: false, message: '缺少必填字段' }, 400);
     }
+
+    // SSRF 防护：禁止监控内网地址
+    const urlErr = validateURL(data.url);
+    if (urlErr) return c.json({ success: false, message: urlErr }, 400);
     
     const now = new Date().toISOString();
     
@@ -245,6 +250,9 @@ monitors.put('/:id', async (c) => {
     }
     
     if (data.url !== undefined) {
+      // SSRF 防护：禁止将监控 URL 改为内网地址
+      const urlErr = validateURL(data.url);
+      if (urlErr) return c.json({ success: false, message: urlErr }, 400);
       updates.push('url = ?');
       values.push(data.url);
     }

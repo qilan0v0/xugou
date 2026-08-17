@@ -62,7 +62,11 @@ export async function createAdminUser(env: Bindings): Promise<void> {
   // 如果不存在管理员用户，则创建一个
   if (!adminUser) {
     console.log('创建管理员用户...');
-    const hashedPassword = hashPassword('admin123');
+    // 生成随机密码
+    const randomBytes = new Uint8Array(24);
+    crypto.getRandomValues(randomBytes);
+    const defaultPassword = Array.from(randomBytes, b => b.toString(16).padStart(2, '0')).join('').slice(0, 16);
+    const hashedPassword = hashPassword(defaultPassword);
     const now = new Date().toISOString();
 
     env.DB.prepare(
@@ -76,6 +80,13 @@ export async function createAdminUser(env: Bindings): Promise<void> {
       now,
       now
     ).run();
+
+    // 打印随机密码到控制台，确保首次部署的管理员能看到
+    console.log('========================================');
+    console.log('  默认管理员账号: admin');
+    console.log('  默认密码: ' + defaultPassword);
+    console.log('  ⚠️ 请立即登录后修改密码！');
+    console.log('========================================');
   }
 }
 
@@ -325,7 +336,7 @@ export async function createDefaultStatusPage(env: Bindings): Promise<void> {
   }
 }
 
-// 初始化数据库路由
+// 初始化数据库路由 — 需管理员权限
 initDb.get('/init-db', async (c) => {
   // 检查环境变量是否允许数据库初始化
   if (c.env.ENABLE_DB_INIT !== 'true') {
@@ -333,6 +344,18 @@ initDb.get('/init-db', async (c) => {
       success: false,
       message: '数据库初始化功能已禁用。若要启用，请设置环境变量 ENABLE_DB_INIT=true'
     }, 403);
+  }
+
+  // 鉴权：仅管理员可执行
+  const auth = c.req.header('Authorization');
+  if (!auth) return c.json({ success: false, message: 'unauthorized' }, 401);
+  const token = auth.replace('Bearer ', '');
+  try {
+    const { verify } = require('jsonwebtoken');
+    const decoded = verify(token, c.env.JWT_SECRET) as any;
+    if (decoded.role !== 'admin') return c.json({ success: false, message: 'forbidden' }, 403);
+  } catch {
+    return c.json({ success: false, message: 'invalid token' }, 401);
   }
 
   try {

@@ -12,10 +12,14 @@
 export const getJwtSecret = (c: any): string => {
   // 在Cloudflare Workers环境中，使用env变量
   if (typeof process === 'undefined') {
-    return c.env.JWT_SECRET || 'your-secret-key-change-in-production';
+    const secret = c?.env?.JWT_SECRET;
+    if (!secret) throw new Error('JWT_SECRET 环境变量未设置！请在 Cloudflare Dashboard → Worker → 设置 → 环境变量中添加 JWT_SECRET');
+    return secret;
   }
   // 在Node.js环境中，优先从context.env（config.json）读取，兼容process.env
-  return c?.env?.JWT_SECRET || process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+  const secret = c?.env?.JWT_SECRET || process.env.JWT_SECRET;
+  if (!secret) throw new Error('JWT_SECRET 环境变量未设置！请在 config.json 或环境变量中设置 JWT_SECRET');
+  return secret;
 };
 
 /**

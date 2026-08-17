@@ -38,7 +38,7 @@ agents.get('/', async (c) => {
     
     const agents = (result.results || []).map((a: any) => {
       const { ip_address: _ip, ...restNoIp } = a;
-      if (payload.role !== 'admin') { const { token } = restNoIp; return restNoIp; }
+      if (payload.role !== 'admin') { delete (restNoIp as any).token; return restNoIp; }
       return restNoIp;
     });
     return c.json({ success: true, agents });
@@ -708,7 +708,7 @@ agents.post('/token/generate', async (c) => {
   }
 });
 
-// 客户端自注册接口
+// 客户端自注册接口 — 仅允许已预创建的 Token 注册
 agents.post('/register', async (c) => {
   try {
     const { token, name, hostname, ip_address, os, version } = await c.req.json();
@@ -717,83 +717,47 @@ agents.post('/register', async (c) => {
       return c.json({ success: false, message: '缺少注册令牌' }, 400);
     }
     
-    // 查找管理员用户作为客户端创建者
-    const adminUser = await c.env.DB.prepare(
-      'SELECT id FROM users WHERE role = ?'
-    ).bind('admin').first<{id: number}>();
-    
-    if (!adminUser) {
-      return c.json({ success: false, message: '无法找到管理员用户' }, 500);
-    }
-    
     const now = new Date().toISOString();
     
-    // 按 token 匹配
+    // 按 token 匹配 — 必须预先创建（管理员先在后台创建 Agent 获取 Token）
     const existingAgent = await c.env.DB.prepare(
       'SELECT id FROM agents WHERE token = ?'
     ).bind(token).first<{id: number}>();
 
-    if (existingAgent) {
-      // 更新已有客户端（含 token，同 hostname 时迁移 token）
-      const updateResult = await c.env.DB.prepare(
-        `UPDATE agents SET
-         status = 'active',
-         hostname = ?,
-         ip_address = ?,
-         os = ?,
-         version = ?,
-         token = ?,
-         updated_at = ?
-         WHERE id = ?`
-      ).bind(
-        hostname || null,
-        ip_address || null,
-        os || null,
-        version || null,
-        token,
-        new Date().toISOString(),
-        existingAgent.id
-      ).run();
-
-      if (!updateResult.success) {
-        throw new Error('更新客户端信息失败: ' + (updateResult.error || 'unknown'));
-      }
-
-      return c.json({
-        success: true,
-        message: '客户端状态更新成功',
-        agent: existingAgent
-      });
+    if (!existingAgent) {
+      return c.json({ success: false, message: '令牌无效，请先在后台创建客户端获取令牌' }, 403);
     }
 
-    // token 未匹配，使用客户端发来的 token 自动创建
-    const autoName = generateAgentName(null);
-    const insertResult = await c.env.DB.prepare(
-      `INSERT INTO agents (name, token, created_by, status, hostname, ip_address, os, version, created_at, updated_at)
-       VALUES (?, ?, ?, 'active', ?, ?, ?, ?, ?, ?)`
-    ).bind(autoName, token, adminUser.id, hostname || null, ip_address || null, os || null, version || null, now, now).run();
+    // 更新已有客户端
+    const updateResult = await c.env.DB.prepare(
+      `UPDATE agents SET
+       status = 'active',
+       hostname = ?,
+       ip_address = ?,
+       os = ?,
+       version = ?,
+       token = ?,
+       updated_at = ?
+       WHERE id = ?`
+    ).bind(
+      hostname || null,
+      ip_address || null,
+      os || null,
+      version || null,
+      token,
+      new Date().toISOString(),
+      existingAgent.id
+    ).run();
 
-    if (!insertResult.success) {
-      throw new Error('自动创建客户端失败: ' + (insertResult.error || 'unknown'));
+    if (!updateResult.success) {
+      throw new Error('更新客户端信息失败: ' + (updateResult.error || 'unknown'));
     }
 
-    const created = await c.env.DB.prepare('SELECT * FROM agents WHERE rowid = last_insert_rowid()').first<Agent>();
-    const { ip_address: _createdIp, ...createdNoIp } = created || {};
     return c.json({
       success: true,
-      message: '客户端自动注册成功',
-      agent: createdNoIp,
-      token: token
-    }, 201);
-  } catch (error) {
-    console.error('客户端注册错误:', error);
-    return c.json({ 
-      success: false, 
-      message: '客户端注册失败',
-      error: error instanceof Error ? error.message : String(error)
-    }, 500);
-  }
-});
+      message: '客户端状态更新成功',
+      agent: existingAgent
+    });
 
 // 通过令牌更新客户端状态
 agents.post('/status', async (c) => {

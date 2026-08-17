@@ -298,28 +298,30 @@ const StatusPage = () => {
           <section>
             {/* Category filter */}
             {cats.length > 0 && (
-              <div className="relative grid mb-4 bg-slate-200 dark:bg-white/[0.08] rounded-lg p-1"
-                style={{ gridTemplateColumns: `repeat(${cats.length + 1}, 1fr)`, width: 'fit-content' }}>
-                <div className={`absolute top-1 bottom-1 rounded-md bg-white dark:bg-slate-700 shadow-sm transition-all duration-300 ease-in-out`}
-                  style={{
-                    width: `calc(100% / ${cats.length + 1})`,
-                    transform: `translateX(${(categoryFilter ? cats.indexOf(categoryFilter) + 1 : 0) * 100}%)`,
-                  }}
-                />
-                <button onClick={() => setCategoryFilter('')}
-                  className={`relative z-10 px-3 py-1.5 rounded-md text-xs font-medium transition-colors duration-150 text-center whitespace-nowrap ${
-                    !categoryFilter ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-                  }`}>
-                  全部 <span className="text-[10px] opacity-60">{agents.length}</span>
-                </button>
-                {cats.map(cat => (
-                  <button key={cat} onClick={() => setCategoryFilter(cat)}
+              <div className="overflow-x-auto max-w-full mx-auto mb-4 scrollbar-hidden">
+                <div className="relative grid mx-auto bg-slate-200 dark:bg-white/[0.08] rounded-lg p-1"
+                  style={{ gridTemplateColumns: `repeat(${cats.length + 1}, 1fr)`, width: 'fit-content' }}>
+                  <div className={`absolute top-1 bottom-1 rounded-md bg-white dark:bg-slate-700 shadow-sm transition-all duration-300 ease-in-out`}
+                    style={{
+                      width: `calc(100% / ${cats.length + 1})`,
+                      transform: `translateX(${(categoryFilter ? cats.indexOf(categoryFilter) + 1 : 0) * 100}%)`,
+                    }}
+                  />
+                  <button onClick={() => setCategoryFilter('')}
                     className={`relative z-10 px-3 py-1.5 rounded-md text-xs font-medium transition-colors duration-150 text-center whitespace-nowrap ${
-                      categoryFilter === cat ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                      !categoryFilter ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                     }`}>
-                    {cat} <span className="text-[10px] opacity-60">{catCounts[cat]}</span>
+                    全部 <span className="text-[10px] opacity-60">{agents.length}</span>
                   </button>
-                ))}
+                  {cats.map(cat => (
+                    <button key={cat} onClick={() => setCategoryFilter(cat)}
+                      className={`relative z-10 px-3 py-1.5 rounded-md text-xs font-medium transition-colors duration-150 text-center whitespace-nowrap ${
+                        categoryFilter === cat ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                      }`}>
+                      {cat} <span className="text-[10px] opacity-60">{catCounts[cat]}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
 

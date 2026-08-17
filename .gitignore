@@ -68,6 +68,25 @@ Thumbs.db
 *.sqlite3
 *.db
 
+# 后端配置文件（含 JWT_SECRET，切勿提交到 Git）
+/backend/config.json
+/backend/data/
+
+# 代理部署配置（本地，非必要提交）
+/proxy/
+
+# Chrome 截图临时配置
+.shots-profile/
+
+# DSH 会话元数据（不应提交）
+.reasonix/
+
+# 项目截图/测试文件
+*.png
+*.user.js
+desktop-*.png
+mobile-*.png
+
 # 压缩文件
 *.zip
 *.tar.gz

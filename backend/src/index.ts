@@ -68,12 +68,7 @@ app.use('*', cors({
 }));
 app.use('*', prettyJSON());
 
-// 在 Workers 环境中，您可能需要设置这些响应头
-app.use('*', async (c, next) => {
-  await next();
-  c.header('Access-Control-Allow-Origin', c.req.header('origin') || '*');
-  c.header('Access-Control-Allow-Credentials', 'true');
-});
+// 已由 cors() 中间件处理 CORS，此处不再覆盖
 
 // 公共路由
 app.get('/', (c) => c.json({ message: 'QLTZ API 服务正在运行' }));
@@ -209,6 +204,37 @@ app.use('/api/auth/*', async (c, next) => {
   const ip = c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || 'unknown';
   if (!rateLimit('auth:' + ip, 10, 60000)) {
     return c.json({ success: false, message: '请求过于频繁，请稍后再试' }, 429);
+  }
+  await next();
+});
+
+// 限流: 写操作（创建/更新/删除）每分钟最多30次
+app.use('/api/monitors/*', async (c, next) => {
+  if (c.req.method !== 'GET') {
+    const ip = c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || 'unknown';
+    const key = c.req.method === 'POST' ? 'monitors-create:' + ip : 'monitors-write:' + ip;
+    if (!rateLimit(key, 30, 60000)) {
+      return c.json({ success: false, message: '请求过于频繁，请稍后再试' }, 429);
+    }
+  }
+  await next();
+});
+app.use('/api/agents/*', async (c, next) => {
+  if (c.req.method !== 'GET') {
+    const ip = c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || 'unknown';
+    const key = c.req.method === 'POST' ? 'agents-write:' + ip : 'agents-write:' + ip;
+    if (!rateLimit(key, 30, 60000)) {
+      return c.json({ success: false, message: '请求过于频繁，请稍后再试' }, 429);
+    }
+  }
+  await next();
+});
+app.use('/api/users/*', async (c, next) => {
+  if (c.req.method !== 'GET') {
+    const ip = c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || 'unknown';
+    if (!rateLimit('users-write:' + ip, 10, 60000)) {
+      return c.json({ success: false, message: '请求过于频繁，请稍后再试' }, 429);
+    }
   }
   await next();
 });

@@ -48,9 +48,18 @@ const db: any = createDb(config.db_path);
 
 const env: any = {
   DB: db,
-  JWT_SECRET: config.jwt_secret || 'change-me',
+  JWT_SECRET: config.jwt_secret,
   ENABLE_DB_INIT: config.enable_db_init ? 'true' : 'false',
 };
+
+// 检查 JWT_SECRET 是否已设置
+if (!env.JWT_SECRET || env.JWT_SECRET === 'change-me' || env.JWT_SECRET === '请替换为随机字符串，不要提交到 Git') {
+  console.error('================================================================');
+  console.error('  ⚠️ 安全告警: JWT_SECRET 未设置或使用默认值！');
+  console.error('  请在 config.json 中设置 jwt_secret 为一个随机字符串');
+  console.error('  或通过环境变量 JWT_SECRET 传入');
+  console.error('================================================================');
+}
 
 import { checkAndInitializeDatabase } from './setup/initCheck';
 

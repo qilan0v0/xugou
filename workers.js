@@ -1,7 +1,8 @@
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
-    const targetHost = 'qilan3.serv00.net';
+    // 目标后端：优先使用环境变量 TARGET_HOST（部署时在 wrangler.toml 的 vars 中配置）
+    const targetHost = env?.TARGET_HOST || 's0tzhd.qilan.sbs';
     const targetBase = 'https://' + targetHost;
 
     // ---------- WebSocket proxy (any path) ----------

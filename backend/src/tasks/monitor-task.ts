@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { Bindings } from '../models/db';
 import { Monitor } from '../models/monitor';
 import { applyTemplate } from '../utils/notify';
+import { validateURL } from '../utils/urlValidator';
 
 const monitorTask = new Hono<{ Bindings: Bindings }>();
 
@@ -163,7 +164,13 @@ async function checkMonitors(c: any) {
 async function checkSingleMonitor(c: any, monitor: Monitor) {
   try {
     console.log(`开始检查监控项: ${monitor.name} (${monitor.url})`);
-    
+
+    // SSRF 防护：禁止检查内网地址
+    const urlErr = validateURL(monitor.url);
+    if (urlErr) {
+      throw new Error(urlErr);
+    }
+
     const startTime = Date.now();
     const response = await fetch(monitor.url, {
       method: monitor.method,

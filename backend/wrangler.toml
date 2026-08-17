@@ -4,7 +4,8 @@ compatibility_date = "2025-03-10"
 compatibility_flags = ["nodejs_compat"]
 
 [vars]
-JWT_SECRET = "8e2904a6-819f-44f1-9d81-179d7a6d626b"
+# ⚠️ 安全：JWT_SECRET 应通过 `wrangler secret put JWT_SECRET` 设置，不要写在配置文件中
+# 开发环境临时使用请设置环境变量，切勿提交到 Git
 ENABLE_DB_INIT = "true"
 
 [[d1_databases]]
@@ -16,7 +17,7 @@ database_id = "b3bbe7a0-b4b2-4345-9c26-6b8fb3a4c899"
 crons = ["* * * * *"]
 
 [env.production]
-vars = { NODE_ENV = "production", JWT_SECRET = "8e2904a6-819f-44f1-9d81-179d7a6d626b", ENABLE_DB_INIT = "true" }
+vars = { NODE_ENV = "production", ENABLE_DB_INIT = "true" }
 
 [[env.production.d1_databases]]
 binding = "DB"
@@ -27,7 +28,7 @@ database_id = "b3bbe7a0-b4b2-4345-9c26-6b8fb3a4c899"
 crons = ["* * * * *"]
 
 [env.development]
-vars = { NODE_ENV = "development", JWT_SECRET = "8e2904a6-819f-44f1-9d81-179d7a6d626b", ENABLE_DB_INIT = "true" }
+vars = { NODE_ENV = "development", ENABLE_DB_INIT = "true" }
 
 [[env.development.d1_databases]]
 binding = "DB"

@@ -448,11 +448,16 @@ async function sendWebhookNotification(env: any, userId: number, event: 'down' |
   }
 }
 
-// Webhook 测试代理（绕过浏览器 CORS）
-app.post('/webhook-test', async (c) => {
+// Webhook 测试代理（绕过浏览器 CORS）— 需 JWT 鉴权，禁止内网地址
+app.post('/webhook-test', requireAuth, async (c) => {
   try {
     const { url, method, headers, body, content_type, tls_verify } = await c.req.json();
     if (!url) return c.json({ success: false, message: '缺少 URL' }, 400);
+
+    // SSRF 防护：禁止访问内网和云厂商元数据地址
+    const { validateURL } = await import('../utils/urlValidator');
+    const err = validateURL(url);
+    if (err) return c.json({ success: false, message: err }, 400);
 
     const fetchHeaders: Record<string,string> = { ...headers };
     if (method === 'POST' && body) {
