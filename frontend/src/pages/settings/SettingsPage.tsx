@@ -76,7 +76,7 @@ const SettingsPage = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         {menuItems.map(item => (
           <Link key={item.to} to={item.to}
-            className="glass glass-hover p-5 flex items-start gap-4 no-underline"
+            className="card glass-hover p-5 flex items-start gap-4 no-underline"
           >
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/10 to-cyan-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
               {item.icon}
@@ -90,7 +90,7 @@ const SettingsPage = () => {
       </div>
 
       {/* API 基址设置 */}
-      <div className="glass rounded-xl p-6">
+      <div className="card rounded-xl p-6">
         <h2 className="text-base font-semibold text-slate-900 dark:text-white mb-1">后端 API 地址</h2>
         <p className="text-xs text-slate-500 mb-4">修改后前端将使用此地址连接后端 API，留空使用构建时默认值（同源反代）。</p>
 

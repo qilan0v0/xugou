@@ -56,7 +56,7 @@ const MonitorDetail = () => {
   };
 
   if (loading && !monitor) return <div className="flex justify-center items-center min-h-[50vh]"><LoadingSpinner /></div>;
-  if (error || !monitor) return <div className="max-w-6xl mx-auto px-4 py-8"><div className="glass border-l-4 border-red-500 p-4 mb-4"><span className="text-red-500">{error || t('monitor.notExist')}</span></div><button onClick={() => navigate('/monitors')} className="btn-gradient px-4 py-2 text-sm">{t('monitor.returnToList')}</button></div>;
+  if (error || !monitor) return <div className="max-w-6xl mx-auto px-4 py-8"><div className="card border-l-4 border-red-500 p-4 mb-4"><span className="text-red-500">{error || t('monitor.notExist')}</span></div><button onClick={() => navigate('/monitors')} className="btn-gradient px-4 py-2 text-sm">{t('monitor.returnToList')}</button></div>;
 
   const tabs = [
     { key: 'overview', label: t('monitor.tabs.overview') },
@@ -99,7 +99,7 @@ const MonitorDetail = () => {
 
       {tab === 'overview' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="glass p-5">
+          <div className="card p-5">
             <h3 className="font-semibold text-slate-900 dark:text-white mb-3">{t('monitor.status.info')}</h3>
             <div className="grid grid-cols-[auto,1fr] gap-x-4 gap-y-2 text-sm">
               <span className="text-slate-500">{t('common.status')}:</span>
@@ -112,7 +112,7 @@ const MonitorDetail = () => {
               <span>{monitor.last_checked || t('monitor.notChecked')}</span>
             </div>
           </div>
-          <div className="glass p-5">
+          <div className="card p-5">
             <h3 className="font-semibold text-slate-900 dark:text-white mb-3">{t('monitor.basicInfo')}</h3>
             <div className="grid grid-cols-[auto,1fr] gap-x-4 gap-y-2 text-sm">
               <span className="text-slate-500">URL:</span><span className="break-all">{monitor.url}</span>
@@ -127,7 +127,7 @@ const MonitorDetail = () => {
       )}
 
       {tab === 'history' && (
-        <div className="glass p-5">
+        <div className="card p-5">
           <h3 className="font-semibold text-slate-900 dark:text-white mb-3">{t('monitor.checkHistory')}</h3>
           {monitor.checks && monitor.checks.length > 0 ? (
             <div className="overflow-x-auto">
@@ -151,7 +151,7 @@ const MonitorDetail = () => {
       )}
 
       {tab === 'settings' && (
-        <div className="glass p-5">
+        <div className="card p-5">
           <h3 className="font-semibold text-slate-900 dark:text-white mb-3">{t('monitor.configDetails')}</h3>
           <div className="grid grid-cols-[auto,1fr] gap-x-4 gap-y-2 text-sm">
             {[

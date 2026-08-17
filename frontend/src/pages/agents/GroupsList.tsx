@@ -150,7 +150,7 @@ export default function GroupsList() {
       </div>
 
       {/* Add new */}
-      <div className="glass rounded-xl p-4 mb-4">
+      <div className="card rounded-xl p-4 mb-4">
         <div className="flex gap-2">
           <input value={newName} onChange={e => { setNewName(e.target.value); setError(''); }}
             onKeyDown={e => e.key === 'Enter' && handleAdd()}
@@ -164,9 +164,9 @@ export default function GroupsList() {
       </div>
 
       {groups.length === 0 ? (
-        <div className="glass p-8 text-center"><p className="text-sm text-slate-500">暂无分组，请添加</p></div>
+        <div className="card p-8 text-center"><p className="text-sm text-slate-500">暂无分组，请添加</p></div>
       ) : (
-        <div className="glass rounded-xl overflow-hidden"><div className="overflow-x-auto"><table className="w-full">
+        <div className="card rounded-xl overflow-hidden"><div className="overflow-x-auto"><table className="w-full">
             <thead>
               <tr className="border-b border-white/[0.06] bg-slate-50/50 dark:bg-white/[0.02]">
                 <th className="w-10 px-3 py-3"><input type="checkbox" checked={selected.size === groups.length && groups.length > 0} onChange={toggleAll} className="chk-box" /></th>

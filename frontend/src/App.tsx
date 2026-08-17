@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import Layout from './components/Layout';
+import AdminLayout from './components/AdminLayout';
 import LoadingSpinner from './components/LoadingSpinner';
 
 // Critical pages — eager loaded
@@ -37,7 +38,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuth();
   if (isLoading) return <div className="flex justify-center items-center min-h-[50vh]"><LoadingSpinner /></div>;
   if (!isAuthenticated) return <Navigate to="/login" replace />;
-  return <>{children}</>;
+  return <AdminLayout>{children}</AdminLayout>;
 };
 
 function App() {

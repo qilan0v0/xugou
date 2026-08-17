@@ -281,6 +281,22 @@
       linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
     background-size: 60px 60px;
   }
+  
+  /* 管理后台卡片 */
+  .card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    transition: all 0.2s ease;
+  }
+  .card-hover {
+    cursor: pointer;
+  }
+  .card-hover:hover {
+    background: var(--color-surface-hover);
+    border-color: var(--color-border-strong);
+    box-shadow: 0 2px 12px var(--color-shadow-hover);
+  }
 }
 
 .scrollbar-hidden { scrollbar-width: none; }

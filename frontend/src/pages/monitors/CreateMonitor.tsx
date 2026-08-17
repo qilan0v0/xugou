@@ -61,7 +61,7 @@ const CreateMonitor = () => {
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t('monitor.form.title.create')}</h1>
       </div>
 
-      <div className="glass p-6">
+      <div className="card p-6">
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           <div>
             <label className={labelClass}>{t('monitor.form.name')} *</label>
