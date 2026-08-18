@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PlusIcon, Cross2Icon, Pencil1Icon, InfoCircledIcon, ReloadIcon, CubeIcon, CheckCircledIcon, CrossCircledIcon as CrossCircled, GlobeIcon, ArrowUpIcon, UpdateIcon, ChevronUpIcon, ChevronDownIcon } from '@radix-ui/react-icons';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Server, Activity, Map } from 'lucide-react';
 import api from '../../api/index';
 import { getAllAgents, deleteAgent, updateAgent, Agent } from '../../api/agents';
 import LoadingSpinner from '../../components/LoadingSpinner';
@@ -142,6 +142,7 @@ const AgentsList = () => {
   const [detailAgent, setDetailAgent] = useState<Agent | null>(null);
   const [categoryFilter, setCategoryFilter] = useState('');
   const [search, setSearch] = useState('');
+  const [viewMode, setViewMode] = useState<'server' | 'api' | 'map'>('server');
   const { t } = useTranslation();
 
   const handleRowClick = (agent: Agent) => (e: React.MouseEvent) => {
@@ -302,6 +303,19 @@ const AgentsList = () => {
           </span>
           <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="搜索名称、主机名、标签..." className="w-full pl-9 pr-4 py-2.5 rounded-xl border-2 border-slate-200/60 dark:border-slate-700/60 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm text-sm text-slate-700 dark:text-slate-300 placeholder:text-slate-400 focus:outline-none focus:border-blue-400 dark:focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-sm" />
         </div>
+      </div>
+
+      {/* View mode icons */}
+      <div className="flex items-center gap-1 mb-3">
+        <button onClick={() => setViewMode('server')} className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all ${viewMode === 'server' ? 'bg-blue-500/10 text-blue-600 shadow-sm' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-white/[0.05]'}`} title="服务器状态">
+          <Server size={18} />
+        </button>
+        <button onClick={() => setViewMode('api')} className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all ${viewMode === 'api' ? 'bg-blue-500/10 text-blue-600 shadow-sm' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-white/[0.05]'}`} title="API服务状态">
+          <Activity size={18} />
+        </button>
+        <button onClick={() => setViewMode('map')} className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all ${viewMode === 'map' ? 'bg-blue-500/10 text-blue-600 shadow-sm' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-white/[0.05]'}`} title="服务器地图">
+          <Map size={18} />
+        </button>
       </div>
       {(() => {
         const cats = [...new Set(agents.map(a => a.category).filter(Boolean))] as string[];
