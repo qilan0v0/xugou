@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { StatusAgent } from '../../api/status';
 import { Monitor } from '../../api/monitors';
@@ -45,6 +45,26 @@ const StatusPage = () => {
   const receivedMonitors = useRef(false);
   const hasData = useRef(false); // ref 版本避免闭包陈旧值
 
+  // rAF-batched state updates — avoid re-render storms during scroll
+  const pendingRef = useRef<{ agents?: StatusAgent[]; monitors?: Monitor[] }>({});
+  const rafRef = useRef<number | null>(null);
+
+  const flushPending = () => {
+    rafRef.current = null;
+    setData(prev => ({
+      ...prev,
+      agents: pendingRef.current.agents ?? prev.agents,
+      monitors: pendingRef.current.monitors ?? prev.monitors,
+    }));
+    pendingRef.current = {};
+  };
+
+  const scheduleUpdate = () => {
+    if (rafRef.current === null) {
+      rafRef.current = requestAnimationFrame(flushPending);
+    }
+  };
+
   // Main effect: SSE connection for all data
   useEffect(() => {
     // Only mark fetched when at least one data category has arrived
@@ -70,21 +90,21 @@ const StatusPage = () => {
 
     es.addEventListener('agents', (event: MessageEvent) => {
       try {
-        const agents = JSON.parse(event.data);
-        setData(prev => ({ ...prev, agents }));
+        pendingRef.current.agents = JSON.parse(event.data);
         receivedAgents.current = true;
         hasData.current = true;
         checkFetched();
+        scheduleUpdate();
       } catch { /* ignore */ }
     });
 
     es.addEventListener('monitors', (event: MessageEvent) => {
       try {
-        const monitors = JSON.parse(event.data);
-        setData(prev => ({ ...prev, monitors }));
+        pendingRef.current.monitors = JSON.parse(event.data);
         receivedMonitors.current = true;
         hasData.current = true;
         checkFetched();
+        scheduleUpdate();
       } catch { /* ignore */ }
     });
 
@@ -133,32 +153,35 @@ const StatusPage = () => {
   }, [data.title, data.logoUrl]);
 
   // Search filter — matches both agents and monitors
-  const filteredAgents = data.agents.filter(a => {
+  const filteredAgents = useMemo(() => data.agents.filter(a => {
     if (categoryFilter && a.category !== categoryFilter) return false;
     if (!search.trim()) return true;
     const q = search.toLowerCase();
     return [a.name, a.hostname, a.os, a.tags].join(' ').toLowerCase().includes(q);
-  });
+  }), [data.agents, categoryFilter, search]);
 
-  const filteredMonitors = data.monitors.filter(m => {
+  const filteredMonitors = useMemo(() => data.monitors.filter(m => {
     if (!search.trim()) return true;
     const q = search.toLowerCase();
     return [m.name, m.tags].join(' ').toLowerCase().includes(q);
-  });
+  }), [data.monitors, search]);
 
   // Summary stats
   const agents = data.agents || [];
   const monitors = data.monitors || [];
-  const totalRx = agents.reduce((s: number, a: any) => s + (a.network_rx_total || 0), 0);
-  const totalTx = agents.reduce((s: number, a: any) => s + (a.network_tx_total || 0), 0);
+  const totalRx = useMemo(() => agents.reduce((s: number, a: any) => s + (a.network_rx_total || 0), 0), [agents]);
+  const totalTx = useMemo(() => agents.reduce((s: number, a: any) => s + (a.network_tx_total || 0), 0), [agents]);
   const fmt = (bytes: number) => { if (!bytes) return '0 B'; const u = ['B','KB','MB','GB','TB']; let i=0,v=bytes; while(v>=1024&&i<u.length-1){v/=1024;i++;} return v.toFixed(1)+' '+u[i]; };
-  const online = agents.filter((a: any) => a.status === 'active').length;
+  const online = useMemo(() => agents.filter((a: any) => a.status === 'active').length, [agents]);
   const offline = agents.length - online;
-  const regions = [...new Set(agents.map((a: any) => a.country).filter(Boolean))].length;
-  const upMonitors = monitors.filter((m: any) => m.status === 'up').length;
-  const cats = [...new Set(agents.map(a => a.category).filter(Boolean))] as string[];
-  const catCounts: Record<string, number> = {};
-  cats.forEach(c => { catCounts[c] = agents.filter(a => a.category === c).length; });
+  const regions = useMemo(() => [...new Set(agents.map((a: any) => a.country).filter(Boolean))].length, [agents]);
+  const upMonitors = useMemo(() => monitors.filter((m: any) => m.status === 'up').length, [monitors]);
+  const cats = useMemo(() => [...new Set(agents.map(a => a.category).filter(Boolean))] as string[], [agents]);
+  const catCounts = useMemo(() => {
+    const cc: Record<string, number> = {};
+    cats.forEach(c => { cc[c] = agents.filter(a => a.category === c).length; });
+    return cc;
+  }, [agents, cats]);
 
   if (error) return <div className="flex justify-center items-center min-h-[50vh]"><span className="text-red-500">{error}</span></div>;
   if (!fetched) return <div className="flex justify-center items-center min-h-[50vh]"><LoadingSpinner /></div>;
