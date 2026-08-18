@@ -231,34 +231,34 @@ const StatusPage = () => {
           {/* View tabs — icon only */}
           <div className="flex items-center bg-slate-200 dark:bg-white/[0.08] rounded-lg p-0.5 shrink-0">
             <button onClick={() => switchTab('agents')}
-              className={`w-9 h-9 flex items-center justify-center rounded-md transition-all ${
+              className={`p-1.5 rounded-md transition-colors ${
                 activeTab === 'agents'
                   ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600'
                   : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
               }`}
               title="服务器状态"
             >
-              <Server size={16} />
+              <Server size={14} />
             </button>
             <button onClick={() => switchTab('monitors')}
-              className={`w-9 h-9 flex items-center justify-center rounded-md transition-all ${
+              className={`p-1.5 rounded-md transition-colors ${
                 activeTab === 'monitors'
                   ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600'
                   : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
               }`}
               title="API服务状态"
             >
-              <Activity size={16} />
+              <Activity size={14} />
             </button>
             <button onClick={() => switchTab('map')}
-              className={`w-9 h-9 flex items-center justify-center rounded-md transition-all ${
+              className={`p-1.5 rounded-md transition-colors ${
                 activeTab === 'map'
                   ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600'
                   : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
               }`}
               title="服务器地图"
             >
-              <Globe size={16} />
+              <Globe size={14} />
             </button>
           </div>
 
