@@ -218,7 +218,7 @@ const StatusPage = () => {
         </div>
 
         {/* Search bar + view tabs + card size */}
-        <div className="mb-5 flex items-center gap-2.5">
+        <div className="mb-6 flex items-center gap-3">
           <div className="flex-1 flex items-center rounded-xl border-2 border-slate-200/60 dark:border-slate-700/60 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm transition-all focus-within:border-blue-400 dark:focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-500/10">
             <div className="flex items-center justify-center w-10 h-full shrink-0 text-slate-400">
               <Search size={16} />
@@ -229,12 +229,12 @@ const StatusPage = () => {
           </div>
 
           {/* View tabs — icon only */}
-          <div className="flex items-center bg-slate-200 dark:bg-white/[0.08] rounded-lg p-0.5 shrink-0">
+          <div className="flex items-center bg-slate-200 dark:bg-slate-700 rounded-lg p-0.5 shrink-0">
             <button onClick={() => switchTab('agents')}
               className={`p-1.5 rounded-md transition-colors ${
                 activeTab === 'agents'
                   ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600'
-                  : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
+                  : 'text-slate-400 hover:text-slate-600'
               }`}
               title="服务器状态"
             >
@@ -244,7 +244,7 @@ const StatusPage = () => {
               className={`p-1.5 rounded-md transition-colors ${
                 activeTab === 'monitors'
                   ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600'
-                  : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
+                  : 'text-slate-400 hover:text-slate-600'
               }`}
               title="API服务状态"
             >
@@ -254,7 +254,7 @@ const StatusPage = () => {
               className={`p-1.5 rounded-md transition-colors ${
                 activeTab === 'map'
                   ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600'
-                  : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
+                  : 'text-slate-400 hover:text-slate-600'
               }`}
               title="服务器地图"
             >
