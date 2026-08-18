@@ -289,9 +289,9 @@ const StatusPage = () => {
               <div className="overflow-x-auto max-w-full mx-auto mb-4 scrollbar-hidden">
                 <div className="relative grid mx-auto bg-slate-200 dark:bg-white/[0.08] rounded-lg p-1"
                   style={{ gridTemplateColumns: `repeat(${cats.length + 1}, 1fr)`, width: 'fit-content' }}>
-                  <div className={`absolute top-1 bottom-1 rounded-md bg-white dark:bg-slate-700 shadow-sm transition-all duration-300 ease-in-out`}
+                  <div className={`absolute top-1 bottom-1 left-1 right-1 rounded-md bg-white dark:bg-slate-700 shadow-sm transition-all duration-300 ease-in-out`}
                     style={{
-                      width: `calc(100% / ${cats.length + 1})`,
+                      width: `calc((100% - 8px) / ${cats.length + 1})`,
                       transform: `translateX(${(categoryFilter ? cats.indexOf(categoryFilter) + 1 : 0) * 100}%)`,
                     }}
                   />
