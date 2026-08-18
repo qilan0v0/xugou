@@ -217,8 +217,8 @@ const StatusPage = () => {
           ))}
         </div>
 
-        {/* Search bar + card size toggle */}
-        <div className="mb-4 flex items-center gap-3">
+        {/* Search bar + view tabs + card size */}
+        <div className="mb-5 flex items-center gap-2.5">
           <div className="flex-1 flex items-center rounded-xl border-2 border-slate-200/60 dark:border-slate-700/60 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm transition-all focus-within:border-blue-400 dark:focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-500/10">
             <div className="flex items-center justify-center w-10 h-full shrink-0 text-slate-400">
               <Search size={16} />
@@ -227,6 +227,42 @@ const StatusPage = () => {
               placeholder="搜索服务器、API服务、标签..."
               className="flex-1 min-w-0 pr-3 py-2.5 bg-transparent text-sm text-slate-700 dark:text-slate-300 placeholder:text-slate-400 focus:outline-none" />
           </div>
+
+          {/* View tabs — icon only */}
+          <div className="flex items-center bg-slate-200 dark:bg-white/[0.08] rounded-lg p-0.5 shrink-0">
+            <button onClick={() => switchTab('agents')}
+              className={`w-9 h-9 flex items-center justify-center rounded-md transition-all ${
+                activeTab === 'agents'
+                  ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600'
+                  : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
+              }`}
+              title="服务器状态"
+            >
+              <Server size={16} />
+            </button>
+            <button onClick={() => switchTab('monitors')}
+              className={`w-9 h-9 flex items-center justify-center rounded-md transition-all ${
+                activeTab === 'monitors'
+                  ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600'
+                  : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
+              }`}
+              title="API服务状态"
+            >
+              <Activity size={16} />
+            </button>
+            <button onClick={() => switchTab('map')}
+              className={`w-9 h-9 flex items-center justify-center rounded-md transition-all ${
+                activeTab === 'map'
+                  ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600'
+                  : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
+              }`}
+              title="服务器地图"
+            >
+              <Globe size={16} />
+            </button>
+          </div>
+
+          {/* Card size toggle — only for agents tab */}
           {activeTab === 'agents' && (
             <div className="flex items-center bg-slate-200 dark:bg-slate-700 rounded-lg p-0.5 shrink-0">
               {(['small', 'medium', 'large'] as const).map((s) => {
@@ -243,54 +279,6 @@ const StatusPage = () => {
               })}
             </div>
           )}
-        </div>
-
-        {/* Tab switcher */}
-        <div className="flex justify-center mb-5">
-          <div className="relative grid grid-cols-3 bg-slate-200 dark:bg-white/[0.08] rounded-xl overflow-hidden">
-            {/* Sliding indicator */}
-            <div className={`absolute inset-0 p-0.5 transition-all duration-300 ease-in-out`}
-              style={{
-                width: '33.333%',
-                transform: activeTab === 'agents' ? 'translateX(0)' : activeTab === 'monitors' ? 'translateX(100%)' : 'translateX(200%)',
-              }}
-            >
-              <div className="w-full h-full rounded-[10px] bg-white dark:bg-slate-700 shadow-sm" />
-            </div>
-            <button
-              onClick={() => switchTab('agents')}
-              className={`relative z-10 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-colors duration-150 ${
-                activeTab === 'agents'
-                  ? 'text-blue-600 dark:text-blue-400'
-                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-              }`}
-            >
-              <Server size={15} />
-              服务器状态
-            </button>
-            <button
-              onClick={() => switchTab('monitors')}
-              className={`relative z-10 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-colors duration-150 ${
-                activeTab === 'monitors'
-                  ? 'text-blue-600 dark:text-blue-400'
-                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-              }`}
-            >
-              <Activity size={15} />
-              API服务状态
-            </button>
-            <button
-              onClick={() => switchTab('map')}
-              className={`relative z-10 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-colors duration-150 ${
-                activeTab === 'map'
-                  ? 'text-blue-600 dark:text-blue-400'
-                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-              }`}
-            >
-              <Globe size={15} />
-              服务器地图
-            </button>
-          </div>
         </div>
 
         {/* ── 服务器状态 tab ── */}
